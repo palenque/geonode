@@ -292,8 +292,8 @@ def get_bbox(filename):
     return [bbox_x0, bbox_x1, bbox_y0, bbox_y1]
 
 
-def file_upload(filename, name=None, user=None, title=None, abstract=None, 
-                skip=True, overwrite=False, keywords=[], charset='UTF-8', layer_type=None):
+def file_upload(filename, name=None, user=None, title=None, abstract=None,
+                skip=True, overwrite=False, keywords=[], charset='UTF-8'):
     """Saves a layer in GeoNode asking as little information as possible.
        Only filename is required, user and title are optional.
     """
@@ -327,7 +327,6 @@ def file_upload(filename, name=None, user=None, title=None, abstract=None,
     bbox_x0, bbox_x1, bbox_y0, bbox_y1 = get_bbox(filename)
 
     defaults = {
-        'layer_type': layer_type,
         'upload_session': upload_session,
         'title': title,
         'abstract': abstract,

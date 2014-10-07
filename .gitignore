@@ -12,6 +12,7 @@ geonode/development.db
 /geoserver/
 downloaded
 
+docs
 docs/i18n/pot/
 
 # Static media handling

@@ -473,6 +473,16 @@ class LayerResource(CommonModelApi):
         excludes = ['csw_anytext', 'metadata_xml']
 
 
+class MonitorResource(CommonModelApi):
+
+    """Monitor API"""
+
+    class Meta(CommonMetaApi):
+        queryset = Layer.objects.filter(layer_type='monitor').distinct().order_by('-date')
+        resource_name = 'monitors'
+        excludes = ['csw_anytext', 'metadata_xml']
+
+
 class MapResource(CommonModelApi):
 
     """Maps API"""

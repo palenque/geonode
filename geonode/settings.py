@@ -45,19 +45,24 @@ os.environ['DJANGO_LIVE_TEST_SERVER_ADDRESS'] = 'localhost:8000'
 # Defines settings for development
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(PROJECT_ROOT, 'development.db'),
-    },
+         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+         'NAME': 'geonode',
+         'USER': 'geonode',
+         'PASSWORD': 'geonode',
+         'HOST' : 'localhost',
+         'PORT' : '5432',         
+     },
     # vector datastore for uploads
-    # 'datastore' : {
-    #    'ENGINE': 'django.contrib.gis.db.backends.postgis',
-    #    'NAME': '',
-    #    'USER' : '',
-    #    'PASSWORD' : '',
-    #    'HOST' : '',
-    #    'PORT' : '',
-    # }
+    'datastore' : {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'geonode-imports',
+        'USER' : 'geonode',
+        'PASSWORD' : 'geonode',
+        'HOST' : 'localhost',
+        'PORT' : '5432',
+    }
 }
+
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -68,22 +73,22 @@ TIME_ZONE = 'America/Chicago'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en'
+LANGUAGE_CODE = 'es'
 
 LANGUAGES = (
     ('en', 'English'),
     ('es', 'Español'),
-    ('it', 'Italiano'),
-    ('fr', 'Français'),
-    ('de', 'Deutsch'),
-    ('el', 'Ελληνικά'),
-    ('id', 'Bahasa Indonesia'),
-    ('zh-cn', '中文'),
-    ('ja', '日本語'),
-    ('fa', 'Persian'),
-    ('pt', 'Portuguese'),
-    ('ru', 'Russian'),
-    ('vi', 'Vietnamese'),
+    # ('it', 'Italiano'),
+    # ('fr', 'Français'),
+    # ('de', 'Deutsch'),
+    # ('el', 'Ελληνικά'),
+    # ('id', 'Bahasa Indonesia'),
+    # ('zh-cn', '中文'),
+    # ('ja', '日本語'),
+    # ('fa', 'Persian'),
+    # ('pt', 'Portuguese'),
+    # ('ru', 'Russian'),
+    # ('vi', 'Vietnamese'),
     # ('fil', 'Filipino'),
 
 )
@@ -154,37 +159,10 @@ LOGOUT_URL = '/account/logout/'
 
 # Documents application
 ALLOWED_DOCUMENT_TYPES = [
-    'doc', 'docx', 'gif', 'jpg', 'jpeg', 'ods', 'odt', 'odp', 'pdf', 'png', 'ppt',
-    'pptx', 'rar', 'tif', 'tiff', 'txt', 'xls', 'xlsx', 'xml', 'zip', 'gz'
+    'doc', 'docx', 'gif', 'jpg', 'jpeg', 'ods', 'odt', 'pdf', 'png', 'ppt',
+    'rar', 'tif', 'tiff', 'txt', 'xls', 'xlsx', 'xml', 'zip', 'yld'
 ]
-MAX_DOCUMENT_SIZE = 2  # MB
-DOCUMENT_TYPE_MAP = {
-    'txt': 'text',
-    'log': 'text',
-    'doc': 'text',
-    'docx': 'text',
-    'ods': 'text',
-    'odt': 'text',
-    'xls': 'text',
-    'xlsx': 'text',
-    'xml': 'text',
-
-    'gif': 'image',
-    'jpg': 'image',
-    'jpeg': 'image',
-    'png': 'image',
-    'tif': 'image',
-    'tiff': 'image',
-
-    'odp': 'presentation',
-    'ppt': 'presentation',
-    'pptx': 'presentation',
-    'pdf': 'presentation',
-
-    'rar': 'archive',
-    'gz': 'archive',
-    'zip': 'archive',
-}
+MAX_DOCUMENT_SIZE = 8  # MB
 
 
 GEONODE_APPS = (
@@ -194,6 +172,7 @@ GEONODE_APPS = (
     'geonode.people',
     'geonode.base',
     'geonode.layers',
+    'geonode.monitors',
     'geonode.maps',
     'geonode.proxy',
     'geonode.security',
@@ -243,6 +222,8 @@ INSTALLED_APPS = (
     'geoexplorer',
     'leaflet',
     'django_extensions',
+    'south',
+
     # 'haystack',
     'autocomplete_light',
     'mptt',
@@ -399,7 +380,18 @@ ACTSTREAM_SETTINGS = {
 REGISTRATION_OPEN = False
 
 # Email for users to contact admins.
-THEME_ACCOUNT_CONTACT_EMAIL = 'admin@example.com'
+THEME_ACCOUNT_CONTACT_EMAIL = 'palenque@gmail.com'
+
+ADMINS = (
+    ('Gabriel Carmona', 'gabrielscarmona@gmail.com'),
+)
+
+# EMAIL
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'palenque@gmail.com'
+EMAIL_HOST_PASSWORD = 'p4l3nqu3'
 
 #
 # Test Settings
@@ -457,7 +449,7 @@ OGC_SERVER = {
         'BACKEND_WRITE_ENABLED': True,
         'WPS_ENABLED': True,
         # Set to name of database in DATABASES dictionary to enable
-        'DATASTORE': '',  # 'datastore',
+        'DATASTORE': 'datastore',
         'TIMEOUT': 10  # number of seconds to allow for HTTP requests
     }
 }

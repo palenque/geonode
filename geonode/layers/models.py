@@ -34,6 +34,8 @@ from geonode.base.models import ResourceBase, ResourceBaseManager, resourcebase_
 from geonode.people.utils import get_valid_user
 from agon_ratings.models import OverallRating
 
+from .enumerations import MONITOR_FIELDS, MAGNITUDES
+
 logger = logging.getLogger("geonode.layers.models")
 
 shp_exts = ['.shp', ]
@@ -82,6 +84,7 @@ class Layer(ResourceBase):
     storeType = models.CharField(max_length=128)
     name = models.CharField(max_length=128)
     typename = models.CharField(max_length=128, null=True, blank=True)
+    layer_type = models.CharField(max_length=128, null=True, blank=True)
 
     default_style = models.ForeignKey(
         Style,
@@ -176,6 +179,8 @@ class Layer(ResourceBase):
         return base_files.get()
 
     def get_absolute_url(self):
+        if self.layer_type == 'monitor':
+            return reverse('monitor_detail', args=(self.service_typename,))
         return reverse('layer_detail', args=(self.service_typename,))
 
     def attribute_config(self):
@@ -312,6 +317,22 @@ class Attribute(models.Model):
         _('display order'),
         help_text=_('specifies the order in which attribute should be displayed in identify results'),
         default=1)
+    field = models.CharField(
+        _('field mapping'),
+        choices=MONITOR_FIELDS,
+        help_text=_('monitor field'),
+        max_length=255,
+        blank=True,
+        null=True,
+        unique=False)
+    magnitude = models.CharField(
+        _('magnitude'),
+        choices=MAGNITUDES,
+        help_text=_('magnitude'),
+        max_length=255,
+        blank=True,
+        null=True,
+        unique=False)
 
     # statistical derivations
     count = models.IntegerField(
