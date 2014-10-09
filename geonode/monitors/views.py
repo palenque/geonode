@@ -269,13 +269,11 @@ def _precalculate_yield(layer):
     # TODO: ejecutar la primera vez y solo si hay cambio de atributos
 
     cursor.execute(
-        'UPDATE %s SET rendimiento_humedo = "%s" * "%s";' % (layer.name, attrs['MASA_SECO'], attrs['HUMEDAD'])
-        # 'UPDATE %s SET rendimiento_humedo = "%s" * "%s" * "%s";' % (layer.name, attrs['MASA_SECO'], attrs['DISTANCIA'], attrs['ANCHO'])
+        'UPDATE %s SET rendimiento_humedo = "%s" * "%s" * "%s";' % (layer.name, attrs['MASA_SECO'], attrs['DISTANCIA'], attrs['ANCHO'])
     )
     
     cursor.execute(
-        'UPDATE %s SET rendimiento_seco = "%s" * "%s";' % (layer.name, attrs['MASA_HUMEDO'], attrs['HUMEDAD'])
-        # 'UPDATE %s SET rendimiento_seco = "%s" * "%s" * "%s";' % (layer.name, attrs['MASA_HUMEDO'], attrs['DISTANCIA'], attrs['ANCHO'])
+        'UPDATE %s SET rendimiento_seco = "%s" * "%s" * "%s";' % (layer.name, attrs['MASA_HUMEDO'], attrs['DISTANCIA'], attrs['ANCHO'])
     )
 
 
