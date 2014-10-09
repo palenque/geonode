@@ -42,6 +42,8 @@ DEBUG_STATIC = False
 # geonode to be listening for GeoServer auth requests.
 os.environ['DJANGO_LIVE_TEST_SERVER_ADDRESS'] = 'localhost:8000'
 
+ALLOWED_HOSTS = ['protopalenque.ddns.net', '172.31.30.64']
+
 # Defines settings for development
 DATABASES = {
     'default': {
@@ -411,7 +413,7 @@ NOSE_ARGS = [
 # GeoNode specific settings
 #
 
-SITEURL = "http://localhost:8000/"
+SITEURL = "http://protopalenque.ddns.net/"
 
 USE_QUEUE = False
 
@@ -438,7 +440,7 @@ OGC_SERVER = {
         # PUBLIC_LOCATION needs to be kept like this because in dev mode
         # the proxy won't work and the integration tests will fail
         # the entire block has to be overridden in the local_settings
-        'PUBLIC_LOCATION': 'http://localhost:8080/geoserver/',
+        'PUBLIC_LOCATION': 'http://protopalenque.ddns.net/geoserver/',
         'USER': 'admin',
         'PASSWORD': 'geoserver',
         'MAPFISH_PRINT_ENABLED': True,
@@ -447,7 +449,7 @@ OGC_SERVER = {
         'GEOGIT_ENABLED': False,
         'WMST_ENABLED': False,
         'BACKEND_WRITE_ENABLED': True,
-        'WPS_ENABLED': True,
+        'WPS_ENABLED': False,
         # Set to name of database in DATABASES dictionary to enable
         'DATASTORE': 'datastore',
         'TIMEOUT': 10  # number of seconds to allow for HTTP requests
