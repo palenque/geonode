@@ -53,24 +53,34 @@ MONITOR_FIELDS = (
     ('TIEMPO','Tiempo s'),
 )
 
-MAGNITUD_VOLUMEN = (
+VOLUME_MAGNITUDES = (
+    ('m3','m3'),
+    ('cm3','cm3'),
 )
 
-MAGNITUD_WEIGTH = (
+YIELD_MAGNITUDES = (
+    ('ton/ha','ton/ha'),
+)
+
+FLOW_MAGNITUDES = (
+    ('kg/s','kg/s'),
+)
+
+DISTANCE_MAGNITUDES = (
+    ('m','Metros'),
+    ('cm','Centimetros'),
+)
+
+TIME_MAGNITUDES = (
+    ('s','Segundos'),
+    ('min','Minutos'),
+    ('h','Horas'),
+)
+
+WEIGHT_MAGNITUDES = (
     ('kg','kg'),
-    ('MASA_HUMEDO','Masa (húmedo) '),
-    ('VOLUMEN_SECO','Volumen (seco) m3'),
-    ('VOLUMEN_HUMEDO','Volumen (húmedo)'),
-    ('RENDIMIENTO_SECO','Rendimiento (seco) ton/ha'),
-    ('RENDIMIENTO_HUMEDO','Rendimiento (húmedo)'),
-    ('FLUJO','Flujo kg/s'),
-    ('HUMEDAD','Humedad '),
-    ('ALTITUD','Altitud m'),
-    ('ANCHO','Ancho m'),
-    ('DISTANCIA','Distancia m'),
-    ('VELOCIDAD','Velocidad m/s'),
-    ('TIEMPO','Tiempo s'),
+    ('gram','gr'),
 )
 
-MAGNITUDES = MAGNITUD_VOLUMEN + MAGNITUD_WEIGTH
+MAGNITUDES = WEIGHT_MAGNITUDES + VOLUME_MAGNITUDES
 

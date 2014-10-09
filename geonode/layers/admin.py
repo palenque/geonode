@@ -41,7 +41,7 @@ class LayerAdmin(MediaTranslationAdmin):
         'category')
     list_display_links = ('id',)
     list_editable = ('title', 'category')
-    list_filter = ('owner', 'category',
+    list_filter = ('owner', 'category', 'layer_type',
                    'restriction_code_type__identifier', 'date', 'date_type')
     search_fields = ('typename', 'title', 'abstract', 'purpose',)
     filter_horizontal = ('contacts',)
@@ -61,8 +61,10 @@ class AttributeAdmin(admin.ModelAdmin):
         'description',
         'attribute_label',
         'attribute_type',
-        'display_order')
-    list_filter = ('layer', 'attribute_type')
+        'display_order',
+        'field',
+        'magnitude',)
+    list_filter = ('layer', 'attribute_type',)
     search_fields = ('attribute', 'attribute_label',)
 
 

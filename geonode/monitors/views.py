@@ -251,6 +251,33 @@ def monitor_detail(request, layername, template='monitors/monitor_detail.html'):
 
     return render_to_response(template, RequestContext(request, context_dict))
 
+def _precalculate_yield(layer):
+    'Create fields and precalculate yield.'
+
+    from django.db import connections
+
+    cursor = connections['datastore'].cursor()
+
+    try:
+        cursor.execute("ALTER TABLE %s ADD rendimiento_humedo double precision;" % layer.name)
+        cursor.execute("ALTER TABLE %s ADD rendimiento_seco double precision;" % layer.name)
+    except:
+        pass
+
+    attrs = { a.field: a.attribute  for a in layer.attribute_set.all() if a.field}
+
+    # TODO: ejecutar la primera vez y solo si hay cambio de atributos
+
+    cursor.execute(
+        'UPDATE %s SET rendimiento_humedo = "%s" * "%s";' % (layer.name, attrs['MASA_SECO'], attrs['HUMEDAD'])
+        # 'UPDATE %s SET rendimiento_humedo = "%s" * "%s" * "%s";' % (layer.name, attrs['MASA_SECO'], attrs['DISTANCIA'], attrs['ANCHO'])
+    )
+    
+    cursor.execute(
+        'UPDATE %s SET rendimiento_seco = "%s" * "%s";' % (layer.name, attrs['MASA_HUMEDO'], attrs['HUMEDAD'])
+        # 'UPDATE %s SET rendimiento_seco = "%s" * "%s" * "%s";' % (layer.name, attrs['MASA_HUMEDO'], attrs['DISTANCIA'], attrs['ANCHO'])
+    )
+
 
 @login_required
 def monitor_metadata(request, layername, template='monitors/monitor_metadata.html'):
@@ -280,26 +307,27 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             instance=layer,
             prefix="layer_attribute_set",
             queryset=Attribute.objects.order_by('display_order'))
-        category_form = CategoryForm(
-            request.POST,
-            prefix="category_choice_field",
-            initial=int(
-                request.POST["category_choice_field"]) if "category_choice_field" in request.POST else None)
+        # category_form = CategoryForm(
+        #     request.POST,
+        #     prefix="category_choice_field",
+        #     initial=int(
+        #         request.POST["category_choice_field"]) if "category_choice_field" in request.POST else None)
     else:
         layer_form = MonitorForm(instance=layer, prefix="resource")
         attribute_form = layer_attribute_set(
             instance=layer,
             prefix="layer_attribute_set",
             queryset=Attribute.objects.order_by('display_order'))
-        category_form = CategoryForm(
-            prefix="category_choice_field",
-            initial=topic_category.id if topic_category else None)
+        # category_form = CategoryForm(
+        #     prefix="category_choice_field",
+        #     initial=topic_category.id if topic_category else None)
 
     if (request.method == "POST"
         and layer_form.is_valid()
         and attribute_form.is_valid()
-        and category_form.is_valid()
+        # and category_form.is_valid()
     ):
+
         new_poc = layer_form.cleaned_data['poc']
         new_author = layer_form.cleaned_data['metadata_author']
         new_keywords = layer_form.cleaned_data['keywords']
@@ -324,8 +352,8 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             if author_form.has_changed and author_form.is_valid():
                 new_author = author_form.save()
 
-        new_category = TopicCategory.objects.get(
-            id=category_form.cleaned_data['category_choice_field'])
+        # new_category = TopicCategory.objects.get(
+        #     id=category_form.cleaned_data['category_choice_field'])
 
         for form in attribute_form.cleaned_data:
             la = Attribute.objects.get(id=int(form['id'].id))
@@ -333,7 +361,11 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             la.attribute_label = form["attribute_label"]
             la.visible = form["visible"]
             la.display_order = form["display_order"]
+            la.field = form["field"]
+            la.magnitude = form["magnitude"]
             la.save()
+
+        _precalculate_yield(layer)
 
         if new_poc is not None and new_author is not None:
             the_layer = layer_form.save()
@@ -341,7 +373,7 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             the_layer.metadata_author = new_author
             the_layer.keywords.clear()
             the_layer.keywords.add(*new_keywords)
-            the_layer.category = new_category
+            # the_layer.category = new_category
             the_layer.save()
             return HttpResponseRedirect(
                 reverse(
@@ -370,7 +402,7 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
         "poc_form": poc_form,
         "author_form": author_form,
         "attribute_form": attribute_form,
-        "category_form": category_form,
+        # "category_form": category_form,
     }))
 
 

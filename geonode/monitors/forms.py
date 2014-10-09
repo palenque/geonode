@@ -47,11 +47,12 @@ class JSONField(forms.CharField):
 
 
 class MonitorForm(TranslationModelForm):
-    date = forms.DateTimeField(widget=forms.SplitDateTimeWidget)
-    date.widget.widgets[0].attrs = {
-        "class": "datepicker",
-        'data-date-format': "yyyy-mm-dd"}
-    date.widget.widgets[1].attrs = {"class": "time"}
+    # date = forms.DateTimeField(widget=forms.SplitDateTimeWidget)
+    # date.widget.widgets[0].attrs = {
+    #     "class": "datepicker",
+    #     'data-date-format': "yyyy-mm-dd"}
+    # date.widget.widgets[1].attrs = {"class": "time"}
+    
     temporal_extent_start = forms.DateField(
         required=False,
         widget=forms.DateInput(
@@ -85,15 +86,42 @@ class MonitorForm(TranslationModelForm):
         required=False,
         help_text=_("A space or comma-separated list of keywords"))
 
-    regions = TreeNodeMultipleChoiceField(
-        required=False,
-        queryset=Region.objects.all(),
-        level_indicator=u'___')
-    regions.widget.attrs = {"size": 20}
+    # regions = TreeNodeMultipleChoiceField(
+    #     required=False,
+    #     queryset=Region.objects.all(),
+    #     level_indicator=u'___')
+    # regions.widget.attrs = {"size": 20}
 
     class Meta:
         model = Layer
         exclude = (
+            'layer_type',
+            'license',
+            'language',
+            'spatial_representation_type',
+            'featured',
+            'thumbnail_url',
+            'detail_url',
+            'rating',
+            'purpose',
+            'abstract',
+            'edition',
+            'maintenance_frequency',
+            'regions',
+            'restriction_code_type',
+            'date_type',
+            'keywords',
+            'charset',
+            'upload_session',
+            'data_quality_statement',
+            'distribution_description',
+            'distribution_url',
+            'supplemental_information',
+            'constraints_other',
+            'service',
+            'date',
+            'metadata_author',
+
             'contacts',
             'workspace',
             'store',
@@ -236,14 +264,17 @@ class MonitorAttributeForm(forms.ModelForm):
         self.fields['attribute'].widget.attrs['readonly'] = True
         self.fields['display_order'].widget.attrs['size'] = 3
 
-    # def clean(self):
-    #     cleaned_data = super(MonitorAttributeForm, self).clean()
-        # raise forms.ValidationError("Did not send for 'help' in ")
+    def clean(self):
+        cleaned_data = super(MonitorAttributeForm, self).clean()
+        if cleaned_data['field']:
+            cleaned_data['attribute_label'] = cleaned_data['field'].lower()
+        return cleaned_data
 
     class Meta:
         model = Attribute
         exclude = (
             # 'attribute_type',
+
             'count',
             'min',
             'max',

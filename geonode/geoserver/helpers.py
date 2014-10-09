@@ -894,6 +894,7 @@ def _create_db_featurestore(name, data, overwrite=False, charset="UTF-8"):
     If the import into the database fails then delete the store
     (and delete the PostGIS table for it).
     """
+
     cat = gs_catalog
     dsname = ogc_server_settings.DATASTORE
 
@@ -916,9 +917,9 @@ def _create_db_featurestore(name, data, overwrite=False, charset="UTF-8"):
         ds = cat.get_store(dsname)
 
     try:
-        cat.add_data_to_store(ds, name, data,
-                              overwrite=overwrite,
-                              charset=charset)
+        # modificado para que suba datos solo la primera vez
+        if not cat.get_layer(name):
+            cat.add_data_to_store(ds, name, data, overwrite=overwrite, charset=charset)
         return ds, cat.get_resource(name, store=ds)
     except Exception:
         # FIXME(Ariel): This is not a good idea, today there was a problem
