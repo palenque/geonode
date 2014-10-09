@@ -322,7 +322,10 @@ define(function (require, exports) {
             });
         } else if (resp.success === true) {
             self.polling = false;
-            self.displayUploadedLayerLinks(resp);
+            if(typeof(resp.type)=='undefined')
+                self.displayUploadedLayerLinks(resp);
+            else
+                window.location = resp.url + '/metadata'
         } else {
             self.polling = false;
             self.logStatus({
