@@ -34,7 +34,7 @@
             	{% if field.errors %}
                 	<li>{{ field.errors }}</li>
             	{% endif %}
-        	{% endfor %}
+          {% endfor %}
         {% endif %}
 
         {% if category_form.errors %}
@@ -77,7 +77,6 @@
             <th style="text-align: left;">{% trans "Magnitude" %}</th>
             <th style="text-align: left;">{% trans "Description" %}</th>
             <th style="text-align: left;">{% trans "Display Order" %}</th>
-            <th style="text-align: left;">{% trans "Type" %}</th>
         </tr>
           {% for form in attribute_form.forms %}
           {% if form.attribute %}
@@ -88,11 +87,11 @@
             <td> {{form.magnitude}}</td>
             <td> {{form.description}}</td>
             <td> {{form.display_order}}</td>
-            <td> {{form.attribute_type}}</td>
           </tr>
           {% endif %}
           {% endfor %}
       </table>
+
     <fieldset class="form-controls modal-forms modal hide fade" id="poc_form" >
       <h2>{% trans "Point of Contact" %}</h2>
       {{ poc_form|as_bootstrap }}

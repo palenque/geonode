@@ -257,6 +257,8 @@ class LayerDescriptionForm(forms.Form):
     keywords = forms.CharField(500, required=False)
 
 
+from geonode.layers.enumerations import MONITOR_FIELD_MAGNITUDES
+
 class MonitorAttributeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
@@ -265,16 +267,21 @@ class MonitorAttributeForm(forms.ModelForm):
         self.fields['display_order'].widget.attrs['size'] = 3
 
     def clean(self):
+        'Validate magnitudes.'
+
         cleaned_data = super(MonitorAttributeForm, self).clean()
         if cleaned_data['field']:
+            mg = dict(MONITOR_FIELD_MAGNITUDES)
+            if (mg.has_key(cleaned_data['field']) and 
+                cleaned_data['magnitude'] not in dict(mg[cleaned_data['field']]).keys()):
+                raise forms.ValidationError("Magnitude not valid: %s" % cleaned_data['field'])
             cleaned_data['attribute_label'] = cleaned_data['field'].lower()
         return cleaned_data
 
     class Meta:
         model = Attribute
         exclude = (
-            # 'attribute_type',
-
+            'attribute_type',
             'count',
             'min',
             'max',

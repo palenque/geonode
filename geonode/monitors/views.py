@@ -34,6 +34,7 @@ from django.utils import simplejson as json
 from django.utils.html import escape
 from django.template.defaultfilters import slugify
 from django.forms.models import inlineformset_factory
+from django import forms
 from django.db.models import F
 
 from geonode.services.models import Service
@@ -251,8 +252,9 @@ def monitor_detail(request, layername, template='monitors/monitor_detail.html'):
 
     return render_to_response(template, RequestContext(request, context_dict))
 
+
 def _precalculate_yield(layer):
-    'Create fields and precalculate yield.'
+    'Creates fields and precalculate yield.'
 
     from django.db import connections
 
@@ -269,12 +271,40 @@ def _precalculate_yield(layer):
     # TODO: ejecutar la primera vez y solo si hay cambio de atributos
 
     cursor.execute(
-        'UPDATE %s SET rendimiento_humedo = "%s" * "%s" * "%s";' % (layer.name, attrs['MASA_SECO'], attrs['DISTANCIA'], attrs['ANCHO'])
+        'UPDATE %s SET rendimiento_humedo = "%s" * "%s" * "%s";' % (
+            layer.name, attrs['MASA_SECO'], attrs['DISTANCIA'], attrs['ANCHO']
+        )
     )
     
     cursor.execute(
-        'UPDATE %s SET rendimiento_seco = "%s" * "%s" * "%s";' % (layer.name, attrs['MASA_HUMEDO'], attrs['DISTANCIA'], attrs['ANCHO'])
+        'UPDATE %s SET rendimiento_seco = "%s" * "%s" * "%s";' % (
+            layer.name, attrs['MASA_HUMEDO'], attrs['DISTANCIA'], attrs['ANCHO']
+        )
     )
+
+
+def _rename_fields(layer):
+    'Renames layer table fields to user mapping.'
+
+    pass
+
+
+def _validate_required_attributes(attribute_form):
+    'Validates required attribute mapping'    
+
+    from django.forms.util import ErrorList
+
+    fields = [ attr['field'] for attr in attribute_form.cleaned_data if attr['field'] ]
+
+    is_valid = True
+
+    for rf in ['MASA_HUMEDO', 'MASA_SECO', 'ANCHO', 'DISTANCIA']:
+        if rf not in fields:
+            # FIXME: 
+            attribute_form._errors[0][rf] = u' association required' 
+            is_valid = False
+
+    return is_valid
 
 
 @login_required
@@ -304,7 +334,9 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             request.POST,
             instance=layer,
             prefix="layer_attribute_set",
-            queryset=Attribute.objects.order_by('display_order'))
+            queryset=Attribute.objects.exclude(
+                attribute__in=['rendimiento_humedo', 'rendimiento_seco']
+            ).order_by('display_order'))
         # category_form = CategoryForm(
         #     request.POST,
         #     prefix="category_choice_field",
@@ -315,7 +347,9 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
         attribute_form = layer_attribute_set(
             instance=layer,
             prefix="layer_attribute_set",
-            queryset=Attribute.objects.order_by('display_order'))
+            queryset=Attribute.objects.exclude(
+                attribute__in=['rendimiento_humedo', 'rendimiento_seco']
+            ).order_by('display_order'))
         # category_form = CategoryForm(
         #     prefix="category_choice_field",
         #     initial=topic_category.id if topic_category else None)
@@ -323,6 +357,7 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
     if (request.method == "POST"
         and layer_form.is_valid()
         and attribute_form.is_valid()
+        and _validate_required_attributes(attribute_form)
         # and category_form.is_valid()
     ):
 
@@ -364,6 +399,7 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             la.save()
 
         _precalculate_yield(layer)
+        _rename_fields(layer)
 
         if new_poc is not None and new_author is not None:
             the_layer = layer_form.save()
