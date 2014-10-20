@@ -38,19 +38,19 @@ LAYER_ATTRIBUTE_NUMERIC_DATA_TYPES = [
 
 
 MONITOR_FIELDS = (
-    ('MASA_SECO','Masa (seco) kg'),
-    ('MASA_HUMEDO','Masa (húmedo) '),
-    ('VOLUMEN_SECO','Volumen (seco) m3'),
+    ('MASA_SECO','Masa (seco)'),
+    ('MASA_HUMEDO','Masa (húmedo)'),
+    ('VOLUMEN_SECO','Volumen (seco)'),
     ('VOLUMEN_HUMEDO','Volumen (húmedo)'),
-    ('RENDIMIENTO_SECO','Rendimiento (seco) ton/ha'),
+    ('RENDIMIENTO_SECO','Rendimiento (seco)'),
     ('RENDIMIENTO_HUMEDO','Rendimiento (húmedo)'),
-    ('FLUJO','Flujo kg/s'),
-    ('HUMEDAD','Humedad '),
-    ('ALTITUD','Altitud m'),
-    ('ANCHO','Ancho m'),
-    ('DISTANCIA','Distancia m'),
-    ('VELOCIDAD','Velocidad m/s'),
-    ('TIEMPO','Tiempo s'),
+    ('FLUJO','Flujo'),
+    ('HUMEDAD','Humedad'),
+    ('ALTITUD','Altitud'),
+    ('ANCHO','Ancho'),
+    ('DISTANCIA','Distancia'),
+    ('VELOCIDAD','Velocidad'),
+    ('TIEMPO','Tiempo'),
 )
 
 
@@ -73,14 +73,14 @@ FLOW_MAGNITUDES = (
 )
 
 DISTANCE_MAGNITUDES = (
-    ('m','Metros'),
-    ('cm','Centimetros'),
+    ('m','m'),
+    ('cm','cm'),
 )
 
 TIME_MAGNITUDES = (
-    ('s','Segundos'),
-    ('min','Minutos'),
-    ('h','Horas'),
+    ('s','s'),
+    ('min','min'),
+    ('h','h'),
 )
 
 WEIGHT_MAGNITUDES = (

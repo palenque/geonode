@@ -99,6 +99,7 @@ def _resolve_layer(request, typename, permission='base.view_resourcebase',
 
 @login_required
 def monitor_upload(request, template='upload/monitor_upload.html'):
+    
     if request.method == 'GET':
         ctx = {
             'charsets': CHARSETS
@@ -168,6 +169,7 @@ def monitor_upload(request, template='upload/monitor_upload.html'):
 
         if out['success']:
             status_code = 200
+            out['layer_id'] = saved_layer.id
         else:
             status_code = 500
         
@@ -261,8 +263,8 @@ def _precalculate_yield(layer):
     cursor = connections['datastore'].cursor()
 
     try:
-        cursor.execute("ALTER TABLE %s ADD rendimiento_humedo double precision;" % layer.name)
-        cursor.execute("ALTER TABLE %s ADD rendimiento_seco double precision;" % layer.name)
+        cursor.execute("ALTER TABLE %s ADD RENDIMIENTO_HUMEDO double precision;" % layer.name)
+        cursor.execute("ALTER TABLE %s ADD RENDIMIENTO_SECO double precision;" % layer.name)
     except:
         pass
 
@@ -271,36 +273,47 @@ def _precalculate_yield(layer):
     # TODO: ejecutar la primera vez y solo si hay cambio de atributos
 
     cursor.execute(
-        'UPDATE %s SET rendimiento_humedo = "%s" * "%s" * "%s";' % (
-            layer.name, attrs['MASA_SECO'], attrs['DISTANCIA'], attrs['ANCHO']
-        )
+        'UPDATE %s SET RENDIMIENTO_HUMEDO = "MASA_SECO" / ("ANCHO" * "DISTANCIA");' % layer.name
     )
     
     cursor.execute(
-        'UPDATE %s SET rendimiento_seco = "%s" * "%s" * "%s";' % (
-            layer.name, attrs['MASA_HUMEDO'], attrs['DISTANCIA'], attrs['ANCHO']
-        )
+        'UPDATE %s SET RENDIMIENTO_SECO = "MASA_HUMEDO" / ("ANCHO" * "DISTANCIA");' % layer.name
     )
 
 
 def _rename_fields(layer):
     'Renames layer table fields to user mapping.'
 
-    pass
+    from django.db import connections
+    
+    cursor = connections['datastore'].cursor()
+    
+    for attr in layer.attribute_set.filter(
+        field__in=['MASA_HUMEDO', 'MASA_SECO', 'ANCHO', 'DISTANCIA']
+    ):
+        try:
+            cursor.execute(
+                'ALTER TABLE %s RENAME COLUMN "%s" to "%s";' % (
+                    layer.name, attr.attribute, attr.field
+                )
+            )
+        except:
+            pass
 
 
 def _validate_required_attributes(attribute_form):
     'Validates required attribute mapping'    
-
-    from django.forms.util import ErrorList
 
     fields = [ attr['field'] for attr in attribute_form.cleaned_data if attr['field'] ]
 
     is_valid = True
 
     for rf in ['MASA_HUMEDO', 'MASA_SECO', 'ANCHO', 'DISTANCIA']:
+        if rf in fields and fields.count(rf) > 1:
+            attribute_form._errors[0][rf] = u' field repeated' 
+            is_valid = False             
         if rf not in fields:
-            # FIXME: 
+            # FIXME: validar contenido de _errors
             attribute_form._errors[0][rf] = u' association required' 
             is_valid = False
 
@@ -398,8 +411,9 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             la.magnitude = form["magnitude"]
             la.save()
 
+        # FIXME: no se actualiza los atributos despues de cambiar el campo
+        _rename_fields(layer) 
         _precalculate_yield(layer)
-        _rename_fields(layer)
 
         if new_poc is not None and new_author is not None:
             the_layer = layer_form.save()

@@ -3,6 +3,7 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.conf import settings
 
+from tastypie.authentication import ApiKeyAuthentication
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.resources import ModelResource
 from tastypie import fields
@@ -36,7 +37,38 @@ LAYER_SUBTYPES = {
 FILTER_TYPES.update(LAYER_SUBTYPES)
 
 
+class PostApiKeyAuthentication(ApiKeyAuthentication):
+    'Authenticate only post request.'
+
+    def is_authenticated(self, request, **kwargs):
+    
+        if request.method == 'POST':
+            return super(PostApiKeyAuthentication, self).is_authenticated(request, **kwargs)
+        return True
+
+
+class MultipartResource(object):
+    'Allows multipart request.'
+
+    def deserialize(self, request, data, format=None):
+
+        if not format:
+            format = request.META.get('CONTENT_TYPE', 'application/json')
+
+        if format == 'application/x-www-form-urlencoded':
+            return request.POST
+
+        if format.startswith('multipart'):
+            data = request.POST.copy()
+            data.update(request.FILES)
+
+            return data
+
+        return super(MultipartResource, self).deserialize(request, data, format)
+
+
 class CommonMetaApi:
+    
     authorization = GeoNodeAuthorization()
     allowed_methods = ['get']
     filtering = {'title': ALL,
@@ -473,14 +505,42 @@ class LayerResource(CommonModelApi):
         excludes = ['csw_anytext', 'metadata_xml']
 
 
-class MonitorResource(CommonModelApi):
+class MonitorResource(MultipartResource, CommonModelApi):
 
     """Monitor API"""
 
     class Meta(CommonMetaApi):
+        allowed_methods = ['get', 'post']
+        authentication = PostApiKeyAuthentication() 
         queryset = Layer.objects.filter(layer_type='monitor').distinct().order_by('-date')
         resource_name = 'monitors'
         excludes = ['csw_anytext', 'metadata_xml']
+
+    def obj_create(self, bundle, request=None, **kwargs):
+        """
+        curl 
+        --dump-header - 
+        -F base_file=@lvVK4NtGvJ.shp 
+        -F shx_file=@lvVK4NtGvJ.shx 
+        -F dbf_file=@lvVK4NtGvJ.dbf 
+        -F prj_file=@lvVK4NtGvJ.prj 
+        -F charset=UTF-8 
+        -F 'permissions={"users":{},"groups":{}}' 
+        'http://localhost:8000/api/monitors/?username=admin&api_key=xxx'
+        """
+
+        import json
+        from geonode.monitors.views import monitor_upload
+        from geonode.layers.models import Layer
+
+        try:
+            result = json.loads(monitor_upload(bundle.request).content)
+        except:
+            raise BadRequest('Error uploading monitor')
+
+        if result['success']:
+            return Layer.objects.get(id=result['layer_id'])
+        raise BadRequest(result['errormsgs'])
 
 
 class MapResource(CommonModelApi):
