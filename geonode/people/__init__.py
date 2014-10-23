@@ -16,3 +16,10 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 #########################################################################
+
+
+from django.db.models import signals
+from tastypie.models import create_api_key
+from .models import Profile
+
+signals.post_save.connect(create_api_key, sender=Profile)

@@ -100,6 +100,14 @@
 {% endif %}
 
 {% if user.is_authenticated %}
+<div class="col-md-8">
+  <h3>API Key</h3>
+  {{ profile.api_key.key }}
+</div>
+{% endif %}
+
+
+{% if user.is_authenticated %}
 
 <div class="col-md-8">
   <h3>Groups</h3>
