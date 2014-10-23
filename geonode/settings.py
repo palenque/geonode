@@ -31,7 +31,7 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 # Setting debug to true makes Django serve static media and
 # present pretty error pages.
-DEBUG = TEMPLATE_DEBUG = True
+DEBUG = TEMPLATE_DEBUG = False
 
 # Set to True to load non-minified versions of (static) client dependencies
 # Requires to set-up Node and tools that are required for static development
@@ -165,7 +165,7 @@ ALLOWED_DOCUMENT_TYPES = [
     'rar', 'tif', 'tiff', 'txt', 'xls', 'xlsx', 'xml', 'zip', 'yld'
 ]
 MAX_DOCUMENT_SIZE = 8  # MB
-
+DOCUMENT_TYPE_MAP = dict(zip(ALLOWED_DOCUMENT_TYPES, ALLOWED_DOCUMENT_TYPES))
 
 GEONODE_APPS = (
 
@@ -379,10 +379,10 @@ ACTSTREAM_SETTINGS = {
 }
 
 # Settings for Social Apps
-REGISTRATION_OPEN = False
+REGISTRATION_OPEN = True
 
 # Email for users to contact admins.
-THEME_ACCOUNT_CONTACT_EMAIL = 'palenque@gmail.com'
+THEME_ACCOUNT_CONTACT_EMAIL = 'protopalenque@gmail.com'
 
 ADMINS = (
     ('Gabriel Carmona', 'gabrielscarmona@gmail.com'),
@@ -392,8 +392,8 @@ ADMINS = (
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'palenque@gmail.com'
-EMAIL_HOST_PASSWORD = 'p4l3nqu3'
+EMAIL_HOST_USER = 'protopalenque@gmail.com'
+EMAIL_HOST_PASSWORD = 'pr0t0p4l3nqu3'
 
 #
 # Test Settings
@@ -456,14 +456,15 @@ OGC_SERVER = {
     }
 }
 
-# Uploader Settings
-UPLOADER = {
-    'BACKEND': 'geonode.rest',
-    'OPTIONS': {
-        'TIME_ENABLED': False,
-        'GEOGIT_ENABLED': False,
-    }
-}
+# # Uploader Settings
+# UPLOADER = {
+#     # 'BACKEND': 'geonode.rest',
+#     'BACKEND': 'geonode.importer',
+#     'OPTIONS': {
+#         'TIME_ENABLED': False,
+#         'GEOGIT_ENABLED': False,
+#     }
+# }
 
 # CSW settings
 CATALOGUE = {
@@ -663,6 +664,8 @@ DOWNLOAD_FORMATS_RASTER = [
 ]
 
 ACCOUNT_NOTIFY_ON_PASSWORD_CHANGE = False
+ACCOUNT_EMAIL_UNIQUE = False
+ACCOUNT_EMAIL_CONFIRMATION_REQUIRED = True
 
 TASTYPIE_DEFAULT_FORMATS = ['json']
 
