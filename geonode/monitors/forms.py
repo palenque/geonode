@@ -95,6 +95,9 @@ class MonitorForm(TranslationModelForm):
     class Meta:
         model = Layer
         exclude = (
+            'metadata_edited',
+            'owner',
+
             'layer_type',
             'license',
             'language',

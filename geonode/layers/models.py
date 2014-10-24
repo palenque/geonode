@@ -85,6 +85,7 @@ class Layer(ResourceBase):
     name = models.CharField(max_length=128)
     typename = models.CharField(max_length=128, null=True, blank=True)
     layer_type = models.CharField(max_length=128, null=True, blank=True)
+    metadata_edited = models.BooleanField(blank=True, default=False)
 
     default_style = models.ForeignKey(
         Style,

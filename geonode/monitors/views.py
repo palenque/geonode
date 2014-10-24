@@ -374,6 +374,10 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
         # and category_form.is_valid()
     ):
 
+        # se permite editar solo una vez
+        if layer.metadata_edited:
+            return HttpResponseRedirect(reverse('monitor_metadata', args=(layer.service_typename,)))
+
         new_poc = layer_form.cleaned_data['poc']
         new_author = layer_form.cleaned_data['metadata_author']
         new_keywords = layer_form.cleaned_data['keywords']
@@ -401,6 +405,7 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
         # new_category = TopicCategory.objects.get(
         #     id=category_form.cleaned_data['category_choice_field'])
 
+        metadata_edited = False
         for form in attribute_form.cleaned_data:
             la = Attribute.objects.get(id=int(form['id'].id))
             la.description = form["description"]
@@ -410,6 +415,7 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             la.field = form["field"]
             la.magnitude = form["magnitude"]
             la.save()
+            metadata_edited = True
 
         # FIXME: no se actualiza los atributos despues de cambiar el campo
         _rename_fields(layer) 
@@ -421,7 +427,8 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             the_layer.metadata_author = new_author
             the_layer.keywords.clear()
             the_layer.keywords.add(*new_keywords)
-            # the_layer.category = new_category
+            the_layer.category = TopicCategory.objects.get(identifier='monitorLayer')
+            the_layer.metadata_edited = metadata_edited
             the_layer.save()
             return HttpResponseRedirect(
                 reverse(

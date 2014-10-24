@@ -5,8 +5,15 @@
 {% block title %}{{ layer.typename }} — {{ block.super }}{% endblock %}
 
 {% block body_class %}data{% endblock %}
+      
+{% block extra_head %}
+<style>
+#div_id_resource-poc, #div_id_resource-metadata_author, #div_id_resource-keywords {display:none;}
+</style>
+{% endblock %}
 
 {% block body_outer %}  
+
 <form class="form-horizontal" action="{% url "monitor_metadata" layer.service_typename %}" method="POST">
     <legend>
       {% blocktrans with layer.typename as layer_title %}
@@ -102,9 +109,12 @@
         {{ author_form|as_bootstrap }}
       <button type='button' class="modal-cloose-btn btn btn-primary">Done</button>
     </fieldset>
+
+    {% if not layer.metadata_edited %}
     <div class="form-actions">
       <input type="submit" class="btn btn-primary" value="{% trans "Update" %}"/>
     </div>
+    {% endif %}
   </form>
 {% endblock %}
 {% block extra_script %}
