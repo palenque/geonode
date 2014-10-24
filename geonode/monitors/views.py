@@ -270,8 +270,6 @@ def _precalculate_yield(layer):
 
     attrs = { a.field: a.attribute  for a in layer.attribute_set.all() if a.field}
 
-    # TODO: ejecutar la primera vez y solo si hay cambio de atributos
-
     cursor.execute(
         'UPDATE %s SET RENDIMIENTO_HUMEDO = "MASA_SECO" / ("ANCHO" * "DISTANCIA");' % layer.name
     )
@@ -299,6 +297,9 @@ def _rename_fields(layer):
             )
         except:
             pass
+        else:
+            attr.attribute = attr.field
+            attr.save()
 
 
 def _validate_required_attributes(attribute_form):
