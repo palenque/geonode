@@ -49,3 +49,36 @@ class GeoNodeAuthorization(DjangoAuthorization):
         return bundle.request.user.has_perm(
             'delete_resourcebase',
             bundle.obj.get_self_resource())
+
+
+class AttributeAuthorization(DjangoAuthorization):
+    'Allows modification just for owners, accessed by layer attribute.'
+
+
+    def read_list(self, object_list, bundle):
+        return object_list.filter(layer__owner=bundle.request.user)
+
+    def read_detail(self, object_list, bundle):
+        return True
+
+    def create_list(self, object_list, bundle):
+        raise Unauthorized("No individual create.")
+
+    def create_detail(self, object_list, bundle):
+        raise Unauthorized("No individual create.")
+
+    def update_list(self, object_list, bundle):
+        allowed = []
+        for obj in object_list:
+            if obj.layer.owner == bundle.request.user:
+                allowed.append(obj)
+        return allowed
+
+    def update_detail(self, object_list, bundle):
+        return bundle.obj.layer.owner == bundle.request.user
+
+    def delete_list(self, object_list, bundle):
+        raise Unauthorized("Sorry, no deletes.")
+
+    def delete_detail(self, object_list, bundle):
+        raise Unauthorized("Sorry, no deletes.")        

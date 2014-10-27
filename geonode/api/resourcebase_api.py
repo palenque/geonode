@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.conf import settings
 
-from tastypie.authentication import ApiKeyAuthentication
+from tastypie.authentication import ApiKeyAuthentication, MultiAuthentication, SessionAuthentication
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.resources import ModelResource
 from tastypie import fields
@@ -19,12 +19,12 @@ from tastypie.utils.mime import build_content_type
 if settings.HAYSTACK_SEARCH:
     from haystack.query import SearchQuerySet  # noqa
 
-from geonode.layers.models import Layer
+from geonode.layers.models import Layer, Attribute
 from geonode.maps.models import Map
 from geonode.documents.models import Document
 from geonode.base.models import ResourceBase
 
-from .authorization import GeoNodeAuthorization
+from .authorization import GeoNodeAuthorization, AttributeAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
     FILTER_TYPES
@@ -35,16 +35,6 @@ LAYER_SUBTYPES = {
     'remote': 'remoteStore',
 }
 FILTER_TYPES.update(LAYER_SUBTYPES)
-
-
-class PostApiKeyAuthentication(ApiKeyAuthentication):
-    'Authenticate only post request.'
-
-    def is_authenticated(self, request, **kwargs):
-    
-        if request.method == 'POST':
-            return super(PostApiKeyAuthentication, self).is_authenticated(request, **kwargs)
-        return True
 
 
 class MultipartResource(object):
@@ -68,7 +58,7 @@ class MultipartResource(object):
 
 
 class CommonMetaApi:
-    
+    authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
     authorization = GeoNodeAuthorization()
     allowed_methods = ['get']
     filtering = {'title': ALL,
@@ -500,9 +490,94 @@ class LayerResource(CommonModelApi):
     """Layer API"""
 
     class Meta(CommonMetaApi):
-        queryset = Layer.objects.exclude(layer_type='monitor').distinct().order_by('-date')
+        # queryset = Layer.objects.exclude(layer_type='monitor').distinct().order_by('-date')
+        queryset = Layer.objects.all().distinct().order_by('-date')
         resource_name = 'layers'
         excludes = ['csw_anytext', 'metadata_xml']
+
+
+# from geonode.monitors.forms import MonitorAttributeForm
+# from tastypie.validation import FormValidation
+# from django.forms.models import inlineformset_factory
+
+# from tastypie.validation import Validation
+
+
+# class AttributeValidation(Validation):
+
+#     def is_valid(self, bundle, request=None):
+        
+#         layer_attribute_set = inlineformset_factory(
+#             Layer,
+#             Attribute,
+#             extra=0,
+#             form=MonitorAttributeForm,
+#         )
+        
+#         attribute_form = layer_attribute_set(
+#             json.loads(request.body)['objects'],
+#             instance=bundle.obj.layer,
+#             prefix="layer_attribute_set", #<- no funciona
+#             queryset=Attribute.objects.exclude(
+#                 attribute__in=['rendimiento_humedo', 'rendimiento_seco']
+#             ).order_by('display_order'))
+
+#         return attribute_form.is_valid() and _validate_required_attributes(attribute_form)
+
+#         import pdb;pdb.set_trace()
+#         if not bundle.data:
+#             return {'__all__': 'Not quite what I had in mind.'}
+
+#         errors = {}
+
+#         for key, value in bundle.data.items():
+#             if not isinstance(value, basestring):
+#                 continue
+
+#             if not 'awesome' in value:
+#                 errors[key] = ['NOT ENOUGH AWESOME. NEEDS MORE.']
+
+#         return errors
+
+class AttributeResource(ModelResource):
+
+    """Attribute API
+
+    Ejemplo update atributos.
+
+    curl 
+    --dump-header - 
+    -H "Content-Type: application/json" 
+    -X PATCH 
+    --data '
+        {"objects": [{"layer": "/api/layers/61/", "id":998, "attribute_label": "Masa Humedo", "field": "MASA_HUMEDO", "magnitude": "kg"} , 
+        {"layer": "/api/layers/61/", "id":997, "attribute_label": "Masa Seco", "field": "MASA_SECO", "magnitude": "kg"}]}
+    '  
+    'http://localhost:8000/api/attributes/?username=tinkamako&api_key=c003062347b82a8cdd4014e9f8edb5c2aef63c7a'
+    
+    """
+
+    # TODO: actualizar por lista completa y correr actualizacion de tabla
+
+    layer = fields.ForeignKey(LayerResource, 'layer')
+
+    # def is_valid(self, bundle):
+    #     import pdb;pdb.set_trace()
+
+    class Meta:
+        authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
+        authorization = AttributeAuthorization()     
+        filtering = {
+            'layer': ALL_WITH_RELATIONS
+        }
+        queryset = Attribute.objects.all()
+        resource_name = 'attributes'
+        # validation = AttributeValidation()
+        excludes = [
+            'csw_anytext', 'metadata_xml', 'min', 'max', 'count',
+             'unique_values', 'average', 'median','sum', 'stddev',
+             'last_stats_updated', 'attribute_type', 'resource_uri'
+        ]
 
 
 class MonitorResource(MultipartResource, CommonModelApi):
@@ -511,36 +586,49 @@ class MonitorResource(MultipartResource, CommonModelApi):
 
     class Meta(CommonMetaApi):
         allowed_methods = ['get', 'post']
-        authentication = PostApiKeyAuthentication() 
         queryset = Layer.objects.filter(layer_type='monitor').distinct().order_by('-date')
         resource_name = 'monitors'
         excludes = ['csw_anytext', 'metadata_xml']
 
     def obj_create(self, bundle, request=None, **kwargs):
         """
+
+        Ejemplo simple upload:
+
         curl 
         --dump-header - 
         -F base_file=@lvVK4NtGvJ.shp 
         -F shx_file=@lvVK4NtGvJ.shx 
         -F dbf_file=@lvVK4NtGvJ.dbf 
         -F prj_file=@lvVK4NtGvJ.prj 
-        -F charset=UTF-8 
+        -F charset=UTF-8 # opcional
+        -F layer_title='monitor test'
+        -F abstract='monitor test'
         -F 'permissions={"users":{},"groups":{}}' 
         'http://localhost:8000/api/monitors/?username=admin&api_key=xxx'
+
+
+        Ejemplo ppciones de permisos:
+        
+        {
+            "users":{"AnonymousUser":["view_resourcebase"], "tinkamako":["change_resourcebase"] }, 
+            "groups":{"foo":["change_resourcebase_permissions"] } 
+        }
         """
 
         import json
         from geonode.monitors.views import monitor_upload
         from geonode.layers.models import Layer
+        from tastypie.exceptions import BadRequest
 
         try:
             result = json.loads(monitor_upload(bundle.request).content)
-        except:
+        except Exception, e:
             raise BadRequest('Error uploading monitor')
 
         if result['success']:
             return Layer.objects.get(id=result['layer_id'])
-        raise BadRequest(result['errormsgs'])
+        raise BadRequest(result['errors'])
 
 
 class MapResource(CommonModelApi):

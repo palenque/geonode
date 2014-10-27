@@ -99,7 +99,6 @@ def _resolve_layer(request, typename, permission='base.view_resourcebase',
 
 @login_required
 def monitor_upload(request, template='upload/monitor_upload.html'):
-    
     if request.method == 'GET':
         ctx = {
             'charsets': CHARSETS
@@ -107,7 +106,6 @@ def monitor_upload(request, template='upload/monitor_upload.html'):
         return render_to_response(template,
                                   RequestContext(request, ctx))
     elif request.method == 'POST':
-
         form = NewLayerUploadForm(request.POST, request.FILES)
         tempdir = None
         errormsgs = []
@@ -348,7 +346,7 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             request.POST,
             instance=layer,
             prefix="layer_attribute_set",
-            queryset=Attribute.objects.exclude(
+            queryset=Attribute.objects.filter(layer=layer).exclude(
                 attribute__in=['rendimiento_humedo', 'rendimiento_seco']
             ).order_by('display_order'))
         # category_form = CategoryForm(
@@ -361,7 +359,7 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
         attribute_form = layer_attribute_set(
             instance=layer,
             prefix="layer_attribute_set",
-            queryset=Attribute.objects.exclude(
+            queryset=Attribute.objects.filter(layer=layer).exclude(
                 attribute__in=['rendimiento_humedo', 'rendimiento_seco']
             ).order_by('display_order'))
         # category_form = CategoryForm(
@@ -416,9 +414,10 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             la.field = form["field"]
             la.magnitude = form["magnitude"]
             la.save()
+
             metadata_edited = True
 
-        # FIXME: no se actualiza los atributos despues de cambiar el campo
+        # TODO: mover a listener
         _rename_fields(layer) 
         _precalculate_yield(layer)
 

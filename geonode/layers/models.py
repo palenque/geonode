@@ -267,7 +267,8 @@ class AttributeManager(models.Manager):
             visible=True).order_by('display_order')
 
 
-class Attribute(models.Model):
+from geonode.security.models import PermissionLevelMixin
+class Attribute(models.Model, PermissionLevelMixin):
 
     """
         Auxiliary model for storing layer attributes.
@@ -276,6 +277,7 @@ class Attribute(models.Model):
        to other servers, and lets users customize attribute titles,
        sort order, and visibility.
     """
+    
     layer = models.ForeignKey(
         Layer,
         blank=False,
