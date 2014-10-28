@@ -442,7 +442,7 @@ OGC_SERVER = {
         # the entire block has to be overridden in the local_settings
         'PUBLIC_LOCATION': 'http://protopalenque.ddns.net/geoserver/',
         'USER': 'admin',
-        'PASSWORD': 'geoserver',
+        'PASSWORD': 'g30s3rv3r',
         'MAPFISH_PRINT_ENABLED': True,
         'PRINT_NG_ENABLED': True,
         'GEONODE_SECURITY_ENABLED': True,

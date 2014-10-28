@@ -18,8 +18,3 @@
 #########################################################################
 
 
-from django.db.models import signals
-from tastypie.models import create_api_key
-from .models import Profile
-
-signals.post_save.connect(create_api_key, sender=Profile)
