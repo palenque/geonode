@@ -162,7 +162,7 @@ LOGOUT_URL = '/account/logout/'
 # Documents application
 ALLOWED_DOCUMENT_TYPES = [
     'doc', 'docx', 'gif', 'jpg', 'jpeg', 'ods', 'odt', 'pdf', 'png', 'ppt',
-    'rar', 'tif', 'tiff', 'txt', 'xls', 'xlsx', 'xml', 'zip', 'yld'
+    'rar', 'tif', 'tiff', 'txt', 'xls', 'xlsx', 'xml', 'zip', 'yld', 'csv'
 ]
 MAX_DOCUMENT_SIZE = 8  # MB
 DOCUMENT_TYPE_MAP = dict(zip(ALLOWED_DOCUMENT_TYPES, ALLOWED_DOCUMENT_TYPES))
@@ -457,14 +457,14 @@ OGC_SERVER = {
 }
 
 # # Uploader Settings
-# UPLOADER = {
-#     # 'BACKEND': 'geonode.rest',
-#     'BACKEND': 'geonode.importer',
-#     'OPTIONS': {
-#         'TIME_ENABLED': False,
-#         'GEOGIT_ENABLED': False,
-#     }
-# }
+UPLOADER = {
+    # 'BACKEND': 'geonode.rest',
+    'BACKEND': 'geonode.importer',
+    'OPTIONS': {
+        'TIME_ENABLED': False,
+        'GEOGIT_ENABLED': False,
+    }
+}
 
 # CSW settings
 CATALOGUE = {

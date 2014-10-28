@@ -94,6 +94,8 @@ class LayerForm(TranslationModelForm):
     class Meta:
         model = Layer
         exclude = (
+            'metadata_edited',
+
             'contacts',
             'workspace',
             'store',

@@ -557,7 +557,9 @@ class AttributeResource(ModelResource):
     
     """
 
-    # TODO: actualizar por lista completa y correr actualizacion de tabla
+    # TODO: validar lista completa, validar datos, correr actualizacion de datos
+    # revisar PATCH - PUT, datos mostrados, bug attribute queda null despues de 
+    # actualizar
 
     layer = fields.ForeignKey(LayerResource, 'layer')
 
