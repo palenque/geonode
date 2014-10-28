@@ -24,7 +24,6 @@ from django.core.urlresolvers import reverse
 from django.contrib.auth.models import AbstractUser
 from django.db.models import signals
 
-from tastypie.models import create_api_key
 from taggit.managers import TaggableManager
 
 from geonode.base.enumerations import COUNTRIES
@@ -146,4 +145,3 @@ def profile_post_save(instance, sender, **kwargs):
 
 
 signals.post_save.connect(profile_post_save, sender=Profile)
-signals.post_save.connect(create_api_key, sender=Profile)
