@@ -1,0 +1,24 @@
+{% extends "site_base.html" %}
+{% load i18n %}
+{% load url from future %}
+
+{% block title %} {{ block.super }} {% endblock %}
+
+{% block body_class %}apps explore{% endblock %}
+
+{% block body_outer %}
+  {% block subnav %}
+  <div class="col-md-12">
+    <ul class="nav nav-tabs" id="subnav-tabs">
+      <li><a href="{% url "app_list" %}" class="explore">{% trans "Explore Apps" %}</a></li>
+      <li><a href="{% url "app_create" %}" class="create">{% trans "Create a App" %}</a></li>
+      {% if group %}
+      <li><a href="{% url "app_update" group.slug %}" class="update">{% trans "Update App" %}</a></li>
+      <li><a href="{% url "app_remove" group.slug %}" class="remove">{% trans "Remove App" %}</a></li>
+      {% endif %}
+    </ul>
+  </div>
+  {% endblock subnav %}
+  {% block body %}{% endblock body %}
+  {% block sidebar %}{% endblock sidebar %}
+{% endblock body_outer %}

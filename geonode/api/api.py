@@ -12,6 +12,7 @@ from geonode.layers.models import Layer
 from geonode.maps.models import Map
 from geonode.documents.models import Document
 from geonode.groups.models import GroupProfile
+from geonode.apps.models import App
 
 from taggit.models import Tag
 
@@ -142,6 +143,33 @@ class GroupResource(ModelResource):
         ordering = ['title', 'last_modified']
 
 
+class AppResource(ModelResource):
+
+    """App api"""
+
+    detail_url = fields.CharField()
+    member_count = fields.IntegerField()
+    manager_count = fields.IntegerField()
+
+    def dehydrate_member_count(self, bundle):
+        return bundle.obj.member_queryset().count()
+
+    def dehydrate_manager_count(self, bundle):
+        return bundle.obj.get_managers().count()
+
+    def dehydrate_detail_url(self, bundle):
+        return reverse('app_detail', args=[bundle.obj.slug])
+
+    class Meta:
+        queryset = App.objects.all()
+        resource_name = 'apps'
+        allowed_methods = ['get']
+        filtering = {
+            'name': ALL
+        }
+        ordering = ['title', 'last_modified']
+
+
 class ProfileResource(ModelResource):
 
     """Profile api"""
@@ -162,12 +190,16 @@ class ProfileResource(ModelResource):
         if 'group' in filters:
             orm_filters['group'] = filters['group']
 
+        if 'app' in filters:
+            orm_filters['app'] = filters['app']
+
         return orm_filters
 
     def apply_filters(self, request, applicable_filters):
         """filter by group if applicable by group functionality"""
 
         group = applicable_filters.pop('group', None)
+        app = applicable_filters.pop('app', None)
 
         semi_filtered = super(
             ProfileResource,
@@ -178,7 +210,11 @@ class ProfileResource(ModelResource):
         if group is not None:
             semi_filtered = semi_filtered.filter(
                 groupmember__group__slug=group)
-
+        
+        if app is not None:
+            semi_filtered = semi_filtered.filter(
+                appmember__app__slug=app)
+        
         return semi_filtered
 
     def dehydrate_email(self, bundle):

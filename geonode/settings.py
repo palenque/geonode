@@ -183,6 +183,7 @@ GEONODE_APPS = (
     'geonode.documents',
     'geonode.api',
     'geonode.groups',
+    'geonode.apps',
     'geonode.services',
 
     # GeoNode Contrib Apps

@@ -1,0 +1,258 @@
+from django.contrib.auth import get_user_model
+from django.core.urlresolvers import reverse
+from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect, HttpResponseNotAllowed
+from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.template import RequestContext
+from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
+from django.views.generic import ListView
+
+from actstream.models import Action
+
+# from geonode.groups.forms import GroupInviteForm, GroupForm, GroupUpdateForm, GroupMemberForm
+# from geonode.groups.models import GroupProfile, GroupInvitation, GroupMember
+
+from geonode.apps.forms import AppForm, AppUpdateForm
+from geonode.apps.models import App, AppMember
+
+
+@login_required
+def app_create(request):
+    if request.method == "POST":
+        form = AppForm(request.POST, request.FILES)
+        if form.is_valid():
+            app = form.save(commit=False)
+            app.save()
+            form.save_m2m()
+            app.join(request.user, role="manager")
+            return HttpResponseRedirect(
+                reverse("app_detail", args=[app.slug])
+            )
+    else:
+        form = AppForm()
+
+    return render_to_response("apps/app_create.html", {
+        "form": form,
+    }, context_instance=RequestContext(request))
+
+
+@login_required
+def app_update(request, slug):
+    app = App.objects.get(slug=slug)
+    if not app.user_is_role(request.user, role="manager"):
+        return HttpResponseForbidden()
+
+    if request.method == "POST":
+        form = AppUpdateForm(request.POST, request.FILES, instance=app)
+        if form.is_valid():
+            app = form.save(commit=False)
+            app.save()
+            form.save_m2m()
+            return HttpResponseRedirect(
+                reverse("app_detail", args=[app.slug]))
+    else:
+        form = AppForm(instance=app)
+
+    return render_to_response("apps/app_update.html", {
+        "form": form,
+        "group": app,
+    }, context_instance=RequestContext(request))
+
+
+class AppDetailView(ListView):
+
+    """
+    Mixes a detail view (the app) with a ListView (the members).
+    """
+
+    model = get_user_model()
+    template_name = "apps/app_detail.html"
+    paginate_by = None
+    app = None
+
+    def get_queryset(self):
+        return self.app.member_queryset()
+
+    def get(self, request, *args, **kwargs):
+        self.app = get_object_or_404(App, slug=kwargs.get('slug'))
+        return super(AppDetailView, self).get(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super(AppDetailView, self).get_context_data(**kwargs)
+        context['object'] = self.app
+        context['maps'] = self.app.resources(resource_type='map')
+        context['layers'] = self.app.resources(resource_type='layer')
+        context['is_member'] = self.app.user_is_member(self.request.user)
+        context['is_manager'] = self.app.user_is_role(
+            self.request.user,
+            "manager")
+        # context['can_view'] = self.app.can_view(self.request.user)
+        return context
+
+
+# def app_members(request, slug):
+#     app = get_object_or_404(App, slug=slug)
+#     ctx = {}
+
+#     if not app.can_view(request.user):
+#         raise Http404()
+
+#     # if app.access in [
+#     #         "public-invite",
+#     #         "private"] and group.user_is_role(
+#     #         request.user,
+#     #         "manager"):
+#     #     ctx["invite_form"] = GroupInviteForm()
+
+#     if app.user_is_role(request.user, "manager"):
+#         ctx["member_form"] = GroupMemberForm()
+
+#     ctx.update({
+#         "object": app,
+#         "members": app.member_queryset(),
+#         "is_member": app.user_is_member(request.user),
+#         "is_manager": app.user_is_role(request.user, "manager"),
+#     })
+#     ctx = RequestContext(request, ctx)
+#     return render_to_response("apps/app_members.html", ctx)
+
+
+# @require_POST
+# @login_required
+# def group_members_add(request, slug):
+#     group = get_object_or_404(GroupProfile, slug=slug)
+
+#     if not group.user_is_role(request.user, role="manager"):
+#         return HttpResponseForbidden()
+
+#     form = GroupMemberForm(request.POST)
+
+#     if form.is_valid():
+#         role = form.cleaned_data["role"]
+#         for user in form.cleaned_data["user_identifiers"]:
+#             # dont add them if already a member, just update the role
+#             try:
+#                 gm = GroupMember.objects.get(user=user, group=group)
+#                 gm.role = role
+#                 gm.save()
+#             except:
+#                 gm = GroupMember(user=user, group=group, role=role)
+#                 gm.save()
+#     return redirect("group_detail", slug=group.slug)
+
+
+# @login_required
+# def group_member_remove(request, slug, username):
+#     group = get_object_or_404(GroupProfile, slug=slug)
+#     user = get_object_or_404(get_user_model(), username=username)
+
+#     if not group.user_is_role(request.user, role="manager"):
+#         return HttpResponseForbidden()
+#     else:
+#         GroupMember.objects.get(group=group, user=user).delete()
+#         user.groups.remove(group.group)
+#         return redirect("group_detail", slug=group.slug)
+
+
+@require_POST
+@login_required
+def app_join(request, slug):
+    app = get_object_or_404(App, slug=slug)
+
+    # if group.access == "private":
+    #     raise Http404()
+
+    if app.user_is_member(request.user):
+        return redirect("app_detail", slug=app.slug)
+    else:
+        app.join(request.user, role="member")
+        return redirect("app_detail", slug=app.slug)
+
+
+# @require_POST
+# def group_invite(request, slug):
+#     group = get_object_or_404(GroupProfile, slug=slug)
+
+#     if not group.can_invite(request.user):
+#         raise Http404()
+
+#     form = GroupInviteForm(request.POST)
+
+#     if form.is_valid():
+#         for user in form.cleaned_data["invite_user_identifiers"].split("\n"):
+#             group.invite(
+#                 user,
+#                 request.user,
+#                 role=form.cleaned_data["invite_role"])
+
+#     return redirect("group_members", slug=group.slug)
+
+
+# @login_required
+# def group_invite_response(request, token):
+#     invite = get_object_or_404(GroupInvitation, token=token)
+#     ctx = {"invite": invite}
+
+#     if request.user != invite.user:
+#         redirect("group_detail", slug=invite.group.slug)
+
+#     if request.method == "POST":
+#         if "accept" in request.POST:
+#             invite.accept(request.user)
+
+#         if "decline" in request.POST:
+#             invite.decline()
+
+#         return redirect("group_detail", slug=invite.group.slug)
+#     else:
+#         ctx = RequestContext(request, ctx)
+#         return render_to_response("groups/group_invite_response.html", ctx)
+
+
+@login_required
+def app_remove(request, slug):
+    app = get_object_or_404(App, slug=slug)
+    if request.method == 'GET':
+        return render_to_response(
+            "apps/app_remove.html", RequestContext(request, {"group": app}))
+    if request.method == 'POST':
+
+        if not app.user_is_role(request.user, role="manager"):
+            return HttpResponseForbidden()
+
+        app.delete()
+        return HttpResponseRedirect(reverse("app_list"))
+    else:
+        return HttpResponseNotAllowed()
+
+
+# class GroupActivityView(ListView):
+#     """
+#     Returns recent group activity.
+#     """
+
+#     template_name = 'groups/activity.html'
+#     group = None
+
+#     def get_queryset(self):
+#         if not self.group:
+#             return None
+#         else:
+#             members = ([(member.user.id) for member in self.group.member_queryset()])
+#             return Action.objects.filter(public=True, actor_object_id__in=members, )[:15]
+
+#     def get(self, request, *args, **kwargs):
+#         self.group = None
+#         group = get_object_or_404(GroupProfile, slug=kwargs.get('slug'))
+
+#         if not group.can_view(request.user):
+#             raise Http404()
+
+#         self.group = group
+
+#         return super(GroupActivityView, self).get(request, *args, **kwargs)
+
+#     def get_context_data(self, **kwargs):
+#         context = super(GroupActivityView, self).get_context_data(**kwargs)
+#         context['group'] = self.group
+#         return context
