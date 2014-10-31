@@ -615,7 +615,6 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
         # custom permissions,
         # change and delete are standard in django
         permissions = (
-            ('app_read_resource', 'Can read resource'),
             ('view_resourcebase', 'Can view'),
             ('change_resourcebase_permissions', "Can change permissions"), 
         )

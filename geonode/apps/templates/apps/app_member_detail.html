@@ -1,0 +1,118 @@
+{% extends "people/profile_base.html" %}
+{% load static %}
+{% load friendly_loader %}
+{% friendly_load i18n avatar_tags relationship_tags activity_tags %}
+{% load pagination_tags %}
+
+{% block title %} {% trans "Profile of " %}{{ profile.first_name|default_if_none:profile.username }}{% endblock %}
+
+{% block body_class %}people explore{% endblock %}
+
+{% block body %}
+<div class="row">
+  <div class="col-md-12">
+    <h2 class="page-title">{{ profile.name_long }}</h2>
+  </div>
+  <div class="col-md-2">
+    {% avatar profile 140 %}
+  </div>
+  <div class="col-md-6">
+    <dl class="dl-horizontal profile-details">
+     {% if profile.position %}
+     <dt><i class="fa fa-user"></i></dt>
+     <dd>{{ profile.position }}</dd>
+     {% endif %}
+     {% if profile.organization %}
+     <dt><i class="fa fa-building"></i></dt>
+     <dd>{{ profile.organization }}</dd>
+     {% endif %}
+     {% if user.is_authenticated %}
+        {% if profile.location %}
+        <dt><i class="fa fa-map-marker"></i></dt>
+        <dd>{{ profile.location }}</dd>
+        {% endif %}
+        {% if profile.voice %}
+        <dt><i class="fa fa-phone"></i></dt>
+        <dd><a href="tel:{{ profile.voice }}">{{ profile.voice }}</a></dd>
+        {% endif %}
+        {% if profile.fax %}
+        <dt><i class="fa fa-print"></i></dt>
+        <dd>{{ profile.fax }}</dd>
+        {% endif %}
+        {% if profile.email %}
+        <dt><i class="fa fa-envelope-o"></i></dt>
+        <dd>
+          <a href="mailto:{{ profile.email }}">{{ profile.email }}</a>
+        </dd>
+        {% endif %}
+        {% endif %}
+        {% if profile.keyword_list %}
+        <dt><i class="fa fa-tag"></i></dt>
+        <dd>
+          {% for keyword in profile.keyword_list %}
+            {{ keyword }}
+          {% endfor %}
+        </dd>
+        {% endif %}
+        {% if object.email %}
+        <dt><i class="fa fa-envelope-o"></i></dt>
+        <dd>
+          <a href="mailto:{{ object.email }}">{{ object.email }}</a>
+        </dd>
+        {% endif %}
+      </dl>
+  </div>
+
+</div>
+
+<div class="col-md-8">
+  <h3>Resources</h3>
+  {% include "people/_profile_filters.html" %}
+</div>
+
+<div class="col-md-8">
+    <div class="tab-content span12 paginate paginate-auto">
+      {% if object_list|length > 0 %}
+      <div class="tab-pane active list paginate-contents" id="all">
+          {% autopaginate object_list 5 %}
+            {% for obj in object_list %}
+            <article>
+              <div class="content">
+                <div class="item-header">
+                <img class="thumb" src="{{ obj.thumbnail_url}}" />
+                {% if obj.class_name = 'Map' %}
+                <h3><i class="fa fa-map-marker"></i>
+                {% endif %}
+                {% if obj.class_name = 'Layer' %}
+                <h3><i class="fa fa-square-o rotate-45"></i>
+                {% endif %}
+                {% if obj.class_name = 'Document' %}
+                <h3><i class="fa fa-file-text-alt"></i>
+                {% endif %}
+                  <a href="{{ obj.detail_url }}">{{ obj.title }}</a>
+                </h3>
+              </div>
+              <div class="details">
+                <div class="meta">
+                  <p class="resources-abstract">{{ obj.abstract }}</p>
+                  <p class="sharing-date">{% trans "Shared on" %} {{ obj.date|date:"d b Y" }}</p>
+                </div>
+              </div>
+            </article>
+            {% endfor %}
+        </div>
+          {% paginate %}
+      </div>
+      {% else %}
+      </div>
+      <article>
+        <p>{% trans "No contents found." %}</p>
+      </article>
+    {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+

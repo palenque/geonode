@@ -4,12 +4,11 @@ from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect, HttpResponseNotAllowed
 from django.http import HttpResponse
-from django.shortcuts import render_to_response, get_object_or_404, redirect
+from django.shortcuts import render, render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
-
 
 
 from actstream.models import Action
@@ -87,14 +86,11 @@ class AppDetailView(ListView):
 
     def get_context_data(self, **kwargs):
 
-        from guardian.shortcuts import get_perms
-
         manager = self.app.get_managers()[0]
         profile = get_object_or_404(Profile, username=self.request.user.username)
         user_objects = profile.resourcebase_set.distinct()
 
         content_filter = 'all'
-
 
         if ('content' in self.request.GET):
             content = self.request.GET['content']
@@ -136,7 +132,7 @@ class AppDetailView(ListView):
         context['content_filter'] = content_filter
         context['object_list'] = user_objects.get_real_instances()
         context['permissions'] = [
-            obj.id for obj in user_objects if manager.has_perm('base.app_read_resource', obj)
+            obj.id for obj in user_objects if manager.has_perm('base.view_resourcebase', obj)
         ]
 
         # context['can_view'] = self.app.can_view(self.request.user)
@@ -193,6 +189,58 @@ class AppDetailView(ListView):
 #                 gm.save()
 #     return redirect("group_detail", slug=group.slug)
 
+
+@login_required
+def member_detail(request, app_id, username):
+
+    app = get_object_or_404(App, id=app_id)
+    manager = app.get_managers()[0]
+    profile = get_object_or_404(Profile, username=username)
+    # combined queryset from each model content type
+    user_objects = profile.resourcebase_set.distinct()
+
+    content_filter = 'all'
+
+    if ('content' in request.GET):
+        content = request.GET['content']
+        if content != 'all':
+            if (content == 'layers'):
+                content_filter = 'layers'
+                user_objects = user_objects.instance_of(Layer)
+            if (content == 'maps'):
+                content_filter = 'maps'
+                user_objects = user_objects.instance_of(Map)
+            if (content == 'monitors'):
+                content_filter = 'monitors'
+                user_objects = Layer.objects.filter(
+                    layer_type='monitor',
+                    owner=self.request.user
+                )                
+            if (content == 'documents'):
+                content_filter = 'documents'
+                user_objects = user_objects.instance_of(Document)
+
+    # TODO: cambiar query
+    user_objects = profile.resourcebase_set.filter(
+        id__in=[obj.id for obj in user_objects if manager.has_perm('base.view_resourcebase', obj)]
+    )
+
+    sortby_field = 'date'
+    if ('sortby' in request.GET):
+        sortby_field = request.GET['sortby']
+    if sortby_field == 'title':
+        user_objects = user_objects.order_by('title')
+    else:
+        user_objects = user_objects.order_by('-date')
+
+    return render(request, "apps/app_member_detail.html", {
+        "profile": profile,
+        "sortby_field": sortby_field,
+        "content_filter": content_filter,
+        "object_list": user_objects.get_real_instances(),
+    })
+
+
 @require_POST
 @login_required
 def resource_share(request, app_id):
@@ -205,13 +253,11 @@ def resource_share(request, app_id):
     
     if app.user_is_role(request.user, role="member"):
     
-
         if shared == 'true':
-            assign_perm('base.app_read_resource', app.get_managers()[0], resource)
+            assign_perm('base.view_resourcebase', app.get_managers()[0], resource)
         else:
-            remove_perm('base.app_read_resource', app.get_managers()[0], resource)
+            remove_perm('base.view_resourcebase', app.get_managers()[0], resource)
 
-        print 'xx', shared, app.get_managers()[0].has_perm('base.app_read_resource', resource)
         return HttpResponse(
             json.dumps(dict(status='ok')), 
             mimetype="application/javascript"
