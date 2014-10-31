@@ -1,5 +1,7 @@
 {% extends "apps/app_base.html" %}
 {% load i18n %}
+{% load pagination_tags %}
+{% load guardian_tags %}
 
 {% block title %}{{ object.title|default:object.slug }} — {{ block.super }}{% endblock %}
 
@@ -41,6 +43,8 @@
         </dl>
       </div>
     </div>
+
+    {% if is_manager %}
     <div class="row">
       <div class="col-md-12">
         <h3>{% trans "Members" %}</h3>
@@ -50,7 +54,29 @@
         </div> 
       </div>
     </div>
+    {% endif %}
+    
+    {% if not is_manager and is_member %}
+    <div>"Detalle de los datos que necesita la app"</div>
+
+    <div class="col-md-12">
+      <h3>Resources</h3>
+        <ul class="nav nav-pills filter">
+          <li><a href="{{ object.detail_url }}" {% if content_filter  == "all" %}class="selected"{% endif %}>{% trans "All contents" %}</a></li>
+          <li><a href="{{ object.detail_url }}?content=layers"{% if content_filter == "layers" %} class="selected"{% endif %}>{% trans "Layers" %}</a></li>
+          <li><a href="{{ object.detail_url }}?content=monitors"{% if content_filter == "monitors" %} class="selected"{% endif %}>{% trans "Monitors" %}</a></li>
+          <li><a href="{{ object.detail_url }}?content=maps"{% if content_filter == "maps" %} class="selected"{% endif %}>{% trans "Maps" %}</a></li>
+          <li><a href="{{ object.detail_url }}?content=documents"{% if content_filter == "documents" %} class="selected"{% endif %}>{% trans "Documents" %}</a></li>
+          <li><a href="{{ object.detail_url }}?content={{ content_filter }}&sortby=date"{% if sortby_field == "date" %} class="selected"{% endif %}>{% trans "Sort by date" %}</a></li>
+          <li><a href="{{ object.detail_url }}?content={{ content_filter }}&sortby=title"{% if sortby_field == "title" %} class="selected"{% endif %}>{% trans "Sort by title" %}</a></li>
+        </ul>
+    </div>
+
+    {% endif %}
+
   </div>
+
+
   <div class="col-md-4">
     <ul class="list-group">
       {% if is_manager %}
@@ -58,9 +84,16 @@
       <!-- <li class="list-group-item"><a href="{ url "app_members" object.slug }">{% trans "Manage App Members" %}</a></li> -->
       <li class="list-group-item"><a href="{% url "app_remove" object.slug %}">{% trans "Delete this App" %}</a></li>
       {% endif %}
+
+      {% if is_member and not is_manager%}
+      <li class="list-group-item"><a href="{% url "app_member_remove" object.slug request.user.username %}">{% trans "Delete this App" %}</a></li>
+      {% endif %}
+
       {% if can_view %}
       <li class="list-group-item"><a href="{% url "group_activity" object.slug %}">{% trans "Group Activities" %}</a></li>
       {% endif %}
+
+      {% if not is_manager and not is_member %}
       <li class="list-group-item">
         <h4>{% trans "Permissions" %}</h4>
         <p>
@@ -84,6 +117,7 @@
           {% endcomment %}
         </p>
       </li>
+      {% endif %}
       <li class="list-group-item">
         <h4>{% trans "Managers" %}</h4>
         {% for manager in object.get_managers %}
@@ -94,10 +128,82 @@
       </li>
     </ul>
   </div>
+
+    {% if not is_manager and is_member %}
+    <!--resources-->
+    <div class="col-md-12">
+        <div class="tab-content span12 paginate paginate-auto">
+          {% if object_list|length > 0 %}
+          <div class="tab-pane active list paginate-contents" id="all">
+              {% autopaginate object_list 5 %}
+                {% for obj in object_list %}
+                <article>
+                  <div class="content">
+                    <div class="item-header">
+                    <img class="thumb" src="{{ obj.thumbnail_url}}" />
+
+                    {% if obj.class_name = 'Map' %}
+                    <h3><i class="fa fa-map-marker"></i>
+                    {% endif %}
+                    
+                    {% if obj.class_name = 'Layer' %}
+                    <h3><i class="fa fa-square-o rotate-45"></i>
+                    {% endif %}
+                    
+                    {% if obj.class_name = 'Document' %}
+                    <h3><i class="fa fa-file-text-alt"></i>
+                    {% endif %}
+                    <a href="{{ obj.detail_url }}">{{ obj.title }}</a>
+                    </h3>
+
+                  </div>
+                  <div class="details">
+                    <div class="meta">
+                      <p class="resources-abstract">{{ obj.abstract }}</p>
+                      <p class="resources-shared">{% trans "Shared" %} <input data-resource-id="{{ obj.id }}" {% if obj.id in permissions %}checked="checked"{%endif%} class="resource-app-shared" type="checkbox"/></p>
+                      <!-- <p class="sharing-date">{% trans "Shared on" %} {{ obj.date|date:"d b Y" }}</p> -->
+                    </div>
+                  </div>
+                </article>
+                {% endfor %}
+            </div>
+              {% paginate %}
+          </div>
+          {% else %}
+          </div>
+          <article>
+            <p>{% trans "No contents found." %}</p>
+          </article>
+        {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    <!--end resources-->
+
+
 </div>
 
 {% endblock %}
 {% block extra_script %}
+  <script>
+      $(function(){
+          $('input.resource-app-shared').change(function(e){
+              $.ajax({
+                  type: "POST",
+                  url: '{% url 'app_resource_share' app_id=object.id %}',
+                  dataType: 'json',
+                  data: {
+                    resource_id: $(this).data('resource-id'), 
+                    shared: $(this).is(':checked')
+                  },
+                  success: function(data){
+                      console.log(data)
+                  }
+              })
+          })
+      })
+  </script>
   <script type="text/javascript">
   SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='profiles' %}'+ '?app='+ '{{ object.slug }}';
   </script>

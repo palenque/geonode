@@ -160,6 +160,36 @@ class AppResource(ModelResource):
     def dehydrate_detail_url(self, bundle):
         return reverse('app_detail', args=[bundle.obj.slug])
 
+    def build_filters(self, filters={}):
+        """adds filtering by group functionality"""
+
+        orm_filters = super(AppResource, self).build_filters(filters)
+
+        if 'member' in filters:
+            orm_filters['member'] = filters['member']
+
+        return orm_filters
+
+    def apply_filters(self, request, applicable_filters):
+        """filter by group if applicable by group functionality"""
+
+        member = applicable_filters.pop('member', None)
+
+        semi_filtered = super(
+            AppResource,
+            self).apply_filters(
+            request,
+            applicable_filters)
+
+        if member is not None:
+            semi_filtered = semi_filtered.filter(
+                appmember__user__username=member, 
+                appmember__role='member'
+            )
+        
+        return semi_filtered
+
+
     class Meta:
         queryset = App.objects.all()
         resource_name = 'apps'
@@ -213,7 +243,9 @@ class ProfileResource(ModelResource):
         
         if app is not None:
             semi_filtered = semi_filtered.filter(
-                appmember__app__slug=app)
+                appmember__app__slug=app,
+                # appmember__role='member'
+            )
         
         return semi_filtered
 

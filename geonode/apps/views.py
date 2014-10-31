@@ -1,20 +1,28 @@
+import json
+
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseForbidden, HttpResponseRedirect, HttpResponseNotAllowed
+from django.http import HttpResponse
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import RequestContext
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView
 
+
+
 from actstream.models import Action
+from guardian.shortcuts import assign_perm, remove_perm
 
-# from geonode.groups.forms import GroupInviteForm, GroupForm, GroupUpdateForm, GroupMemberForm
-# from geonode.groups.models import GroupProfile, GroupInvitation, GroupMember
 
+from geonode.base.models import ResourceBase
 from geonode.apps.forms import AppForm, AppUpdateForm
 from geonode.apps.models import App, AppMember
-
+from geonode.people.models import Profile
+from geonode.layers.models import Layer
+from geonode.maps.models import Map
+from geonode.documents.models import Document
 
 @login_required
 def app_create(request):
@@ -78,14 +86,59 @@ class AppDetailView(ListView):
         return super(AppDetailView, self).get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
+
+        from guardian.shortcuts import get_perms
+
+        manager = self.app.get_managers()[0]
+        profile = get_object_or_404(Profile, username=self.request.user.username)
+        user_objects = profile.resourcebase_set.distinct()
+
+        content_filter = 'all'
+
+
+        if ('content' in self.request.GET):
+            content = self.request.GET['content']
+            if content != 'all':
+                if (content == 'layers'):
+                    content_filter = 'layers'
+                    user_objects = user_objects.instance_of(Layer)
+                if (content == 'monitors'):
+                    content_filter = 'monitors'
+                    user_objects = Layer.objects.filter(
+                        layer_type='monitor',
+                        owner=self.request.user
+                    )
+                if (content == 'maps'):
+                    content_filter = 'maps'
+                    user_objects = user_objects.instance_of(Map)
+                if (content == 'documents'):
+                    content_filter = 'documents'
+                    user_objects = user_objects.instance_of(Document)
+
+        sortby_field = 'date'
+        if ('sortby' in self.request.GET):
+            sortby_field = self.request.GET['sortby']
+        if sortby_field == 'title':
+            user_objects = user_objects.order_by('title')
+        else:
+            user_objects = user_objects.order_by('-date')
+
         context = super(AppDetailView, self).get_context_data(**kwargs)
         context['object'] = self.app
+        context['app_manager'] = manager
         context['maps'] = self.app.resources(resource_type='map')
         context['layers'] = self.app.resources(resource_type='layer')
         context['is_member'] = self.app.user_is_member(self.request.user)
-        context['is_manager'] = self.app.user_is_role(
-            self.request.user,
-            "manager")
+        context['is_manager'] = self.app.user_is_role(self.request.user, "manager")
+        
+        context['profile'] = profile
+        context['sortby_field'] = sortby_field
+        context['content_filter'] = content_filter
+        context['object_list'] = user_objects.get_real_instances()
+        context['permissions'] = [
+            obj.id for obj in user_objects if manager.has_perm('base.app_read_resource', obj)
+        ]
+
         # context['can_view'] = self.app.can_view(self.request.user)
         return context
 
@@ -140,23 +193,59 @@ class AppDetailView(ListView):
 #                 gm.save()
 #     return redirect("group_detail", slug=group.slug)
 
+@require_POST
+@login_required
+def resource_share(request, app_id):
 
-# @login_required
-# def group_member_remove(request, slug, username):
-#     group = get_object_or_404(GroupProfile, slug=slug)
-#     user = get_object_or_404(get_user_model(), username=username)
+    app  = get_object_or_404(App, id=app_id)
+    shared = request.POST.get('shared')
+    resource = get_object_or_404(
+        ResourceBase, id=request.POST.get('resource_id')
+    )
+    
+    if app.user_is_role(request.user, role="member"):
+    
 
-#     if not group.user_is_role(request.user, role="manager"):
-#         return HttpResponseForbidden()
-#     else:
-#         GroupMember.objects.get(group=group, user=user).delete()
-#         user.groups.remove(group.group)
-#         return redirect("group_detail", slug=group.slug)
+        if shared == 'true':
+            assign_perm('base.app_read_resource', app.get_managers()[0], resource)
+        else:
+            remove_perm('base.app_read_resource', app.get_managers()[0], resource)
+
+        print 'xx', shared, app.get_managers()[0].has_perm('base.app_read_resource', resource)
+        return HttpResponse(
+            json.dumps(dict(status='ok')), 
+            mimetype="application/javascript"
+        )
+
+    else:
+        return HttpResponse(
+            json.dumps(dict(status='error')), 
+            mimetype="application/javascript"
+        )
+
+
+@login_required
+def app_member_remove(request, slug, username):
+
+    app = get_object_or_404(App, slug=slug)
+    user = get_object_or_404(get_user_model(), username=username)
+
+    if request.method == 'GET':
+        return render_to_response(
+            "apps/app_member_remove.html", RequestContext(request, {"group": app}))
+
+    elif request.method == 'POST':
+
+        if request.user == user:
+            AppMember.objects.get(app=app, user=user).delete()
+            return redirect("app_detail", slug=app.slug)
+        return HttpResponseForbidden()
 
 
 @require_POST
 @login_required
 def app_join(request, slug):
+
     app = get_object_or_404(App, slug=slug)
 
     # if group.access == "private":

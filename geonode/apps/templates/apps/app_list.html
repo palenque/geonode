@@ -12,8 +12,8 @@
   </div>
   <div class="col-md-8 filter">
     <ul class="nav nav-pills filter" id="sort">
-      <li><a data-value="-last_modified" data-filter="order_by" class="selected" ng-click="single_choice_listener($event)">{% trans "Most recent" %}</a></li>
-      <li><a data-value="last_modified" data-filter="order_by" ng-click="single_choice_listener($event)">{% trans "Less recent" %}</a></li>
+      <li><a data-value="-last_modified" data-filter="order_by" class="selected" ng-click="single_choice_listener($event)">{% trans "All" %}</a></li>
+      <li><a data-value="{{ request.user }}" data-filter="member" ng-click="single_choice_listener($event)">{% trans "My apps" %}</a></li>
       <li><a data-value="title" data-filter="order_by" ng-click="single_choice_listener($event)">{% trans "A - Z" %}</a></li>
       <li><a data-value="-title" data-filter="order_by" ng-click="single_choice_listener($event)">{% trans "Z - A" %}</a></li>
     </ul>
