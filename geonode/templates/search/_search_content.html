@@ -11,20 +11,39 @@
             <a href="." id="clear-search" class="pull-right">{% trans "Clear all filters" %}</a>
           </h5>
         </div>
-          {% include "search/_text_filter.html" %}
-        <div id="slide-pane">
-          {% if include_type_filter == 'true' %}
-          {% include "search/_type_filters.html" %}
+          {% if include_text_filter == 'true' or 'text' in include_filters %}
+            {% include "search/_text_filter.html" %}
           {% endif %}
-          {% include "search/_general_filters.html" %}
-          {% include "search/_extent_filter.html" %}
+        <div id="slide-pane">
+          {% if include_type_filter == 'true' or 'type' in include_filters %}
+            {% include "search/_type_filters.html" %}
+          {% endif %}
+          {% if include_category_filters == 'true' or 'category' in include_filters %}
+            {% include "search/_category_filter.html" %}
+          {% endif %}
+          {% if include_keyword_filters == 'true' or 'keyword' in include_filters %}
+            {% include "search/_keyword_filter.html" %}
+          {% endif %}
+          {% if include_date_filters == 'true' or 'date' in include_filters %}
+            {% include "search/_date_filter.html" %}
+          {% endif %}
+          {% if custom_filters %}
+            {% include custom_filters %}
+          {% endif %}
+          {% if include_extent_filter == 'true' or 'extent' in include_filters %}
+            {% include "search/_extent_filter.html" %}
+          {% endif %}
         </div>
       </div>
       <div class="col-md-9">
       {% include 'search/_pagination.html' %}
       </div>
       <div class="col-md-9">
-        {% include 'base/_resourcebase_snippet.html' %}
+        {% if custom_snippet %}
+          {% include custom_snippet %}
+        {% else %}
+          {% include 'base/_resourcebase_snippet.html' %}
+        {% endif %}
       </div>
     </div>
   </div>

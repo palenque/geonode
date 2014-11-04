@@ -372,11 +372,9 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
         and _validate_required_attributes(attribute_form)
         # and category_form.is_valid()
     ):
-
         # se permite editar solo una vez
-        if layer.metadata_edited:
-            return HttpResponseRedirect(reverse('monitor_metadata', args=(layer.service_typename,)))
-
+        #if layer.metadata_edited:
+        #    return HttpResponseRedirect(reverse('monitor_metadata', args=(layer.service_typename,)))
         new_poc = layer_form.cleaned_data['poc']
         new_author = layer_form.cleaned_data['metadata_author']
         new_keywords = layer_form.cleaned_data['keywords']
@@ -421,21 +419,21 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
         _rename_fields(layer) 
         _precalculate_yield(layer)
 
-        if new_poc is not None and new_author is not None:
-            the_layer = layer_form.save()
-            the_layer.poc = new_poc
-            the_layer.metadata_author = new_author
-            the_layer.keywords.clear()
-            the_layer.keywords.add(*new_keywords)
-            the_layer.category = TopicCategory.objects.get(identifier='monitorLayer')
-            the_layer.metadata_edited = metadata_edited
-            the_layer.save()
-            return HttpResponseRedirect(
-                reverse(
-                    'monitor_detail',
-                    args=(
-                        layer.service_typename,
-                    )))
+        #if new_poc is not None and new_author is not None:
+        the_layer = layer_form.save()
+        the_layer.poc = new_poc
+        the_layer.metadata_author = new_author
+        the_layer.keywords.clear()
+        the_layer.keywords.add(*new_keywords)
+        the_layer.category = layer_form.cleaned_data['category'] #TopicCategory.objects.get(identifier='monitorLayer')
+        the_layer.metadata_edited = metadata_edited
+        the_layer.save()
+        return HttpResponseRedirect(
+            reverse(
+                'monitor_detail',
+                args=(
+                    layer.service_typename,
+                )))
 
     if poc is None:
         poc_form = ProfileForm(instance=poc, prefix="poc")

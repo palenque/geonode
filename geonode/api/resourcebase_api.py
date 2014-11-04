@@ -22,8 +22,7 @@ if settings.HAYSTACK_SEARCH:
 from geonode.layers.models import Layer, Attribute
 from geonode.maps.models import Map
 from geonode.documents.models import Document
-from geonode.base.models import ResourceBase
-
+from geonode.base.models import ResourceBase, TopicCategory
 from .authorization import GeoNodeAuthorization, AttributeAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
@@ -445,6 +444,10 @@ class CommonModelApi(ModelResource):
                 data['objects'],
                 list):
             data['objects'] = list(data['objects'].values(*VALUES))
+            # TODO: Improve
+            for obj in data['objects']:
+                if obj['category'] is not None: 
+                    obj['category_description'] = TopicCategory.objects.get(id=obj['category']).gn_description
 
         desired_format = self.determine_format(request)
         serialized = self.serialize(request, data, desired_format)
