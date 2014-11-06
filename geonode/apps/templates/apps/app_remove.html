@@ -7,7 +7,7 @@
 {% block body %}
 <div class="row">
   <div class="col-md-8">
-    <form action="{% url "app_remove" group.slug request.user.username %}" method="POST">
+    <form action="{% url "app_remove" group.slug  %}" method="POST">
       <h2>
         {% blocktrans with group.title as group_title %}
           Are you sure you want to remove the app: {{ group_title }}?

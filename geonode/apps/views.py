@@ -192,6 +192,7 @@ class AppDetailView(ListView):
 
 @login_required
 def member_detail(request, app_id, username):
+    # TODO: validar listado de usuario que tengan la app
 
     app = get_object_or_404(App, id=app_id)
     manager = app.get_managers()[0]
@@ -223,7 +224,7 @@ def member_detail(request, app_id, username):
     # TODO: cambiar query
     user_objects = profile.resourcebase_set.filter(
         id__in=[obj.id for obj in user_objects if manager.has_perm('base.view_resourcebase', obj)]
-    )
+    ).distinct()
 
     sortby_field = 'date'
     if ('sortby' in request.GET):
@@ -346,6 +347,9 @@ def app_join(request, slug):
 
 @login_required
 def app_remove(request, slug):
+    # FIXME: permitir borrar app solo si no tiene usuarios asociados?
+    # FIXME: quitar permisos del owner en recursos compartidos o transferir
+
     app = get_object_or_404(App, slug=slug)
     if request.method == 'GET':
         return render_to_response(

@@ -1,12 +1,13 @@
 from django.conf.urls import patterns, url
 from django.views.generic import TemplateView
+from django.contrib.auth.decorators import login_required
 
 # from .views import GroupDetailView, GroupActivityView
 from .views import AppDetailView
 
 urlpatterns = patterns('geonode.apps.views',
                        url(r'^$',
-                           TemplateView.as_view(template_name='apps/app_list.html'),
+                           login_required(TemplateView.as_view(template_name='apps/app_list.html')),
                            name="app_list"),                      
                        url(r"^member/(?P<app_id>[-\d+]+)/(?P<username>[^/]*)/$",
                            "member_detail",
