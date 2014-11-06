@@ -215,7 +215,7 @@ def member_detail(request, app_id, username):
                 content_filter = 'monitors'
                 user_objects = Layer.objects.filter(
                     layer_type='monitor',
-                    owner=self.request.user
+                    owner=request.user
                 )                
             if (content == 'documents'):
                 content_filter = 'documents'
@@ -235,6 +235,7 @@ def member_detail(request, app_id, username):
         user_objects = user_objects.order_by('-date')
 
     return render(request, "apps/app_member_detail.html", {
+        "app": app,
         "profile": profile,
         "sortby_field": sortby_field,
         "content_filter": content_filter,
