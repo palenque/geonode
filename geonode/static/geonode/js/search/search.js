@@ -267,17 +267,25 @@
 
       if(!element.hasClass('selected')){
         // Add the entry in the correct query
-        query_entry = value;
 
-        // clear the active class from it
-        element.parents('ul').find('a').removeClass('selected');
+          query_entry = value;
 
-        element.addClass('selected');
+          // clear the active class from it
+          element.parents('ul').find('a').removeClass('selected');
 
-        //save back the new query entry to the scope query
-        $scope.query[data_filter] = query_entry;
+          element.addClass('selected');
 
-        query_api($scope.query);
+        if(value) {
+
+          //save back the new query entry to the scope query
+          $scope.query[data_filter] = query_entry;
+
+        } else {
+
+          delete $scope.query[data_filter];
+        }      
+
+        query_api($scope.query);        
       }     
     }
 

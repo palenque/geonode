@@ -40,9 +40,9 @@
         <dd>{{ profile.fax }}</dd>
         {% endif %}
         {% if profile.email %}
-        <dt><i class="fa fa-envelope-o"></i></dt>
+        <dt><i class="fa fa-external-link"></i></dt>
         <dd>
-          <a href="mailto:{{ profile.email }}">{{ profile.email }}</a>
+          <a href="{{ profile.email }}">{{ profile.email }}</a>
         </dd>
         {% endif %}
         {% endif %}
@@ -55,9 +55,9 @@
         </dd>
         {% endif %}
         {% if object.email %}
-        <dt><i class="fa fa-envelope-o"></i></dt>
+        <dt><i class="fa fa-external-link"></i></dt>
         <dd>
-          <a href="mailto:{{ object.email }}">{{ object.email }}</a>
+          <a href="{{ object.email }}">{{ object.email }}</a>
         </dd>
         {% endif %}
       </dl>
