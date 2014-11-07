@@ -37,7 +37,7 @@
           {% if object.email %}
           <dt><i class="fa fa-external-link"></i></dt>
           <dd>
-            <a href="{{ object.email }}">{{ object.email }}</a>
+            <a target="_blank" href="{{ object.email }}">{{ object.email }}</a>
           </dd>
           {% endif %}
         </dl>
@@ -88,7 +88,7 @@
       {% endif %}
 
       {% if is_member and not is_manager%}
-      <li class="list-group-item"><a href="{% url "app_member_remove" object.slug request.user.username %}">{% trans "Unlink this App" %}</a></li>
+      <li class="list-group-item"><a href="{% url "app_member_unlink" object.slug request.user.username %}">{% trans "Unlink this App" %}</a></li>
       {% endif %}
 
       {% if can_view %}

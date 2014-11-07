@@ -10,14 +10,14 @@
     <form action="{% url "app_remove" group.slug request.user.username %}" method="POST">
       <h2>
         {% blocktrans with group.title as group_title %}
-          Are you sure you want to remove the app: {{ group_title }}?
+          Are you sure you want to unlink the app: {{ group_title }}?
         {% endblocktrans %}
       </h2>
       {% csrf_token %}
       <input type="hidden" value="{{ group.slug }}" />
       <div class="form-actions">
         <input type="submit" value="{% trans "Yes, I am sure" %}" class="btn btn-danger" />
-        <a href="{% url "app_detail" group.slug %}" class="btn btn-info">{% trans "No, don't remove it" %}</a>
+        <a href="{% url "app_detail" group.slug %}" class="btn btn-info">{% trans "No, don't unlink it" %}</a>
       </div>
     </form>
   </div>

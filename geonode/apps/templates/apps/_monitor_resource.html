@@ -1,0 +1,12 @@
+<article>
+	<div class="row items-list">
+	  <div class="col-md-4">
+	    <a href="{{ obj.detail_url }}"><img class="thumb" ng-src="{{ obj.thumbnail_url }}" /></a>
+	  </div>
+    <div class="col-md-8">
+      <h4><a href="{{ obj.detail_url }}">{{ obj.title }}</a></h4>
+      <p>{{ obj.category.description }}</p>
+      <p class="resources-shared">{% trans "Shared" %} <input data-resource-id="{{ obj.id }}" {% if obj.id in permissions %}checked="checked"{%endif%} class="resource-app-shared" type="checkbox"/></p>
+    </div>
+  </div>
+</article>

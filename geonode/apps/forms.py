@@ -16,6 +16,10 @@ class AppForm(forms.ModelForm):
         widget=forms.HiddenInput,
         required=False)
 
+    email = forms.URLField(
+        label='Public URL'
+        )
+
     def clean_slug(self):
         if App.objects.filter(
                 slug__iexact=self.cleaned_data["slug"]).count() > 0:

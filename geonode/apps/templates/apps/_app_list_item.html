@@ -7,7 +7,7 @@
   <div class="col-md-9">
     <h5>
       <i class="fa fa-cubes"></i> <a href="{{ group.detail_url }}">{{ group.title }}</a>
-      <a href="mailto:{{ group.email }}" ng-if="group.email != ''"><i class="fa fa-external-link"></i></a>
+      <a href="{{ group.email }}" ng-if="group.email != ''" target="_blank"><i class="fa fa-external-link"></i></a>
     </h5>
     <p>{{ group.description}}</p>
     <ul class="list-inline">

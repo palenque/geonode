@@ -271,14 +271,14 @@ def resource_share(request, app_id):
 
 
 @login_required
-def app_member_remove(request, slug, username):
+def app_member_unlink(request, slug, username):
 
     app = get_object_or_404(App, slug=slug)
     user = get_object_or_404(get_user_model(), username=username)
 
     if request.method == 'GET':
         return render_to_response(
-            "apps/app_member_remove.html", RequestContext(request, {"group": app}))
+            "apps/app_member_unlink.html", RequestContext(request, {"group": app}))
 
     elif request.method == 'POST':
 
