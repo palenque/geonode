@@ -25,6 +25,8 @@ from geonode.utils import bbox_to_wkt
 from geonode.utils import forward_mercator
 from geonode.security.models import PermissionLevelMixin
 from taggit.managers import TaggableManager
+from taggit.models import TaggedItem
+from guardian.shortcuts import assign_perm, remove_perm
 
 from geonode.people.models import Profile
 from geonode.people.enumerations import ROLE_VALUES
@@ -684,6 +686,7 @@ def resourcebase_post_save(instance, *args, **kwargs):
     Used to fill any additional fields after the save.
     Has to be called by the children
     """
+
     ResourceBase.objects.filter(id=instance.id).update(
         thumbnail_url=instance.get_thumbnail_url(),
         detail_url=instance.get_absolute_url())
@@ -696,4 +699,44 @@ def rating_post_save(instance, *args, **kwargs):
     """
     ResourceBase.objects.filter(id=instance.object_id).update(rating=instance.rating)
 
+
+
+def share(instance, created=False, update_fields=None, **kwargs):
+    "Shares the tagged object with the owner's apps."
+
+    owner = instance.content_object.owner
+    resource = ResourceBase.objects.get(id=instance.object_id) 
+
+    for app_member in owner.appmember_set.all():
+        app = app_member.app
+        manager = app.get_managers()[0]
+
+        if (not app_member.app.user_is_role(owner, "manager")
+            and instance.tag.name in app.keyword_list()
+            and created 
+            and not manager.has_perm('view_resourcebase', resource)
+        ):
+            assign_perm('view_resourcebase', manager, resource)
+
+
+def unshare(instance, **kwargs):
+    "Unshares the tagged object with the owner's apps."
+
+    owner = instance.content_object.owner
+    resource = ResourceBase.objects.get(id=instance.object_id) 
+
+    for app_member in owner.appmember_set.all():
+        app = app_member.app
+        manager = app.get_managers()[0]
+
+        if (not app_member.app.user_is_role(owner, "manager")
+            and instance.tag.name in app.keyword_list()
+            and manager.has_perm('view_resourcebase', resource)
+        ):
+            remove_perm('view_resourcebase', manager, resource)
+
+
 signals.post_save.connect(rating_post_save, sender=OverallRating)
+signals.post_save.connect(share, sender=TaggedItem)
+signals.post_delete.connect(unshare, sender=TaggedItem)
+
