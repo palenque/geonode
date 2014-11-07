@@ -100,9 +100,13 @@ class AppDetailView(ListView):
                     user_objects = user_objects.instance_of(Layer)
                 if (content == 'monitors'):
                     content_filter = 'monitors'
-                    user_objects = Layer.objects.filter(
+                    # TODO: mejorar query
+                    layer_objects = Layer.objects.filter(
                         layer_type='monitor',
                         owner=self.request.user
+                    )
+                    user_objects = ResourceBase.objects.filter(
+                        id__in=[o.id for o in layer_objects]
                     )
                 if (content == 'maps'):
                     content_filter = 'maps'
@@ -132,7 +136,7 @@ class AppDetailView(ListView):
         context['content_filter'] = content_filter
         context['object_list'] = user_objects.get_real_instances()
         context['permissions'] = [
-            obj.id for obj in user_objects if manager.has_perm('base.view_resourcebase', obj)
+            obj.id for obj in user_objects if manager.has_perm('view_resourcebase', obj)
         ]
 
         # context['can_view'] = self.app.can_view(self.request.user)
@@ -197,6 +201,10 @@ def member_detail(request, app_id, username):
     app = get_object_or_404(App, id=app_id)
     manager = app.get_managers()[0]
     profile = get_object_or_404(Profile, username=username)
+
+    if not app.user_is_member(profile):
+        raise Http404()
+
     # combined queryset from each model content type
     user_objects = profile.resourcebase_set.distinct()
 
@@ -213,9 +221,13 @@ def member_detail(request, app_id, username):
                 user_objects = user_objects.instance_of(Map)
             if (content == 'monitors'):
                 content_filter = 'monitors'
-                user_objects = Layer.objects.filter(
+                # TODO: mejorar query
+                layer_objects = Layer.objects.filter(
                     layer_type='monitor',
                     owner=request.user
+                )                
+                user_objects = ResourceBase.objects.filter(
+                    id__in=[o.id for o in layer_objects]
                 )                
             if (content == 'documents'):
                 content_filter = 'documents'
@@ -223,7 +235,7 @@ def member_detail(request, app_id, username):
 
     # TODO: cambiar query
     user_objects = profile.resourcebase_set.filter(
-        id__in=[obj.id for obj in user_objects if manager.has_perm('base.view_resourcebase', obj)]
+        id__in=[obj.id for obj in user_objects if manager.has_perm('view_resourcebase', obj)]
     ).distinct()
 
     sortby_field = 'date'
@@ -249,16 +261,18 @@ def resource_share(request, app_id):
 
     app  = get_object_or_404(App, id=app_id)
     shared = request.POST.get('shared')
+    manager = app.get_managers()[0]
     resource = get_object_or_404(
         ResourceBase, id=request.POST.get('resource_id')
     )
     
-    if app.user_is_role(request.user, role="member"):
-    
+    if (app.user_is_role(request.user, role="member") and 
+        resource.keywords.filter(name__in=app.keyword_list())
+    ):
         if shared == 'true':
-            assign_perm('base.view_resourcebase', app.get_managers()[0], resource)
+            assign_perm('view_resourcebase', manager, resource)
         else:
-            remove_perm('base.view_resourcebase', app.get_managers()[0], resource)
+            remove_perm('view_resourcebase', manager, resource)
 
         return HttpResponse(
             json.dumps(dict(status='ok')), 
@@ -284,8 +298,8 @@ def app_member_remove(request, slug, username):
 
     elif request.method == 'POST':
 
-        if request.user == user:
-            AppMember.objects.get(app=app, user=user).delete()
+        if request.user == user and app.user_is_member(user):
+            app.set_free_resources(user)
             return redirect("app_detail", slug=app.slug)
         return HttpResponseForbidden()
 

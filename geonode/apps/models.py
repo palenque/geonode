@@ -9,7 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.db.models import signals
 
 from taggit.managers import TaggableManager
-from guardian.shortcuts import get_objects_for_group
+from guardian.shortcuts import get_objects_for_group, remove_perm, assign_perm
 
 
 class App(models.Model):
@@ -38,8 +38,8 @@ class App(models.Model):
         blank=True,
         help_text=email_help_text)
     keywords = TaggableManager(
-        _('keywords'),
-        help_text=_("A space or comma-separated list of keywords"),
+        _('Resources'),
+        help_text=_("A space or comma-separated list of resources required"),
         blank=True)
     # access = models.CharField(
     #     max_length=15,
@@ -131,10 +131,44 @@ class App(models.Model):
             return False
         return self.user_is_role(user, "manager")
 
+    def resources_by_user(self, user):
+        'Returns resource that an user shares with this app.'
+
+        manager = self.get_managers()[0]
+        for resource in user.resourcebase_set.filter(
+            keywords__name__in=self.keyword_list()
+        ).distinct():
+            if manager.has_perm('view_resourcebase', resource):
+                yield resource
+
+    def set_free_resources(self, user):
+        ''
+
+        manager = self.get_managers()[0]
+        for resource in self.resources_by_user(user):
+            remove_perm('view_resourcebase', manager, resource)
+        
+        AppMember.objects.get(app=self, user=user).delete()
+
     def join(self, user, **kwargs):
+        'Joins an user to this app as a member.'
+
         if user == user.get_anonymous():
             raise ValueError("The invited user cannot be anonymous")
+
         AppMember(app=self, user=user, **kwargs).save()
+
+        # asocia todos los recursos del usuario que tienen 
+        # los recursos que necesita la app
+
+        manager = self.get_managers()[0]
+        for resource in user.resourcebase_set.filter(
+            keywords__name__in=self.keyword_list()
+        ).distinct():
+            assign_perm('view_resourcebase', manager, resource)
+
+
+
         # user.groups.add(self.group)
 
     # def invite(self, user, from_user, role="member", send=True):

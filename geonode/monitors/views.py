@@ -141,6 +141,9 @@ def monitor_upload(request, template='upload/monitor_upload.html'):
                     layer_type='monitor',
                 )
 
+                # agrega el keyword "monitor"
+                saved_layer.keywords.add(*['monitor'])
+
             except Exception as e:
                 logger.exception(e)
                 out['success'] = False
