@@ -34,7 +34,7 @@ from geonode.base.models import ResourceBase, ResourceBaseManager, resourcebase_
 from geonode.people.utils import get_valid_user
 from agon_ratings.models import OverallRating
 
-from .enumerations import MONITOR_FIELDS, MAGNITUDES
+#from .enumerations import MONITOR_FIELDS, MAGNITUDES
 
 logger = logging.getLogger("geonode.layers.models")
 
@@ -322,7 +322,7 @@ class Attribute(models.Model, PermissionLevelMixin):
         default=1)
     field = models.CharField(
         _('field mapping'),
-        choices=MONITOR_FIELDS,
+        #choices=MONITOR_FIELDS,
         help_text=_('monitor field'),
         max_length=255,
         blank=True,
@@ -330,8 +330,8 @@ class Attribute(models.Model, PermissionLevelMixin):
         unique=False)
     magnitude = models.CharField(
         _('magnitude'),
-        choices=MAGNITUDES,
-        help_text=_('magnitude'),
+        #choices=MAGNITUDES,
+        help_text=_('unit'),
         max_length=255,
         blank=True,
         null=True,

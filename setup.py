@@ -93,6 +93,7 @@ setup(name='GeoNode',
         "nose <=1.0, <=1.3.1", # python-nose
         "django-nose==1.2", # python-django-nose
         "South==1.0",
+        "Pint==0.5.2",
 
         # Django Apps
         "django-pagination >=1.0.5, <=1.0.7", # python-django-pagination

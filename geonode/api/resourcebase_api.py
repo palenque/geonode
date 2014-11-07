@@ -22,8 +22,7 @@ if settings.HAYSTACK_SEARCH:
 from geonode.layers.models import Layer, Attribute
 from geonode.maps.models import Map
 from geonode.documents.models import Document
-from geonode.base.models import ResourceBase
-
+from geonode.base.models import ResourceBase, TopicCategory
 from .authorization import GeoNodeAuthorization, AttributeAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
@@ -431,6 +430,7 @@ class CommonModelApi(ModelResource):
             'owner_id',
             'share_count',
             'popular_count',
+            'date',
             'srid',
             'category',
             'supplemental_information',
@@ -445,6 +445,10 @@ class CommonModelApi(ModelResource):
                 data['objects'],
                 list):
             data['objects'] = list(data['objects'].values(*VALUES))
+            # TODO: Improve
+            for obj in data['objects']:
+                if obj['category'] is not None: 
+                    obj['category_description'] = TopicCategory.objects.get(id=obj['category']).gn_description
 
         desired_format = self.determine_format(request)
         serialized = self.serialize(request, data, desired_format)
@@ -490,8 +494,8 @@ class LayerResource(CommonModelApi):
     """Layer API"""
 
     class Meta(CommonMetaApi):
-        # queryset = Layer.objects.exclude(layer_type='monitor').distinct().order_by('-date')
-        queryset = Layer.objects.all().distinct().order_by('-date')
+        queryset = Layer.objects.exclude(layer_type='monitor').distinct().order_by('-date')
+        #queryset = Layer.objects.all().distinct().order_by('-date')
         resource_name = 'layers'
         excludes = ['csw_anytext', 'metadata_xml']
 
@@ -580,57 +584,6 @@ class AttributeResource(ModelResource):
              'unique_values', 'average', 'median','sum', 'stddev',
              'last_stats_updated', 'attribute_type', 'resource_uri'
         ]
-
-
-class MonitorResource(MultipartResource, CommonModelApi):
-
-    """Monitor API"""
-
-    class Meta(CommonMetaApi):
-        allowed_methods = ['get', 'post']
-        queryset = Layer.objects.filter(layer_type='monitor').distinct().order_by('-date')
-        resource_name = 'monitors'
-        excludes = ['csw_anytext', 'metadata_xml']
-
-    def obj_create(self, bundle, request=None, **kwargs):
-        """
-
-        Ejemplo simple upload:
-
-        curl 
-        --dump-header - 
-        -F base_file=@lvVK4NtGvJ.shp 
-        -F shx_file=@lvVK4NtGvJ.shx 
-        -F dbf_file=@lvVK4NtGvJ.dbf 
-        -F prj_file=@lvVK4NtGvJ.prj 
-        -F charset=UTF-8 # opcional
-        -F layer_title='monitor test'
-        -F abstract='monitor test'
-        -F 'permissions={"users":{},"groups":{}}' 
-        'http://localhost:8000/api/monitors/?username=admin&api_key=xxx'
-
-
-        Ejemplo ppciones de permisos:
-        
-        {
-            "users":{"AnonymousUser":["view_resourcebase"], "tinkamako":["change_resourcebase"] }, 
-            "groups":{"foo":["change_resourcebase_permissions"] } 
-        }
-        """
-
-        import json
-        from geonode.monitors.views import monitor_upload
-        from geonode.layers.models import Layer
-        from tastypie.exceptions import BadRequest
-
-        try:
-            result = json.loads(monitor_upload(bundle.request).content)
-        except Exception, e:
-            raise BadRequest('Error uploading monitor')
-
-        if result['success']:
-            return Layer.objects.get(id=result['layer_id'])
-        raise BadRequest(result['errors'])
 
 
 class MapResource(CommonModelApi):

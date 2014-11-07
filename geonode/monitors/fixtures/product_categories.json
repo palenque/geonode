@@ -1,0 +1,73 @@
+[
+{
+    "pk": 25, 
+    "model": "base.topiccategory", 
+    "fields": {
+        "is_choice": true, 
+        "description": "Soja", 
+        "gn_description": "Soja", 
+        "gn_description_en": "Soy", 
+        "description_en": "Soy", 
+        "description_es": "Soja", 
+        "gn_description_es": "Soja", 
+        "identifier": "yield/soy"
+    }
+},
+{
+    "pk": 27, 
+    "model": "base.topiccategory", 
+    "fields": {
+        "is_choice": true, 
+        "description": "Ma\u00edz",  
+        "gn_description": "Ma\u00edz", 
+        "gn_description_en": "Corn", 
+        "description_en": "Corn", 
+        "description_es": "Ma\u00edz", 
+        "gn_description_es": "Ma\u00edz", 
+        "identifier": "yield/corn"
+    }
+},
+{
+    "pk": 28, 
+    "model": "base.topiccategory", 
+    "fields": {
+        "is_choice": true, 
+        "description": "Cebada",  
+        "gn_description": "Cebada",
+        "gn_description_en": "Barley", 
+        "description_en": "Barley", 
+        "description_es": "Cebada",  
+        "gn_description_es": "Cebada",  
+        "identifier": "yield/barley"
+    }
+},
+{
+    "pk": 29, 
+    "model": "base.topiccategory", 
+    "fields": {
+        "is_choice": true, 
+        "description": "Avena",  
+        "gn_description": "Avena",  
+        "gn_description_en": "Oats", 
+        "description_en": "Oats", 
+        "description_es": "Avena",  
+        "gn_description_es": "Avena",  
+        "identifier": "yield/oats"
+    }
+},
+{
+    "pk": 30, 
+    "model": "base.topiccategory", 
+    "fields": {
+        "is_choice": true, 
+        "description": "Centeno",  
+        "gn_description": "Centeno",  
+        "gn_description_en": "Rye", 
+        "description_en": "Rye", 
+        "description_es": "Centeno",  
+        "gn_description_es": "Centeno",  
+        "identifier": "yield/rye"
+    }
+}
+
+]

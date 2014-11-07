@@ -561,5 +561,5 @@ def create_thumbnail(instance, thumbnail_remote_url, thumbail_create_url=None):
                                    )
                                    )
     ResourceBase.objects.filter(id=instance.id).update(
-        thumbnail_url=instance.get_thumbnail_url()
+        thumbnail_url=thumbnail_url
     )

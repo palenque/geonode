@@ -88,6 +88,9 @@ form#search .fa {
 body.layers li#nav_layers a {
   color: white;
 }
+body.monitors li#nav_monitors a {
+  color: white;
+}
 body.maps li#nav_maps a {
   color: white;
 }

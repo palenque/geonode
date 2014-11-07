@@ -4128,3 +4128,15 @@ msgstr ""
 #: upload/templates/upload/no_upload.html:8
 msgid " Or just go "
 msgstr ""
+
+#: monitors/forms.py:52
+msgid "Harvest date"
+msgstr ""
+
+#: monitors/forms.py:60
+msgid "Season start"
+msgstr ""
+
+#: monitors/forms.py:67
+msgid "Season end"
+msgstr ""

@@ -4390,6 +4390,18 @@ msgstr ""
 msgid " Or just go "
 msgstr ""
 
+#: monitors/forms.py:52
+msgid "Harvest date"
+msgstr "Fecha de cosecha"
+
+#: monitors/forms.py:60
+msgid "Season start"
+msgstr "Fecha de inicio de la campaña"
+
+#: monitors/forms.py:67
+msgid "Season end"
+msgstr "Fecha de fin de la campaña"
+
 #~ msgid "Hide announcement"
 #~ msgstr "Ocultar anuncios"
 
