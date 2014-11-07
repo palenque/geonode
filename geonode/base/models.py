@@ -704,6 +704,9 @@ def rating_post_save(instance, *args, **kwargs):
 def share(instance, created=False, update_fields=None, **kwargs):
     "Shares the tagged object with the owner's apps."
 
+    if not hasattr(instance.content_object, 'owner'):
+        return
+
     owner = instance.content_object.owner
     resource = ResourceBase.objects.get(id=instance.object_id) 
 
@@ -721,6 +724,9 @@ def share(instance, created=False, update_fields=None, **kwargs):
 
 def unshare(instance, **kwargs):
     "Unshares the tagged object with the owner's apps."
+
+    if not hasattr(instance.content_object, 'owner'):
+        return
 
     owner = instance.content_object.owner
     resource = ResourceBase.objects.get(id=instance.object_id) 

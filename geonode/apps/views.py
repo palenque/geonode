@@ -266,9 +266,8 @@ def resource_share(request, app_id):
         ResourceBase, id=request.POST.get('resource_id')
     )
     
-    if (app.user_is_role(request.user, role="member") and 
-        resource.get_real_instance().keywords.filter(name__in=app.keyword_list())
-    ):
+    if app.user_is_role(request.user, role="member"):
+        # and resource.get_real_instance().keywords.filter(name__in=app.keyword_list()))
         if shared == 'true':
             assign_perm('view_resourcebase', manager, resource)
         else:
