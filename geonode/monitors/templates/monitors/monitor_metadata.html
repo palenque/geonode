@@ -28,6 +28,7 @@
 
     {% if layer_form.errors or attribute_form.errors or category_form.errors %}
 	<div style="background-color: pink">{% blocktrans %}Error updating metadata.  Please check the following fields: {% endblocktrans %}
+
             <ul>
         {% for field in layer_form %}
             {% if field.errors %}
@@ -52,6 +53,8 @@
     {% endif %}
     <br/>
     {% csrf_token %}
+    <legend>{% trans "Metadata" %}</legend>
+
     <div class="form-controls">
       {{ layer_form|as_bootstrap }}
     </div>
@@ -74,7 +77,12 @@
             {% endautoescape %}
         </fieldset>
  -->
-      <header>{% trans "Attributes" %}</header>
+      <br/>
+      <legend>{% trans "Attributes" %}</legend>
+      {% if not layer_form.instance.metadata_edited %}
+        <div class="alert alert-info">{% trans "The associations and units are suggested. Please check them." %}</div>
+      {% endif %}
+
       {{ attribute_form.management_form }}
       <table cellpadding="5" cellspacing="5" width="100%">
           <tr>

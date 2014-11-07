@@ -21,6 +21,8 @@
 import os
 import logging
 import shutil
+import Levenshtein
+import re
 
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
@@ -53,6 +55,7 @@ from geonode.people.forms import ProfileForm, PocForm
 from geonode.security.views import _perms_info_json
 from geonode.documents.models import get_related_documents
 
+from .enumerations import MONITOR_FIELDS, MONITOR_FIELD_MAGNITUDES
 
 logger = logging.getLogger("geonode.layers.views")
 
@@ -367,6 +370,8 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
                 attribute__in=['rendimiento_humedo', 'rendimiento_seco']
             ).order_by('display_order'))
 
+        if not layer.metadata_edited:
+            guess_attribute_match(layer,attribute_form)
         
         # category_form = CategoryForm(
         #     prefix="category_choice_field",
@@ -416,7 +421,7 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             la.visible = form["visible"]
             la.display_order = form["display_order"]
             la.field = form["field"]
-            la.magnitude = form["magnitude"]
+            la.magnitude = form["magnitude"]        
             la.save()
 
             metadata_edited = True
@@ -460,10 +465,31 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
         "layer_form": layer_form,
         "poc_form": poc_form,
         "author_form": author_form,
-        "attribute_form": attribute_form,
-        # "category_form": category_form,
+        "attribute_form": attribute_form
     }))
 
+def normalize_attr_name(attr):
+    attr = attr.lower()
+    repl = [('á','a'),('é','e'),('í','i'),('ó','o'),('ú','u'),('ñ','n')]
+    for a,b in repl: attr = attr.replace(a.decode('utf8'),b)
+    return re.sub('[^a-z]',' ',attr)
+
+def best_candidate(attr,candidates):
+    cand_vals = [(x,float(Levenshtein.distance(attr,x))/min([len(x),len(attr)])) for x in candidates]
+    return min(cand_vals, key=lambda x:x[1])
+
+def guess_attribute_match(layer,attribute_form):
+    candidates = dict([(normalize_attr_name(x.initial['attribute']),x.initial['attribute'])
+        for x in attribute_form.forms])
+    for attr,_ in MONITOR_FIELDS:
+        cand,score = best_candidate(normalize_attr_name(attr),candidates.keys())
+        if cand is not None and score < 1.0:
+            attr2 = candidates.pop(cand)
+            form = (x for x in attribute_form.forms if x.initial['attribute'] == attr2).next()
+            form.initial['field'] = attr
+            if attr in MONITOR_FIELD_MAGNITUDES:
+                form.initial['magnitude'] = \
+                    re.sub('^[0-9 \.]+','',"{:~}".format(MONITOR_FIELD_MAGNITUDES[attr])).replace(' ','')
 
 @login_required
 def layer_change_poc(request, ids, template='layers/layer_change_poc.html'):

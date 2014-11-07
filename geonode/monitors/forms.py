@@ -300,10 +300,13 @@ class MonitorAttributeForm(forms.ModelForm):
                     except pint.DimensionalityError:
                         raise forms.ValidationError("Unit not valid. Cannot convert '%s' to '%s'" \
                             % (self.cleaned_data['magnitude'],MONITOR_FIELD_MAGNITUDES[self.cleaned_data['field']].units))
+                    except pint.UndefinedUnitError:
+                        raise forms.ValidationError("Invalid unit: '%s'" \
+                            % self.cleaned_data['magnitude'])
             else:
                 if self.cleaned_data['magnitude']:
-                    raise forms.ValidationError("This field has no unit." \
-                        % (MONITOR_FIELD_MAGNITUDES[self.cleaned_data['field']].units))
+                    raise forms.ValidationError("This field has no unit.")
+        return self.cleaned_data['magnitude']
 
     # def clean(self):
     #     'Validate magnitudes.'
