@@ -42,7 +42,7 @@ from geonode.layers.forms import LayerForm, LayerUploadForm, NewLayerUploadForm,
 from geonode.base.forms import CategoryForm
 from geonode.layers.models import Layer, Attribute
 from geonode.base.enumerations import CHARSETS
-from geonode.base.models import TopicCategory
+from geonode.base.models import TopicCategory, ResourceBase
 
 from geonode.utils import default_map_config, llbbox_to_mercator
 from geonode.utils import GXPLayer
@@ -142,6 +142,7 @@ def monitor_upload(request, template='upload/monitor_upload.html'):
                 )
 
                 # agrega el keyword "monitor"
+                # ResourceBase.objects.get(id=saved_layer.id).keywords.add(*['monitor'])
                 saved_layer.keywords.add(*['monitor'])
 
             except Exception as e:

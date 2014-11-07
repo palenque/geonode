@@ -16,7 +16,7 @@ from geonode.utils import resolve_object
 from geonode.security.views import _perms_info_json
 from geonode.people.forms import ProfileForm
 from geonode.base.forms import CategoryForm
-from geonode.base.models import TopicCategory
+from geonode.base.models import TopicCategory, ResourceBase
 from geonode.documents.models import Document
 from geonode.documents.forms import DocumentForm, DocumentCreateForm, DocumentReplaceForm
 from geonode.documents.models import IMGTYPES
@@ -184,7 +184,10 @@ def document_metadata(
             the_document = document_form.save()
             the_document.poc = new_poc
             the_document.metadata_author = new_author
+            
             the_document.keywords.add(*new_keywords)
+            # ResourceBase.objects.get(id=the_document.id).keywords.add(*new_keywords)
+            
             the_document.category = new_category
             the_document.save()
             return HttpResponseRedirect(
