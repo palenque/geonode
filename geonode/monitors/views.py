@@ -548,7 +548,7 @@ def layer_replace(request, layername, template='layers/layer_replace.html'):
 
 
 @login_required
-def layer_remove(request, layername, template='layers/layer_remove.html'):
+def monitor_remove(request, layername, template='monitors/monitor_remove.html'):
     try:
         layer = _resolve_layer(request, layername, 'base.delete_resourcebase',
                                _PERMISSION_MSG_DELETE)
@@ -559,12 +559,12 @@ def layer_remove(request, layername, template='layers/layer_remove.html'):
             }))
         if (request.method == 'POST'):
             layer.delete()
-            return HttpResponseRedirect(reverse("layer_browse"))
+            return HttpResponseRedirect(reverse("monitor_browse"))
         else:
             return HttpResponse("Not allowed", status=403)
     except PermissionDenied:
         return HttpResponse(
-            'You are not allowed to delete this layer',
+            'You are not allowed to delete this monitor',
             mimetype="text/plain",
             status=401
         )
