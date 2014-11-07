@@ -1,6 +1,7 @@
 
-from geonode.layers.models import Layer
+from tastypie.resources import Resource
 
+from geonode.layers.models import Layer
 from .resourcebase_api import MultipartResource, CommonModelApi, CommonMetaApi
 
 class MonitorResource(MultipartResource, CommonModelApi):

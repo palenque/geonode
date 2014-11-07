@@ -18,6 +18,8 @@
 #
 #########################################################################
 
+from geonode.layers.units import *
+
 LAYER_ATTRIBUTE_NUMERIC_DATA_TYPES = [
     'xsd:byte',
     'xsd:decimal',
@@ -35,3 +37,40 @@ LAYER_ATTRIBUTE_NUMERIC_DATA_TYPES = [
     'xsd:unsignedShort',
     'xsd:unsignedByte',
 ]
+
+MONITOR_FIELDS = (
+    ('MASA_SECO','Masa (seco)'),
+    ('MASA_HUMEDO','Masa (húmedo)'),
+    ('VOLUMEN_SECO','Volumen (seco)'),
+    ('VOLUMEN_HUMEDO','Volumen (húmedo)'),
+    ('RENDIMIENTO_SECO','Rendimiento (seco)'),
+    ('RENDIMIENTO_HUMEDO','Rendimiento (húmedo)'),
+    ('FLUJO','Flujo'),
+    ('HUMEDAD','Humedad'),
+    ('ALTITUD','Altitud'),
+    ('ANCHO','Ancho'),
+    ('DISTANCIA','Distancia'),
+    ('VELOCIDAD','Velocidad'),
+    ('TIEMPO','Tiempo'),
+)
+
+
+MONITOR_FIELD_MAGNITUDES = {
+    'MASA_SECO': units.kg,
+    'MASA_HUMEDO': units.kg,
+    'VOLUMEN_SECO': units.l,
+    'VOLUMEN_HUMEDO': units.l,
+    'RENDIMIENTO_SECO': (units.ton / units.ha),
+    'RENDIMIENTO_HUMEDO': (units.ton / units.ha),
+    'FLUJO': (units.kg / units.sec),
+    # ('HUMEDAD', ),
+    'ALTITUD': units.m,
+    'ANCHO': units.m,
+    'DISTANCIA': units.m,
+    'VELOCIDAD': (units.km / units.sec),
+    'TIEMPO': units.sec,
+}
+
+#MAGNITUDES = YIELD_MAGNITUDES + SPEED_MAGNITUDES + FLOW_MAGNITUDES + WEIGHT_MAGNITUDES + \
+#             VOLUME_MAGNITUDES + DISTANCE_MAGNITUDES + TIME_MAGNITUDES
+

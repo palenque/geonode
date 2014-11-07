@@ -21,6 +21,7 @@
 import os
 import tempfile
 import taggit
+import pint
 
 from django import forms
 from django.utils import simplejson as json
@@ -30,6 +31,7 @@ from modeltranslation.forms import TranslationModelForm
 from mptt.forms import TreeNodeMultipleChoiceField
 
 from geonode.layers.models import Layer, Attribute
+from geonode.layers.units import units
 from geonode.people.models import Profile
 from geonode.base.models import Region, TopicCategory
 
@@ -272,7 +274,7 @@ class LayerDescriptionForm(forms.Form):
     keywords = forms.CharField(500, required=False)
 
 
-from geonode.layers.enumerations import MONITOR_FIELD_MAGNITUDES
+from .enumerations import MONITOR_FIELD_MAGNITUDES, MONITOR_FIELDS
 
 class MonitorAttributeForm(forms.ModelForm):
 
@@ -281,19 +283,54 @@ class MonitorAttributeForm(forms.ModelForm):
         self.fields['attribute'].widget.attrs['readonly'] = True
         for field in ['attribute_label','description','display_order']:
             self.fields[field].widget = forms.HiddenInput()
+        self.fields['magnitude'].widget.attrs['maxlength']= 10            
+        self.fields['magnitude'].widget.attrs['size']= 10  
+        choices = tuple([('','-----')] + list(MONITOR_FIELDS))
+        self.fields['field'].widget = forms.Select(choices=choices)
 
+    def clean_magnitude(self):
+        if self.cleaned_data['field']:
+            if self.cleaned_data['field'] in MONITOR_FIELD_MAGNITUDES:
+                if not self.cleaned_data['magnitude']:
+                    raise forms.ValidationError("Unit not specified. Default is '%s'" \
+                        % MONITOR_FIELD_MAGNITUDES[self.cleaned_data['field']])
+                else:
+                    try:
+                        (1 * units[self.cleaned_data['magnitude']]).to(MONITOR_FIELD_MAGNITUDES[self.cleaned_data['field']])
+                    except pint.DimensionalityError:
+                        raise forms.ValidationError("Unit not valid. Cannot convert '%s' to '%s'" \
+                            % (self.cleaned_data['magnitude'],MONITOR_FIELD_MAGNITUDES[self.cleaned_data['field']].units))
+            else:
+                if self.cleaned_data['magnitude']:
+                    raise forms.ValidationError("This field has no unit." \
+                        % (MONITOR_FIELD_MAGNITUDES[self.cleaned_data['field']].units))
 
-    def clean(self):
-        'Validate magnitudes.'
+    # def clean(self):
+    #     'Validate magnitudes.'
 
-        cleaned_data = super(MonitorAttributeForm, self).clean()
-        if cleaned_data['field']:
-            mg = dict(MONITOR_FIELD_MAGNITUDES)
-            if (mg.has_key(cleaned_data['field']) and 
-                cleaned_data['magnitude'] not in dict(mg[cleaned_data['field']]).keys()):
-                raise forms.ValidationError("Magnitude not valid: %s" % cleaned_data['field'])
-            cleaned_data['attribute_label'] = cleaned_data['field'].lower()
-        return cleaned_data
+    #     cleaned_data = super(MonitorAttributeForm, self).clean()
+    #     if cleaned_data['field']:
+    #         if cleaned_data['field'] in MONITOR_FIELD_MAGNITUDES:
+    #             if not cleaned_data['magnitude']:
+    #                 raise forms.ValidationError(cleaned_data['field'],"Unit not specified. Default is '%s'" \
+    #                     % MONITOR_FIELD_MAGNITUDES[cleaned_data['field']])
+    #             else:
+    #                 try:
+    #                     (1 * units[cleaned_data['magnitude']]).to(MONITOR_FIELD_MAGNITUDES[cleaned_data['field']])
+    #                 except pint.DimensionalityError:
+    #                     raise forms.ValidationError(cleaned_data['field'],"Unit not valid. Cannot convert '%s' to '%s'" \
+    #                         % (cleaned_data['magnitude'],MONITOR_FIELD_MAGNITUDES[cleaned_data['field']].units))
+    #         else:
+    #             if cleaned_data['magnitude']:
+    #                 raise forms.ValidationError(cleaned_data['field'],"This field has no unit." \
+    #                     % (MONITOR_FIELD_MAGNITUDES[cleaned_data['field']].units))
+
+    #         # mg = dict(MONITOR_FIELD_MAGNITUDES)
+    #         # if (mg.has_key(cleaned_data['field']) and 
+    #         #     cleaned_data['magnitude'] not in dict(mg[cleaned_data['field']]).keys()):
+    #         #     raise forms.ValidationError("Magnitude not valid: %s" % cleaned_data['field'])
+    #         cleaned_data['attribute_label'] = cleaned_data['field'].lower()
+    #     return cleaned_data
 
     class Meta:
         model = Attribute

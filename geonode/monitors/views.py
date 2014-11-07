@@ -362,6 +362,8 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             queryset=Attribute.objects.filter(layer=layer).exclude(
                 attribute__in=['rendimiento_humedo', 'rendimiento_seco']
             ).order_by('display_order'))
+
+        
         # category_form = CategoryForm(
         #     prefix="category_choice_field",
         #     initial=topic_category.id if topic_category else None)
