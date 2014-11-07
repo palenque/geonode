@@ -3,8 +3,9 @@ from tastypie.api import Api
 from .api import TagResource, TopicCategoryResource, ProfileResource, \
     GroupResource, AppResource
 from .resourcebase_api import LayerResource, MapResource, DocumentResource, \
-    ResourceBaseResource, FeaturedResourceBaseResource, MonitorResource, \
+    ResourceBaseResource, FeaturedResourceBaseResource, \
     AttributeResource
+from .monitor_api import MonitorResource
 
 api = Api(api_name='api')
 
