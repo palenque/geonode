@@ -12,10 +12,8 @@
     <p>{{ group.description}}</p>
     <ul class="list-inline">
       <li>
-        <a href="{{ group.detail_url }}">
           <strong>{{ group.member_count }}</strong>
-          <ng-pluralize count="group.member_count" when="{'1': 'Client', 'other': 'Clients'}"></ng-pluralize>
-        </a>
+          <ng-pluralize count="group.member_count" when="{'1': 'User', 'other': 'Users'}"></ng-pluralize>
       </li>
     </ul>
   </div>

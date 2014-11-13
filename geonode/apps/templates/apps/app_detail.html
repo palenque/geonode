@@ -24,7 +24,7 @@
       <div class="col-md-9">
         <p>{{ object.description }}</p>
         <dl class="dl-horizontal profile-details">
-          <dt><i class="fa fa-tag"></i></dt>
+          <dt><i class="fa fa-lock"></i></dt>
           <dd>
           {% if object.keyword_list %}
             {% for keyword in object.keyword_list %}
@@ -47,7 +47,7 @@
     {% if is_manager %}
     <div class="row">
       <div class="col-md-12">
-        <h3>{% trans "Clients" %}</h3>
+        <h3>{% trans "Users" %}</h3>
         {% include 'search/_pagination.html' %}
          <div class="tab-content paginate paginate-auto" id="search-content">
         {% include 'apps/_profile_list_item.html' %}
@@ -105,10 +105,13 @@
           {% if object.access == "public" %}
           {% endcomment %}
             {% trans "Anyone may link this app." %}
+            <a class="btn btn-default btn-md btn-block" href="{% url "app_member_link" object.slug request.user.username %}">{% trans "Link this app" %}</a>
+            {% comment %}
             <form class="uniForm" method="POST" action="{% url "app_join" object.slug %}">
               {% csrf_token %}
               <input type="submit" class="btn btn-default btn-md btn-block" value="Link this App" />
             </form>
+            {% endcomment %}
           {% comment %}  
           {% else %} {% if object.access == "public-invite" %}
             {% trans "Anyone may view this group but membership is by invitation only." %}
