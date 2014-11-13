@@ -35,7 +35,7 @@ urlpatterns = patterns(
     url(r'^(?P<layername>[^/]*)$', 'monitor_detail', name="monitor_detail"),
     url(r'^(?P<layername>[^/]*)/metadata$', 'monitor_metadata',
         name="monitor_metadata"),
-    url(r'^(?P<layername>[^/]*)/remove$', 'layer_remove', name="layer_remove"),
+    url(r'^(?P<layername>[^/]*)/remove$', 'monitor_remove', name="monitor_remove"),
     url(r'^(?P<layername>[^/]*)/replace$', 'layer_replace',
         name="layer_replace"),
     # url(r'^api/batch_permissions/?$', 'batch_permissions',

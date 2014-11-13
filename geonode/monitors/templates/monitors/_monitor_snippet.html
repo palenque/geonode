@@ -5,7 +5,7 @@
   	    <a href="{{ item.detail_url }}"><img class="thumb" ng-src="{{ item.thumbnail_url }}" height="100px"/></a>
   	  </div>
       <div class="col-md-8">
-        <h4><a href="{{ item.detail_url }}">{{ item.title }}</a> <span class="owner">{{ item.owner.username }}</span></h4>
+        <h4><i ng-if="!item.metadata_edited" class="fa fa-warning"></i><a href="{{ item.detail_url }}">{{ item.title }}</a> <span class="owner">{{ item.owner.username }}</span></h4>
         <p>{{ item.category_description }}</p>
         <p class="actions">
           <a

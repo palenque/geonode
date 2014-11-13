@@ -6,7 +6,7 @@
 {% block body %}
 <div class="row">
   <div class="col-md-8">
-    <form action="{% url "layer_remove" layer.service_typename %}" method="POST">
+    <form action="{% url "monitor_remove" layer.service_typename %}" method="POST">
       <h2>
         {% blocktrans with layer.typename as layer_title %}
           Are you sure you want to remove {{ layer_title }}?
@@ -26,7 +26,7 @@
     {% for map in layer.maps %}
       <li>{{ map.title }}</li>
     {% empty %}
-      <li>{% trans "No maps are using this layer" %}</li>
+      <li>{% trans "No maps are using this monitor" %}</li>
     {% endfor %}
   </ul>
   </div>
