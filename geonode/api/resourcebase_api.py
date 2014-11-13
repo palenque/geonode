@@ -1,4 +1,4 @@
-import re
+import re, json
 from django.db.models import Q
 from django.http import HttpResponse
 from django.conf import settings
@@ -16,9 +16,14 @@ from django.core.paginator import Paginator, InvalidPage
 from django.http import Http404
 
 from tastypie.utils.mime import build_content_type
+from tastypie.http import HttpNoContent, HttpBadRequest
+from tastypie.exceptions import Unauthorized
+
 if settings.HAYSTACK_SEARCH:
     from haystack.query import SearchQuerySet  # noqa
 
+from geonode.people.models import Profile
+from geonode.apps.models import App
 from geonode.layers.models import Layer, Attribute
 from geonode.maps.models import Map
 from geonode.documents.models import Document
@@ -26,7 +31,7 @@ from geonode.base.models import ResourceBase, TopicCategory
 from .authorization import GeoNodeAuthorization, AttributeAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
-    FILTER_TYPES
+    FILTER_TYPES, AppResource
 
 LAYER_SUBTYPES = {
     'vector': 'dataStore',
@@ -64,6 +69,8 @@ class CommonMetaApi:
                  'keywords': ALL_WITH_RELATIONS,
                  'category': ALL_WITH_RELATIONS,
                  'owner': ALL_WITH_RELATIONS,
+                 'creator': ALL_WITH_RELATIONS,
+                 'app': ALL_WITH_RELATIONS,
                  'date': ALL,
                  }
     ordering = ['date', 'title', 'popular_count']
@@ -78,6 +85,8 @@ class CommonModelApi(ModelResource):
         null=True,
         full=True)
     owner = fields.ToOneField(ProfileResource, 'owner', full=True)
+    creator = fields.ToOneField(ProfileResource, 'creator', full=True, null=True)
+    app = fields.ToOneField(AppResource, 'app', full=True, null=True)
 
     def build_filters(self, filters={}):
         orm_filters = super(CommonModelApi, self).build_filters(filters)
@@ -386,6 +395,7 @@ class CommonModelApi(ModelResource):
         """
         # TODO: Uncached for now. Invalidation that works for everyone may be
         # impossible.
+
         base_bundle = self.build_bundle(request=request)
         objects = self.obj_get_list(
             bundle=base_bundle,
@@ -419,6 +429,9 @@ class CommonModelApi(ModelResource):
         """
         VALUES = [
             # fields in the db
+            'creator',
+            'app',
+
             'id',
             'uuid',
             'title',
@@ -457,16 +470,60 @@ class CommonModelApi(ModelResource):
             content_type=build_content_type(desired_format),
             **response_kwargs)
 
+    def transfer_owner(self, request, resource_id, **kwargs):
+        '''Transfers ownership of an resource.
+
+        curl 
+        --dump-header -  
+        -H "Content-Type: application/json" 
+        -X  PUT 
+        --data '{"new_owner_id": 25, "app_id": 14}' 
+        'http://localhost:8000/api/base/79/transfer_owner/?username=foo&api_key=c003062347b82a8cdd4014e9f8edb5c2aef63c7a'
+        '''
+
+        self.method_check(request, allowed=['put'])
+        self.is_authenticated(request)
+        self.throttle_check(request)
+
+        try:
+            data = json.loads(request.body)
+            new_owner_id = int(data['new_owner_id'])
+            app_id = int(data['app_id'])
+            new_owner = Profile.objects.get(id=new_owner_id)
+            app = App.objects.get(id=app_id)
+            resource  = ResourceBase.objects.get(id=resource_id)
+        except Exception as e:
+            return HttpBadRequest()
+
+        if not (app.user_is_role(request.user, "manager") and
+            resource.owner == request.user):
+            raise Unauthorized()
+
+        resource.transfer_owner(new_owner, app)
+
+        return HttpNoContent()
+
+
     def prepend_urls(self):
+        urls = [
+            url(
+                r"^(?P<resource_name>%s)/(?P<resource_id>\d+)/transfer_owner%s$" % (
+                    self._meta.resource_name, trailing_slash()
+                ),
+                self.wrap_view('transfer_owner'), 
+                name="api_transfer_owner"
+            )
+        ]
+
         if settings.HAYSTACK_SEARCH:
-            return [
+            return urls + [
                 url(r"^(?P<resource_name>%s)/search%s$" % (
                     self._meta.resource_name, trailing_slash()
                     ),
-                    self.wrap_view('get_search'), name="api_get_search"),
+                    self.wrap_view('get_search'), name="api_get_search")
             ]
         else:
-            return []
+            return urls
 
 
 class ResourceBaseResource(CommonModelApi):
