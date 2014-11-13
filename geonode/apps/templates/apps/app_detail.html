@@ -24,7 +24,7 @@
       <div class="col-md-9">
         <p>{{ object.description }}</p>
         <dl class="dl-horizontal profile-details">
-          <dt><i class="fa fa-lock"></i></dt>
+          <dt><i class="fa fa-eye"></i></dt>
           <dd>
           {% if object.keyword_list %}
             {% for keyword in object.keyword_list %}
@@ -64,12 +64,7 @@
           <li><a href="{{ object.detail_url }}?" {% if content_filter  == "all" %}class="selected"{% endif %}>{% trans "All contents" %}</a></li>
           <li><a href="{{ object.detail_url }}?content=layers"{% if content_filter == "layers" %} class="selected"{% endif %}>{% trans "Layers" %}</a></li>
           <li><a href="{{ object.detail_url }}?content=monitors"{% if content_filter == "monitors" %} class="selected"{% endif %}>{% trans "Monitors" %}</a></li>
-          <li><a href="{{ object.detail_url }}?content=maps"{% if content_filter == "maps" %} class="selected"{% endif %}>{% trans "Maps" %}</a></li>
           <li><a href="{{ object.detail_url }}?content=documents"{% if content_filter == "documents" %} class="selected"{% endif %}>{% trans "Documents" %}</a></li>
-          <!--
-          <li><a href="{{ object.detail_url }}?content={{ content_filter }}&sortby=date"{% if sortby_field == "date" %} class="selected"{% endif %}>{% trans "Sort by date" %}</a></li>
-          <li><a href="{{ object.detail_url }}?content={{ content_filter }}&sortby=title"{% if sortby_field == "title" %} class="selected"{% endif %}>{% trans "Sort by title" %}</a></li>
-          -->
         </ul>
     </div>
 
@@ -133,7 +128,7 @@
     </ul>
   </div>
 
-    {% if not is_manager and is_member %}
+    {% if not is_manager and is_member %}  
     <!--resources-->
     <div class="col-md-12">
         <div class="tab-content span12 paginate paginate-auto">
@@ -141,6 +136,9 @@
           <div class="tab-pane active list paginate-contents" id="all">
               {% autopaginate object_list 5 %}
                 {% for obj in object_list %}
+                  {% if obj.layer_type == 'monitor' %}
+                    {% include "apps/_monitor_resource.html" %}
+                  {% else %}
                 <article>
                   <div class="content">
                     <div class="item-header">
@@ -169,6 +167,7 @@
                     </div>
                   </div>
                 </article>
+                {% endif %}
                 {% endfor %}
             </div>
               {% paginate %}
@@ -209,11 +208,41 @@
                   }
               })
           })
-      })
+      });
+
+      $(function(){
+        $("a.share-resource").click(function(e) {
+          el = $(this);
+          var share = $(this).data('share');
+          $.ajax({
+              type: "POST",
+              url: '{% url 'app_resource_share' app_id=object.id %}',
+              dataType: 'json',
+              data: {
+                resource_id: $(this).data('resource-id'), 
+                shared: share
+              },
+              success: function(data){
+                 if(data.status != 'error'){
+                  var par = el.parent().parent();
+                    if(share) {
+                      par.find(".shared").show();
+                      par.find(".notshared").hide();
+                    } else {
+                      par.find(".shared").hide();
+                      par.find(".notshared").show();
+                    }
+                 }
+              }
+          });
+        });
+      });
+
   </script>
   <script type="text/javascript">
   SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='profiles' %}'+ '?app='+ '{{ object.slug }}';
   </script>
+
   {% with include_spatial='false' %}
   {% include 'search/search_scripts.html' %}
   {% endwith %}

@@ -344,8 +344,6 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
     )
     topic_category = layer.category
 
-    poc = layer.poc
-    metadata_author = layer.metadata_author
 
     if request.method == "POST":
         layer_form = MonitorForm(request.POST, instance=layer, prefix="resource")
@@ -356,11 +354,6 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
             queryset=Attribute.objects.filter(layer=layer).exclude(
                 attribute__in=['rendimiento_humedo', 'rendimiento_seco']
             ).order_by('display_order'))
-        # category_form = CategoryForm(
-        #     request.POST,
-        #     prefix="category_choice_field",
-        #     initial=int(
-        #         request.POST["category_choice_field"]) if "category_choice_field" in request.POST else None)
     else:
         layer_form = MonitorForm(instance=layer, prefix="resource")
         attribute_form = layer_attribute_set(
@@ -373,72 +366,42 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
         if not layer.metadata_edited:
             guess_attribute_match(layer,attribute_form)
         
-        # category_form = CategoryForm(
-        #     prefix="category_choice_field",
-        #     initial=topic_category.id if topic_category else None)
 
     if (request.method == "POST"
         and layer_form.is_valid()
         and attribute_form.is_valid()
-        and _validate_required_attributes(attribute_form)
-        # and category_form.is_valid()
-    ):
-        # se permite editar solo una vez
-        #if layer.metadata_edited:
-        #    return HttpResponseRedirect(reverse('monitor_metadata', args=(layer.service_typename,)))
-        new_poc = layer_form.cleaned_data['poc']
-        new_author = layer_form.cleaned_data['metadata_author']
-        new_keywords = layer_form.cleaned_data['keywords']
+        and _validate_required_attributes(attribute_form)):
 
-        if new_poc is None:
-            if poc is None:
-                poc_form = ProfileForm(
-                    request.POST,
-                    prefix="poc",
-                    instance=poc)
-            else:
-                poc_form = ProfileForm(request.POST, prefix="poc")
-            if poc_form.has_changed and poc_form.is_valid():
-                new_poc = poc_form.save()
+        attribute_form.save()
+        # for form in attribute_form.cleaned_data:
+        #     la = Attribute.objects.get(id=int(form['id'].id))
+        #     la.description = form["description"]
+        #     la.attribute_label = form["attribute_label"]
+        #     la.visible = form["visible"]
+        #     la.display_order = form["display_order"]
+        #     la.field = form["field"]
+        #     la.magnitude = form["magnitude"]        
+        #     la.save()
 
-        if new_author is None:
-            if metadata_author is None:
-                author_form = ProfileForm(request.POST, prefix="author",
-                                          instance=metadata_author)
-            else:
-                author_form = ProfileForm(request.POST, prefix="author")
-            if author_form.has_changed and author_form.is_valid():
-                new_author = author_form.save()
+        layer_form.save()
 
-        # new_category = TopicCategory.objects.get(
-        #     id=category_form.cleaned_data['category_choice_field'])
 
-        metadata_edited = False
-        for form in attribute_form.cleaned_data:
-            la = Attribute.objects.get(id=int(form['id'].id))
-            la.description = form["description"]
-            la.attribute_label = form["attribute_label"]
-            la.visible = form["visible"]
-            la.display_order = form["display_order"]
-            la.field = form["field"]
-            la.magnitude = form["magnitude"]        
-            la.save()
+        #     metadata_edited = True
 
-            metadata_edited = True
+        # # TODO: mover a listener
+        # # _rename_fields(layer) 
+        # # _precalculate_yield(layer)
 
-        # TODO: mover a listener
-        _rename_fields(layer) 
-        _precalculate_yield(layer)
+        # #if new_poc is not None and new_author is not None:
+        # the_layer = layer_form.save()
+        # the_layer.poc = new_poc
+        # the_layer.metadata_author = new_author
+        # the_layer.keywords.clear()
+        # the_layer.keywords.add(*new_keywords)
+        # the_layer.category = layer_form.cleaned_data['category'] #TopicCategory.objects.get(identifier='monitorLayer')
+        # the_layer.metadata_edited = metadata_edited
+        # the_layer.save()
 
-        #if new_poc is not None and new_author is not None:
-        the_layer = layer_form.save()
-        the_layer.poc = new_poc
-        the_layer.metadata_author = new_author
-        the_layer.keywords.clear()
-        the_layer.keywords.add(*new_keywords)
-        the_layer.category = layer_form.cleaned_data['category'] #TopicCategory.objects.get(identifier='monitorLayer')
-        the_layer.metadata_edited = metadata_edited
-        the_layer.save()
         return HttpResponseRedirect(
             reverse(
                 'monitor_detail',
@@ -446,27 +409,155 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
                     layer.service_typename,
                 )))
 
-    if poc is None:
-        poc_form = ProfileForm(instance=poc, prefix="poc")
-    else:
-        layer_form.fields['poc'].initial = poc.id
-        poc_form = ProfileForm(prefix="poc")
-        poc_form.hidden = True
-
-    if metadata_author is None:
-        author_form = ProfileForm(instance=metadata_author, prefix="author")
-    else:
-        layer_form.fields['metadata_author'].initial = metadata_author.id
-        author_form = ProfileForm(prefix="author")
-        author_form.hidden = True
-
     return render_to_response(template, RequestContext(request, {
         "layer": layer,
         "layer_form": layer_form,
-        "poc_form": poc_form,
-        "author_form": author_form,
+        #"poc_form": poc_form,
+        #"author_form": author_form,
         "attribute_form": attribute_form
     }))
+
+# @login_required
+# def monitor_metadata(request, layername, template='monitors/monitor_metadata.html'):
+
+#     from forms import MonitorAttributeForm, MonitorForm
+
+#     layer = _resolve_layer(
+#         request,
+#         layername,
+#         'base.change_resourcebase',
+#         _PERMISSION_MSG_METADATA)
+#     layer_attribute_set = inlineformset_factory(
+#         Layer,
+#         Attribute,
+#         extra=0,
+#         form=MonitorAttributeForm,
+#     )
+#     topic_category = layer.category
+
+#     poc = layer.poc
+#     metadata_author = layer.metadata_author
+
+#     if request.method == "POST":
+#         layer_form = MonitorForm(request.POST, instance=layer, prefix="resource")
+#         attribute_form = layer_attribute_set(
+#             request.POST,
+#             instance=layer,
+#             prefix="layer_attribute_set",
+#             queryset=Attribute.objects.filter(layer=layer).exclude(
+#                 attribute__in=['rendimiento_humedo', 'rendimiento_seco']
+#             ).order_by('display_order'))
+#         # category_form = CategoryForm(
+#         #     request.POST,
+#         #     prefix="category_choice_field",
+#         #     initial=int(
+#         #         request.POST["category_choice_field"]) if "category_choice_field" in request.POST else None)
+#     else:
+#         layer_form = MonitorForm(instance=layer, prefix="resource")
+#         attribute_form = layer_attribute_set(
+#             instance=layer,
+#             prefix="layer_attribute_set",
+#             queryset=Attribute.objects.filter(layer=layer).exclude(
+#                 attribute__in=['rendimiento_humedo', 'rendimiento_seco']
+#             ).order_by('display_order'))
+
+#         if not layer.metadata_edited:
+#             guess_attribute_match(layer,attribute_form)
+        
+#         # category_form = CategoryForm(
+#         #     prefix="category_choice_field",
+#         #     initial=topic_category.id if topic_category else None)
+
+#     if (request.method == "POST"
+#         and layer_form.is_valid()
+#         and attribute_form.is_valid()
+#         and _validate_required_attributes(attribute_form)
+#         # and category_form.is_valid()
+#     ):
+#         # se permite editar solo una vez
+#         #if layer.metadata_edited:
+#         #    return HttpResponseRedirect(reverse('monitor_metadata', args=(layer.service_typename,)))
+#         new_poc = layer_form.cleaned_data['poc']
+#         new_author = layer_form.cleaned_data['metadata_author']
+#         new_keywords = layer_form.cleaned_data['keywords']
+
+#         if new_poc is None:
+#             if poc is None:
+#                 poc_form = ProfileForm(
+#                     request.POST,
+#                     prefix="poc",
+#                     instance=poc)
+#             else:
+#                 poc_form = ProfileForm(request.POST, prefix="poc")
+#             if poc_form.has_changed and poc_form.is_valid():
+#                 new_poc = poc_form.save()
+
+#         if new_author is None:
+#             if metadata_author is None:
+#                 author_form = ProfileForm(request.POST, prefix="author",
+#                                           instance=metadata_author)
+#             else:
+#                 author_form = ProfileForm(request.POST, prefix="author")
+#             if author_form.has_changed and author_form.is_valid():
+#                 new_author = author_form.save()
+
+#         # new_category = TopicCategory.objects.get(
+#         #     id=category_form.cleaned_data['category_choice_field'])
+
+#         metadata_edited = False
+#         for form in attribute_form.cleaned_data:
+#             la = Attribute.objects.get(id=int(form['id'].id))
+#             la.description = form["description"]
+#             la.attribute_label = form["attribute_label"]
+#             la.visible = form["visible"]
+#             la.display_order = form["display_order"]
+#             la.field = form["field"]
+#             la.magnitude = form["magnitude"]        
+#             la.save()
+
+#             metadata_edited = True
+
+#         # TODO: mover a listener
+#         _rename_fields(layer) 
+#         _precalculate_yield(layer)
+
+#         #if new_poc is not None and new_author is not None:
+#         the_layer = layer_form.save()
+#         the_layer.poc = new_poc
+#         the_layer.metadata_author = new_author
+#         the_layer.keywords.clear()
+#         the_layer.keywords.add(*new_keywords)
+#         the_layer.category = layer_form.cleaned_data['category'] #TopicCategory.objects.get(identifier='monitorLayer')
+#         the_layer.metadata_edited = metadata_edited
+#         the_layer.save()
+#         return HttpResponseRedirect(
+#             reverse(
+#                 'monitor_detail',
+#                 args=(
+#                     layer.service_typename,
+#                 )))
+
+#     if poc is None:
+#         poc_form = ProfileForm(instance=poc, prefix="poc")
+#     else:
+#         layer_form.fields['poc'].initial = poc.id
+#         poc_form = ProfileForm(prefix="poc")
+#         poc_form.hidden = True
+
+#     if metadata_author is None:
+#         author_form = ProfileForm(instance=metadata_author, prefix="author")
+#     else:
+#         layer_form.fields['metadata_author'].initial = metadata_author.id
+#         author_form = ProfileForm(prefix="author")
+#         author_form.hidden = True
+
+#     return render_to_response(template, RequestContext(request, {
+#         "layer": layer,
+#         "layer_form": layer_form,
+#         "poc_form": poc_form,
+#         "author_form": author_form,
+#         "attribute_form": attribute_form
+#     }))
 
 def normalize_attr_name(attr):
     attr = attr.lower()

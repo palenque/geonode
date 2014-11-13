@@ -108,7 +108,7 @@ class MonitorForm(TranslationModelForm):
     class Meta:
         model = Layer
         exclude = (
-            'metadata_edited',
+            #'metadata_edited',
             'owner',
 
             'layer_type',
@@ -169,6 +169,9 @@ class MonitorForm(TranslationModelForm):
     def __init__(self, *args, **kwargs):
         super(MonitorForm, self).__init__(*args, **kwargs)
         self.fields['date_type'].widget = forms.HiddenInput()
+        self.fields['metadata_edited'].widget = forms.HiddenInput()
+        self.fields['title'].label = "Field"
+
         for field in self.fields:
             help_text = self.fields[field].help_text
             self.fields[field].help_text = None
@@ -180,6 +183,10 @@ class MonitorForm(TranslationModelForm):
                         'data-placement': 'right',
                         'data-container': 'body',
                         'data-html': 'true'})
+
+    def clean_metadata_edited(self):
+        self.cleaned_data['metadata_edited'] = True
+        return True
 
 
 class LayerUploadForm(forms.Form):

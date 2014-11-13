@@ -258,7 +258,6 @@ def member_detail(request, app_id, username):
 @require_POST
 @login_required
 def resource_share(request, app_id):
-
     app  = get_object_or_404(App, id=app_id)
     shared = request.POST.get('shared')
     manager = app.get_managers()[0]
