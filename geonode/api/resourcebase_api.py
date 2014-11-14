@@ -28,7 +28,7 @@ from geonode.layers.models import Layer, Attribute
 from geonode.maps.models import Map
 from geonode.documents.models import Document
 from geonode.base.models import ResourceBase, TopicCategory
-from .authorization import GeoNodeAuthorization, AttributeAuthorization
+from .authorization import GeoNodeAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
     FILTER_TYPES, AppResource
@@ -556,92 +556,6 @@ class LayerResource(CommonModelApi):
         #queryset = Layer.objects.all().distinct().order_by('-date')
         resource_name = 'layers'
         excludes = ['csw_anytext', 'metadata_xml']
-
-
-# from geonode.monitors.forms import MonitorAttributeForm
-# from tastypie.validation import FormValidation
-# from django.forms.models import inlineformset_factory
-
-# from tastypie.validation import Validation
-
-
-# class AttributeValidation(Validation):
-
-#     def is_valid(self, bundle, request=None):
-        
-#         layer_attribute_set = inlineformset_factory(
-#             Layer,
-#             Attribute,
-#             extra=0,
-#             form=MonitorAttributeForm,
-#         )
-        
-#         attribute_form = layer_attribute_set(
-#             json.loads(request.body)['objects'],
-#             instance=bundle.obj.layer,
-#             prefix="layer_attribute_set", #<- no funciona
-#             queryset=Attribute.objects.exclude(
-#                 attribute__in=['rendimiento_humedo', 'rendimiento_seco']
-#             ).order_by('display_order'))
-
-#         return attribute_form.is_valid() and _validate_required_attributes(attribute_form)
-
-#         import pdb;pdb.set_trace()
-#         if not bundle.data:
-#             return {'__all__': 'Not quite what I had in mind.'}
-
-#         errors = {}
-
-#         for key, value in bundle.data.items():
-#             if not isinstance(value, basestring):
-#                 continue
-
-#             if not 'awesome' in value:
-#                 errors[key] = ['NOT ENOUGH AWESOME. NEEDS MORE.']
-
-#         return errors
-
-class AttributeResource(ModelResource):
-
-    """Attribute API
-
-    Ejemplo update atributos.
-
-    curl 
-    --dump-header - 
-    -H "Content-Type: application/json" 
-    -X PATCH 
-    --data '
-        {"objects": [{"layer": "/api/layers/61/", "id":998, "attribute_label": "Masa Humedo", "field": "MASA_HUMEDO", "magnitude": "kg"} , 
-        {"layer": "/api/layers/61/", "id":997, "attribute_label": "Masa Seco", "field": "MASA_SECO", "magnitude": "kg"}]}
-    '  
-    'http://localhost:8000/api/attributes/?username=tinkamako&api_key=c003062347b82a8cdd4014e9f8edb5c2aef63c7a'
-    
-    """
-
-    # TODO: validar lista completa, validar datos, correr actualizacion de datos
-    # revisar PATCH - PUT, datos mostrados, bug attribute queda null despues de 
-    # actualizar
-
-    layer = fields.ForeignKey(LayerResource, 'layer')
-
-    # def is_valid(self, bundle):
-    #     import pdb;pdb.set_trace()
-
-    class Meta:
-        authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
-        authorization = AttributeAuthorization()     
-        filtering = {
-            'layer': ALL_WITH_RELATIONS
-        }
-        queryset = Attribute.objects.all()
-        resource_name = 'attributes'
-        # validation = AttributeValidation()
-        excludes = [
-            'csw_anytext', 'metadata_xml', 'min', 'max', 'count',
-             'unique_values', 'average', 'median','sum', 'stddev',
-             'last_stats_updated', 'attribute_type', 'resource_uri'
-        ]
 
 
 class MapResource(CommonModelApi):

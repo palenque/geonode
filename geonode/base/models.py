@@ -698,12 +698,6 @@ def resourcebase_pre_delete(instance):
     if instance.thumbnail_set.exists():
         instance.thumbnail_set.get().thumb_file.delete()
 
-def resourcebase_pre_save(instance, created=False, *args, **kwargs):
-    'Saves the owner as creator.'
-
-    if created:
-        instance.creator = owner
-
 
 def resourcebase_post_save(instance, *args, **kwargs):
     """
@@ -716,6 +710,8 @@ def resourcebase_post_save(instance, *args, **kwargs):
         detail_url=instance.get_absolute_url())
     instance.set_missing_info()
 
+    if not instance.creator:
+        instance.creator = instance.owner
 
 def rating_post_save(instance, *args, **kwargs):
     """
@@ -766,7 +762,6 @@ def unshare(instance, **kwargs):
             remove_perm('view_resourcebase', manager, resource)
 
 
-signals.pre_save.connect(resourcebase_pre_save, sender=ResourceBase)
 signals.post_save.connect(rating_post_save, sender=OverallRating)
 signals.post_save.connect(share, sender=TaggedItem)
 signals.post_delete.connect(unshare, sender=TaggedItem)
