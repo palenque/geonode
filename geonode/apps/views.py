@@ -32,6 +32,11 @@ def app_create(request):
             app.save()
             form.save_m2m()
             app.join(request.user, role="manager")
+            
+            app_user = Profile(username=app.slug, profile='application')
+            app_user.save()
+            app.join(app_user, role="alter_ego")
+
             return HttpResponseRedirect(
                 reverse("app_detail", args=[app.slug])
             )
@@ -87,6 +92,7 @@ class AppDetailView(ListView):
     def get_context_data(self, **kwargs):
 
         manager = self.app.get_managers()[0]
+        alter_ego = self.app.get_alter_ego()
         profile = get_object_or_404(Profile, username=self.request.user.username)
         user_objects = profile.resourcebase_set.distinct()
 
@@ -126,6 +132,7 @@ class AppDetailView(ListView):
         context = super(AppDetailView, self).get_context_data(**kwargs)
         context['object'] = self.app
         context['app_manager'] = manager
+        context['app_alter_ego'] = alter_ego
         context['maps'] = self.app.resources(resource_type='map')
         context['layers'] = self.app.resources(resource_type='layer')
         context['is_member'] = self.app.user_is_member(self.request.user)
@@ -136,7 +143,7 @@ class AppDetailView(ListView):
         context['content_filter'] = content_filter
         context['object_list'] = user_objects.get_real_instances()
         context['permissions'] = [
-            obj.id for obj in user_objects if manager.has_perm('view_resourcebase', obj)
+            obj.id for obj in user_objects if alter_ego.has_perm('view_resourcebase', obj)
         ]
 
         # context['can_view'] = self.app.can_view(self.request.user)
@@ -207,6 +214,7 @@ def member_detail(request, app_id, username):
 
     # combined queryset from each model content type
     user_objects = profile.resourcebase_set.distinct()
+    #user_objects = profile.member_set.all()
 
     content_filter = 'all'
 
@@ -260,7 +268,8 @@ def member_detail(request, app_id, username):
 def resource_share(request, app_id):
     app  = get_object_or_404(App, id=app_id)
     shared = request.POST.get('shared')
-    manager = app.get_managers()[0]
+    #manager = app.get_managers()[0]
+    alter_ego = app.get_alter_ego()
     resource = get_object_or_404(
         ResourceBase, id=request.POST.get('resource_id')
     )
@@ -268,9 +277,9 @@ def resource_share(request, app_id):
     if app.user_is_role(request.user, role="member"):
         # and resource.get_real_instance().keywords.filter(name__in=app.keyword_list()))
         if shared == 'true':
-            assign_perm('view_resourcebase', manager, resource)
+            assign_perm('view_resourcebase', alter_ego, resource)
         else:
-            remove_perm('view_resourcebase', manager, resource)
+            remove_perm('view_resourcebase', alter_ego, resource)
 
         return HttpResponse(
             json.dumps(dict(status='ok')), 

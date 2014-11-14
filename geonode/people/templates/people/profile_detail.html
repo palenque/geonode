@@ -106,6 +106,30 @@
 </div>
 {% endif %}
 
+{% if user.is_authenticated %}
+{% if profile.profile == 'developer' %}
+
+<div class="col-md-8">
+  <h3>Applications</h3>
+  {% for app in profile.apps_list_all %}
+    <article>
+      <div class="row">
+      <div ng-if="app.logo != ''" class="col-md-3">
+        <a href="{{ app.detail_url }}" ><img ng-src="{{ app.logo }}" alt="{{ app.title }}" class="group-logo" /></a>
+      </div>
+      <div class="col-md-9">
+        <h5>
+          <i class="fa fa-cubes"></i> <a href="{{ app.detail_url }}">{{ app.title }}</a>
+          <a href="{{ app.email }}" target="_blank"><i class="fa fa-external-link"></i></a>
+        </h5>
+        <p>API Key: {{ app.get_alter_ego.api_key.key}}</p>
+      </div>
+      </div>
+    </article>
+  {% endfor %}
+</div>
+{% endif %}
+{% endif %}
 
 {% if user.is_authenticated %}
 
@@ -149,7 +173,7 @@
 </div>
 {% endif %}
 
-
+{% comment %}
 <div class="col-md-8">
   <h3>Resources</h3>
   {% include "people/_profile_filters.html" %}
@@ -197,7 +221,7 @@
     </div>
   </div>
 </div>
-
+{% endcomment %}
 {% endblock %}
 
 

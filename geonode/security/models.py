@@ -51,14 +51,24 @@ class PermissionLevelMixin(object):
 
     def get_all_level_info(self):
         resource = self.get_self_resource()
-        info = {
-            'users': get_users_with_perms(
-                resource,
-                attach_perms=True,
-                with_superusers=True),
-            'groups': get_groups_with_perms(
-                resource,
-                attach_perms=True)}
+        info = {'users': {}, 'groups': {}, 'apps': {}}
+
+        users = get_users_with_perms(
+                    resource, 
+                    attach_perms=True, 
+                    with_superusers=True)
+        
+        groups = get_groups_with_perms(
+                    resource,
+                    attach_perms=True)
+
+        for user,perms in users.items():
+            if user.profile == 'application': info['apps'][user] = perms
+            else: info['users'][user] = perms
+
+        info['groups'] = groups
+
+
         return info
 
     def get_self_resource(self):
@@ -113,6 +123,8 @@ class PermissionLevelMixin(object):
         }
         """
         self.remove_all_permissions()
+
+        perm_spec['users'].update(perm_spec.get('apps',{}))
 
         if 'users' in perm_spec and "AnonymousUser" in perm_spec['users']:
             anonymous_group = Group.objects.get(name='anonymous')

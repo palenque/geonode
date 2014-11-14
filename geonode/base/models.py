@@ -702,7 +702,7 @@ def rating_post_save(instance, *args, **kwargs):
 
 
 def share(instance, created=False, update_fields=None, **kwargs):
-    "Shares the tagged object with the owner's apps."
+    "Shares the tagged object with the app alter-ego"
 
     if not hasattr(instance.content_object, 'owner'):
         return
@@ -712,18 +712,17 @@ def share(instance, created=False, update_fields=None, **kwargs):
 
     for app_member in owner.appmember_set.all():
         app = app_member.app
-        manager = app.get_managers()[0]
+        alter_ego = app.get_alter_ego()
 
-        if (not app_member.app.user_is_role(owner, "manager")
-            and instance.tag.name in app.keyword_list()
+        if (instance.tag.name in app.keyword_list()
             and created 
-            and not manager.has_perm('view_resourcebase', resource)
+            and not alter_ego.has_perm('view_resourcebase', resource)
         ):
-            assign_perm('view_resourcebase', manager, resource)
+            assign_perm('view_resourcebase', alter_ego, resource)
 
 
 def unshare(instance, **kwargs):
-    "Unshares the tagged object with the owner's apps."
+    "Unshares the tagged object with the app alter-ego."
 
     if not hasattr(instance.content_object, 'owner'):
         return
@@ -733,13 +732,12 @@ def unshare(instance, **kwargs):
 
     for app_member in owner.appmember_set.all():
         app = app_member.app
-        manager = app.get_managers()[0]
+        alter_ego = app.get_alter_ego()
 
-        if (not app_member.app.user_is_role(owner, "manager")
-            and instance.tag.name in app.keyword_list()
+        if (instance.tag.name in app.keyword_list()
             and manager.has_perm('view_resourcebase', resource)
         ):
-            remove_perm('view_resourcebase', manager, resource)
+            remove_perm('view_resourcebase', alter_ego, resource)
 
 
 signals.post_save.connect(rating_post_save, sender=OverallRating)

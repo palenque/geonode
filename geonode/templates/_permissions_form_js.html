@@ -4,13 +4,14 @@
   function permissionsString(form, type) {
     var permissions = {
       'users': {},
-      'groups': {}
+      'groups': {},
+      'apps': {}
     }
     if (typeof form === 'string'){
       form = $(form);
     }
     var data = form.serializeObject();   
-
+    
     /*
     * If there's the anonymous user then set it's view permission and pop it
     */
@@ -42,6 +43,17 @@
             permissions['groups'][group].push(perm);
           }else{
             permissions['groups'][group] = [perm];
+          }
+        }
+      }
+
+      if(data[perm][2] && data[perm][2] !== ''){
+        for (var i=0;i<data[perm][2].split(',').length;i++){
+          var app = data[perm][2].split(',')[i];
+          if(permissions['apps'].hasOwnProperty(app)){
+            permissions['apps'][app].push(perm);
+          }else{
+            permissions['apps'][app] = [perm];
           }
         }
       }
@@ -89,6 +101,25 @@
             }
             addSelectUsers();
 
+            var apps = {
+              view_resourcebase: [],
+              change_resourcebase: [],
+              change_resourcebase_permissions: []
+            };
+            var perms_apps = perms.apps;
+            for (var app in perms_apps){
+              var app_perms = perms_apps[app];
+              for (var i=0;i<app_perms.length;i++){
+                if(apps.hasOwnProperty(app_perms[i])){
+                  apps[app_perms[i]].push(app);
+                }
+              }
+            }            
+            for (var perm in apps){
+              $('#' + perm + '_apps').val(apps[perm].join());
+            }
+            addSelectApps();
+
             /*
             * Compile the groups fields after receiving the current permissions status from the server
             */
@@ -117,6 +148,7 @@
       {% else %}
       addSelectUsers();
       addSelectGroups();
+      addSelectApps();
       {% endif %}
     });
     
@@ -152,6 +184,40 @@
         }
       });
     }
+
+    function addSelectApps(){
+      $("input.app-select").select2({
+        placeholder: '{% trans "Choose apps..." %}',
+        minimumInputLength: 1,
+        multiple: true,
+        width: 'copy',
+        ajax: {
+          url: "{% url "account_ajax_lookup" %}",
+          dataType: "json",
+          type: "POST",
+          data: function (term, page) {
+            return {
+              query: term,
+            };
+          },
+          results: function (data, page) {
+            return {results: data.apps};
+          }
+        },
+        id: userID,
+        formatResult: userFormatResult,
+        formatSelection: userFormatSelection,
+        initSelection: function(element, callback) {
+          var data = [];
+          var val = element.val().split(",");
+          $(element.val().split(",")).each(function (index,value) {
+              data.push({username: value});
+          });
+          callback(data);
+        }
+      });
+    }
+
 
     function addSelectGroups(){
       $("input.group-select").select2({

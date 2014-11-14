@@ -34,10 +34,13 @@ def _perms_info(obj):
 
 def _perms_info_json(obj):
     info = _perms_info(obj)
+
     info['users'] = dict([(u.username, perms)
                           for u, perms in info['users'].items()])
     info['groups'] = dict([(g.name, perms)
                            for g, perms in info['groups'].items()])
+    info['apps'] = dict([(g.username, perms)
+                           for g, perms in info['apps'].items()])
 
     return json.dumps(info)
 

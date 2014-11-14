@@ -112,6 +112,13 @@ class App(models.Model):
                 "user",
                 flat=True))
 
+    def get_alter_ego(self):
+        """
+        Returns a queryset of the group's managers.
+        """
+        return get_user_model().objects.get(
+            id=self.member_queryset().get(role='alter_ego').user_id)
+
     def user_is_member(self, user):
         if not user.is_authenticated():
             return False
@@ -131,7 +138,7 @@ class App(models.Model):
     def can_invite(self, user):
         if not user.is_authenticated():
             return False
-        return self.user_is_role(user, "manager")
+        return self.user_is_role(user, "alter_ego")
 
     def resources_by_user(self, user):
         'Returns resource that an user shares with this app.'
@@ -216,6 +223,7 @@ class AppMember(models.Model):
     role = models.CharField(max_length=10, choices=[
         ("manager", _("Manager")),
         ("member", _("Member")),
+        ("alter_ego", _("Alter ego"))
     ])
     joined = models.DateTimeField(default=datetime.datetime.now)
 

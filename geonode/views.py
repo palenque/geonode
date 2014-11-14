@@ -77,14 +77,23 @@ def ajax_lookup(request):
             content='use a field named "query" to specify a prefix to filter usernames',
             mimetype='text/plain')
     keyword = request.POST['query']
-    users = get_user_model().objects.filter(Q(username__startswith=keyword) |
-                                            Q(first_name__contains=keyword) |
-                                            Q(organization__contains=keyword))
-    groups = GroupProfile.objects.filter(Q(title__startswith=keyword) |
-                                         Q(description__contains=keyword))
+    users_and_apps = get_user_model().objects.filter(Q(username__istartswith=keyword) |
+                                            Q(first_name__icontains=keyword) |
+                                            Q(organization__icontains=keyword))
+    groups = GroupProfile.objects.filter(Q(title__istartswith=keyword) |
+                                         Q(description__icontains=keyword))
+    
+    # TODO: return only the user's apps
+    users = []
+    apps = []
+    for u in users_and_apps:
+        if u.profile == 'application': apps.append(({'username': u.username}))
+        else: users.append(({'username': u.username}))
+
     json_dict = {
-        'users': [({'username': u.username}) for u in users],
-        'count': users.count(),
+        'users': users,
+        'apps': apps,
+        'count': len(users),
     }
 
     json_dict['groups'] = [({'name': g.slug}) for g in groups]
