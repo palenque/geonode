@@ -13,7 +13,7 @@
     <a href="{% url "monitor_upload" %}" class="btn btn-primary pull-right">{% trans "Upload Monitor" %}</a>
     <h2 class="page-title">{% trans "Explore Monitors" %}</h2>
   </div>
-  {% with include_filters='keywords,date,extent' %}
+  {% with include_filters='date,extent' %}
   {% with facet_type='layers' %}
   {% with custom_filters='monitors/_filters.html' %}
   {% with custom_snippet='monitors/_monitor_snippet.html' %}

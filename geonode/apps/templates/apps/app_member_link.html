@@ -7,17 +7,21 @@
 {% block body %}
 <div class="row">
   <div class="col-md-8">
-    <form action="{% url "app_member_unlink" app.slug request.user.username %}" method="POST">
-      <h2>
-        {% blocktrans with app.title as app_title %}
-          Are you sure you want to unlink the app: {{ app_title }}?
-        {% endblocktrans %}
-      </h2>
+    <form action="{% url "app_member_link" app.slug request.user.username %}" method="POST">
+      <h2>{% trans app.title %}</h2>
+      <h4>This app needs access to the following resources:</h4>
+      <ul>
+        {% for kw in app.keywords.all %}
+          <li>{{kw}}</li>
+        {% endfor %}
+      </ul>
+      <br/> 
+      <h4>{% trans "Are you sure you want to link the app?" %}</h4>
       {% csrf_token %}
       <input type="hidden" value="{{ app.slug }}" />
       <div class="form-actions">
         <input type="submit" value="{% trans "Yes, I am sure" %}" class="btn btn-danger" />
-        <a href="{% url "app_detail" app.slug %}" class="btn btn-info">{% trans "No, don't unlink it" %}</a>
+        <a href="{% url "app_detail" app.slug %}" class="btn btn-info">{% trans "No, don't link it" %}</a>
       </div>
     </form>
   </div>

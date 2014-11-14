@@ -258,7 +258,6 @@ def member_detail(request, app_id, username):
 @require_POST
 @login_required
 def resource_share(request, app_id):
-
     app  = get_object_or_404(App, id=app_id)
     shared = request.POST.get('shared')
     manager = app.get_managers()[0]
@@ -293,7 +292,7 @@ def app_member_unlink(request, slug, username):
 
     if request.method == 'GET':
         return render_to_response(
-            "apps/app_member_unlink.html", RequestContext(request, {"group": app}))
+            "apps/app_member_unlink.html", RequestContext(request, {"app": app}))
 
     elif request.method == 'POST':
 
@@ -303,21 +302,23 @@ def app_member_unlink(request, slug, username):
         return HttpResponseForbidden()
 
 
-@require_POST
 @login_required
-def app_join(request, slug):
+def app_member_link(request, slug, username):
 
     app = get_object_or_404(App, slug=slug)
+    user = get_object_or_404(get_user_model(), username=username)
 
-    # if group.access == "private":
-    #     raise Http404()
+    if request.method == 'GET':
+        return render_to_response(
+            "apps/app_member_link.html", RequestContext(request, {"app": app}))
 
-    if app.user_is_member(request.user):
-        return redirect("app_detail", slug=app.slug)
-    else:
-        app.join(request.user, role="member")
-        return redirect("app_detail", slug=app.slug)
+    elif request.method == 'POST':
 
+        if app.user_is_member(user):
+            return redirect("app_detail", slug=app.slug)
+        else:
+            app.join(user, role="member")
+            return redirect("app_detail", slug=app.slug)
 
 # @require_POST
 # def group_invite(request, slug):
