@@ -18,6 +18,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 from polymorphic import PolymorphicModel, PolymorphicManager
 from agon_ratings.models import OverallRating
 
+from geonode.apps.models import App
 from geonode.base.enumerations import ALL_LANGUAGES, \
     HIERARCHY_LEVELS, UPDATE_FREQUENCIES, \
     DEFAULT_SUPPLEMENTAL_INFORMATION, LINK_TYPES
@@ -259,6 +260,10 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
     # internal fields
     uuid = models.CharField(max_length=36)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='owned_resource')
+    
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='created_resource')
+    app = models.ForeignKey(App, blank=True, null=True)
+    
     contacts = models.ManyToManyField(settings.AUTH_USER_MODEL, through='ContactRole')
     title = models.CharField(_('title'), max_length=255, help_text=_('name by which the cited resource is known'))
     date = models.DateTimeField(_('date'), default=datetime.datetime.now, help_text=date_help_text)
@@ -354,6 +359,19 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
     thumbnail_url = models.CharField(max_length=255, null=True, blank=True)
     detail_url = models.CharField(max_length=255, null=True, blank=True)
     rating = models.IntegerField(default=0, null=True)
+
+    def transfer_owner(self, user, app):
+        '''Replaces the owner of this resource.
+        '''
+
+        if not self.creator:
+            self.creator = self.owner
+
+        if not self.app:
+            self.app = app
+
+        self.owner = user
+        self.save()
 
     def delete(self, *args, **kwargs):
         resourcebase_pre_delete(self)
@@ -692,6 +710,8 @@ def resourcebase_post_save(instance, *args, **kwargs):
         detail_url=instance.get_absolute_url())
     instance.set_missing_info()
 
+    if not instance.creator:
+        instance.creator = instance.owner
 
 def rating_post_save(instance, *args, **kwargs):
     """

@@ -186,6 +186,7 @@ def monitor_upload(request, template='upload/monitor_upload.html'):
             status=status_code)
 
 
+@login_required
 def monitor_detail(request, layername, template='monitors/monitor_detail.html'):
 
     layer = _resolve_layer(

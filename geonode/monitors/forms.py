@@ -110,6 +110,8 @@ class MonitorForm(TranslationModelForm):
         exclude = (
             #'metadata_edited',
             'owner',
+            'creator',
+            'app',
 
             'layer_type',
             'license',
