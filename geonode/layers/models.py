@@ -46,6 +46,46 @@ vec_exts = shp_exts + csv_exts + kml_exts
 cov_exts = ['.tif', '.tiff', '.geotiff', '.geotif']
 
 
+class LayerType(models.Model):
+    ''
+
+    name = models.CharField(_('name'), max_length=255, unique=True)
+
+
+# class MetadataType(models.Model):
+#     ''
+
+#     layer_type = models.ForeignKey(
+#         LayerType, blank=False, null=False, unique=False, related_name='attribute_type_set'
+#     )
+
+#     name = models.CharField(_('name'), max_length=255, unique=True)
+#     keywords
+
+
+class AttributeType(models.Model):
+    ''
+    
+    layer_type = models.ForeignKey(
+        LayerType, blank=False, null=False, unique=False, related_name='attribute_type_set'
+    )
+    
+    name = models.CharField(
+        _('name'), help_text=_('name of attribute as stored in shapefile/spatial database'),
+        max_length=255, blank=False, null=True, unique=False
+    )    
+
+    attribute_type = models.CharField(
+        _('attribute type'), help_text=_('the data type of the attribute (integer, string, geometry, etc)'),
+        max_length=50, blank=False, null=False, default='xsd:string', unique=False
+    )
+    
+    magnitude = models.CharField(
+        _('magnitude'), help_text=_('unit'), max_length=255,
+        blank=True, null=True, unique=False
+    )
+
+
 class Style(models.Model):
 
     """Model for storing styles.
