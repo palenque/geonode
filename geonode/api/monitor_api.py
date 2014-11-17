@@ -21,9 +21,6 @@ class MonitorResource(MultipartResource, CommonModelApi):
         resource_name = 'monitors'
         excludes = ['csw_anytext', 'metadata_xml']
 
-    def _create_metadata_request(self):
-        pass
-
     def obj_create(self, bundle, request=None, **kwargs):
         """
 
@@ -87,7 +84,7 @@ class MonitorResource(MultipartResource, CommonModelApi):
 
         except Exception, e:
             layer.delete()
-            raise BadRequest('foo')
+            raise BadRequest('Error trying to map fields')
 
         return layer
 

@@ -47,14 +47,40 @@ from geonode.base.models import (Link, ResourceBase, Thumbnail,
 from geonode.layers.models import shp_exts, csv_exts, vec_exts, cov_exts
 from geonode.utils import http_client
 from geonode.layers.metadata import set_metadata
+from geonode.layers.units import *
 
 from urlparse import urljoin
 
 from zipfile import ZipFile
+import Levenshtein
 
 logger = logging.getLogger('geonode.layers.utils')
 
 _separator = '\n' + ('-' * 100) + '\n'
+
+
+def normalize_attr_name(attr):
+    attr = attr.lower()
+    repl = [('á','a'),('é','e'),('í','i'),('ó','o'),('ú','u'),('ñ','n')]
+    for a,b in repl: attr = attr.replace(a.decode('utf8'),b)
+    return re.sub('[^a-z]',' ',attr)
+
+def best_candidate(attr,candidates):
+    cand_vals = [(x,float(Levenshtein.distance(attr,x))/min([len(x),len(attr)])) for x in candidates]
+    return min(cand_vals, key=lambda x:x[1])
+
+def guess_attribute_match(layer,attribute_form):
+    candidates = dict([(normalize_attr_name(x.initial['attribute']),x.initial['attribute'])
+        for x in attribute_form.forms])
+    for attr in layer.palenque_type.attribute_type_set.all():
+        cand,score = best_candidate(normalize_attr_name(attr.name), candidates.keys())
+        if cand is not None and score < 1.0:
+            attr2 = candidates.pop(cand)
+            form = (x for x in attribute_form.forms if x.initial['attribute'] == attr2).next()
+            form.initial['field'] = attr.id
+            if attr.magnitude:
+                form.initial['magnitude'] = \
+                    re.sub('^[0-9 \.]+','',u"{:~}".format(units[attr.magnitude])).replace(' ','')
 
 
 def _clean_string(
@@ -293,7 +319,8 @@ def get_bbox(filename):
 
 
 def file_upload(filename, name=None, user=None, title=None, abstract=None, 
-                skip=True, overwrite=False, keywords=[], charset='UTF-8', layer_type=None):
+                skip=True, overwrite=False, keywords=[], charset='UTF-8', 
+                layer_type=None, palenque_type=None):
     """Saves a layer in GeoNode asking as little information as possible.
        Only filename is required, user and title are optional.
     """
@@ -328,6 +355,7 @@ def file_upload(filename, name=None, user=None, title=None, abstract=None,
 
     defaults = {
         'layer_type': layer_type,
+        'palenque_type': palenque_type,
         'upload_session': upload_session,
         'title': title,
         'abstract': abstract,

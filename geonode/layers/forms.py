@@ -29,11 +29,13 @@ from modeltranslation.forms import TranslationModelForm
 
 from mptt.forms import TreeNodeMultipleChoiceField
 
-from geonode.layers.models import Layer, Attribute
+from geonode.layers.models import Layer, Attribute, LayerType, AttributeType
 from geonode.people.models import Profile
 from geonode.base.models import Region
+from geonode.layers.units import *
 
 import autocomplete_light
+import pint
 
 
 class JSONField(forms.CharField):
@@ -94,6 +96,8 @@ class LayerForm(TranslationModelForm):
     class Meta:
         model = Layer
         exclude = (
+            'creator',
+            'app',
             'metadata_edited',
 
             'contacts',
@@ -215,6 +219,9 @@ class NewLayerUploadForm(LayerUploadForm):
     layer_title = forms.CharField(required=False)
     permissions = JSONField()
     charset = forms.CharField(required=False)
+    palenque_type = forms.ModelChoiceField(
+        required=False, queryset=LayerType.objects.all()
+    )
 
     spatial_files = (
         "base_file",
@@ -231,12 +238,49 @@ class LayerDescriptionForm(forms.Form):
     keywords = forms.CharField(500, required=False)
 
 
-class LayerAttributeForm(forms.ModelForm):
 
-    def __init__(self, *args, **kwargs):
-        super(LayerAttributeForm, self).__init__(*args, **kwargs)
+class LayerAttributeForm(forms.ModelForm):
+    
+    def __init__(self, instance, *args, **kwargs):
+        super(LayerAttributeForm, self).__init__(instance=instance, *args, **kwargs)
+
         self.fields['attribute'].widget.attrs['readonly'] = True
-        self.fields['display_order'].widget.attrs['size'] = 3
+        
+        if instance.layer.palenque_type.is_default:
+            self.fields['display_order'].widget.attrs['size'] = 3
+        else:
+            for field in ['attribute_label','description','display_order']:
+                self.fields[field].widget = forms.HiddenInput()
+            self.fields['magnitude'].widget.attrs['maxlength']= 10            
+            self.fields['magnitude'].widget.attrs['size']= 10  
+            choices = tuple(
+                [('','-----')] + \
+                [(a.id, a.label,) for a in instance.layer.palenque_type.attribute_type_set.all()]
+            )
+            self.fields['field'].widget = forms.Select(choices=choices)        
+
+    def clean_magnitude(self):
+
+        palenque_type = self.instance.layer.palenque_type
+        if not palenque_type.is_default and self.cleaned_data['field']:
+            if palenque_type.attribute_type_set.filter(id=self.cleaned_data['field']):
+                attribute_type = AttributeType.objects.get(id=self.cleaned_data['field'])
+                if not self.cleaned_data['magnitude']:
+                    raise forms.ValidationError("Unit not specified. Default is '%s'" \
+                        % units[attribute_type.magnitude])
+                else:
+                    try:
+                        (1 * units[self.cleaned_data['magnitude']]).to(units[attribute_type.magnitude])
+                    except pint.DimensionalityError:
+                        raise forms.ValidationError("Unit not valid. Cannot convert '%s' to '%s'" \
+                            % (self.cleaned_data['magnitude'], units[attribute_type.magnitude].units))
+                    except pint.UndefinedUnitError:
+                        raise forms.ValidationError("Invalid unit: '%s'" \
+                            % self.cleaned_data['magnitude'])
+            else:
+                if self.cleaned_data['magnitude']:
+                    raise forms.ValidationError("This field has no unit.")
+        return self.cleaned_data['magnitude']
 
     class Meta:
         model = Attribute

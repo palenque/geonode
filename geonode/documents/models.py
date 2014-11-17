@@ -13,7 +13,8 @@ from django.contrib.staticfiles import finders
 from django.utils.translation import ugettext_lazy as _
 
 from geonode.layers.models import Layer
-from geonode.base.models import ResourceBase, Thumbnail, Link, resourcebase_post_save
+from geonode.base.models import ResourceBase, Thumbnail, Link
+from geonode.base.models import resourcebase_post_save, resourcebase_pre_save
 from geonode.maps.signals import map_changed_signal
 from geonode.maps.models import Map
 
@@ -203,5 +204,6 @@ def update_documents_extent(sender, **kwargs):
 
 signals.pre_save.connect(pre_save_document, sender=Document)
 signals.post_save.connect(create_thumbnail, sender=Document)
+signals.pre_save.connect(resourcebase_pre_save, sender=Document)
 signals.post_save.connect(resourcebase_post_save, sender=Document)
 map_changed_signal.connect(update_documents_extent)

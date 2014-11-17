@@ -63,6 +63,15 @@
       <div id="file-queue"></div>
     </section>
 
+    <section class="palenque-type">
+      <p>{% trans "Select the layer type or leave default" %}</p>
+      <select id="palenque-type">
+        {% for pt in palenque_types %}
+          <option value="{{pt.id}}" {% if pt.is_default %}selected="selected"{% endif %}>{{ pt }}</option>
+        {% endfor %}
+      </select>
+    </section>
+
     <section class="charset">
       <p>{% trans "Select the charset or leave default" %}</p>
       <select id="charset">

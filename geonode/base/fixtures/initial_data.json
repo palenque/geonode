@@ -30,16 +30,6 @@
         }
     }, 
     {
-        "pk": 20, 
-        "model": "base.topiccategory", 
-        "fields": {
-            "description": "Monitor Layer", 
-            "gn_description": "Monitor Layer", 
-            "is_choice": true, 
-            "identifier": "monitorLayer"
-        }
-    },     
-    {
         "pk": 11, 
         "model": "base.topiccategory", 
         "fields": {

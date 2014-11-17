@@ -1,0 +1,179 @@
+[
+{
+    "pk": 1, 
+    "model": "layers.layertype", 
+    "fields": {
+        "fill_metadata": false, 
+        "is_default": true, 
+        "description": "Default layer", 
+        "name": "default", 
+        "label": "Default"
+    }
+},
+{
+    "pk": 2, 
+    "model": "layers.layertype", 
+    "fields": {
+        "fill_metadata": false, 
+        "is_default": false, 
+        "description": "Suelo", 
+        "name": "suelo", 
+        "label": "Suelo"
+    }
+},
+{
+    "pk": 3, 
+    "model": "layers.layertype", 
+    "fields": {
+        "fill_metadata": true, 
+        "is_default": false, 
+        "description": "Monitor", 
+        "name": "monitor", 
+        "label": "Monitor"
+    }
+},
+{
+    "pk": 1, 
+    "model": "layers.attributetype", 
+    "fields": {
+        "layer_type": 3, 
+        "name": "MASA_SECO", 
+        "attribute_type": "xsd:string", 
+        "required": true, 
+        "label": "Masa (seco)", 
+        "magnitude": "kg"
+    }
+},
+{
+    "pk": 2, 
+    "model": "layers.attributetype", 
+    "fields": {
+        "layer_type": 3, 
+        "name": "MASA_HUMEDO", 
+        "attribute_type": "xsd:string", 
+        "required": true, 
+        "label": "Masa (h\u00famedo)", 
+        "magnitude": "kg"
+    }
+},
+{
+    "pk": 3, 
+    "model": "layers.attributetype", 
+    "fields": {
+        "layer_type": 3, 
+        "name": "VOLUMEN_SECO", 
+        "attribute_type": "xsd:string", 
+        "required": false, 
+        "label": "Volumen (seco)", 
+        "magnitude": "l"
+    }
+},
+{
+    "pk": 4, 
+    "model": "layers.attributetype", 
+    "fields": {
+        "layer_type": 3, 
+        "name": "VOLUMEN_HUMEDO", 
+        "attribute_type": "xsd:string", 
+        "required": false, 
+        "label": "Volumen (h\u00famedo)", 
+        "magnitude": "l"
+    }
+},
+{
+    "pk": 5, 
+    "model": "layers.attributetype", 
+    "fields": {
+        "layer_type": 3, 
+        "name": "RENDIMIENTO_SECO", 
+        "attribute_type": "xsd:string", 
+        "required": false, 
+        "label": "Rendimiento (seco)", 
+        "magnitude": "ton/ha"
+    }
+},
+{
+    "pk": 6, 
+    "model": "layers.attributetype", 
+    "fields": {
+        "layer_type": 3, 
+        "name": "RENDIMIENTO_HUMEDO", 
+        "attribute_type": "xsd:string", 
+        "required": false, 
+        "label": "Rendimiento (h\u00famedo)", 
+        "magnitude": "ton/ha"
+    }
+},
+{
+    "pk": 7, 
+    "model": "layers.attributetype", 
+    "fields": {
+        "layer_type": 3, 
+        "name": "FLUJO", 
+        "attribute_type": "xsd:string", 
+        "required": false, 
+        "label": "Flujo", 
+        "magnitude": "kg/sec"
+    }
+},
+{
+    "pk": 8, 
+    "model": "layers.attributetype", 
+    "fields": {
+        "layer_type": 3, 
+        "name": "ALTITUD", 
+        "attribute_type": "xsd:string", 
+        "required": false, 
+        "label": "Altitud", 
+        "magnitude": "m"
+    }
+},
+{
+    "pk": 9, 
+    "model": "layers.attributetype", 
+    "fields": {
+        "layer_type": 3, 
+        "name": "ANCHO", 
+        "attribute_type": "xsd:string", 
+        "required": true, 
+        "label": "Ancho", 
+        "magnitude": "m"
+    }
+},
+{
+    "pk": 10, 
+    "model": "layers.attributetype", 
+    "fields": {
+        "layer_type": 3, 
+        "name": "DISTANCIA", 
+        "attribute_type": "xsd:string", 
+        "required": true, 
+        "label": "Distancia", 
+        "magnitude": "m"
+    }
+},
+{
+    "pk": 11, 
+    "model": "layers.attributetype", 
+    "fields": {
+        "layer_type": 3, 
+        "name": "VELOCIDAD", 
+        "attribute_type": "xsd:string", 
+        "required": false, 
+        "label": "Velocidad", 
+        "magnitude": "m"
+    }
+},
+{
+    "pk": 12, 
+    "model": "layers.attributetype", 
+    "fields": {
+        "layer_type": 3, 
+        "name": "TIEMPO", 
+        "attribute_type": "xsd:string", 
+        "required": false, 
+        "label": "Tiempo", 
+        "magnitude": "sec"
+    }
+}
+]

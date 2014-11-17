@@ -699,6 +699,12 @@ def resourcebase_pre_delete(instance):
         instance.thumbnail_set.get().thumb_file.delete()
 
 
+def resourcebase_pre_save(instance, *args, **kwargs):
+    
+    if not instance.creator:
+        instance.creator = instance.owner
+
+
 def resourcebase_post_save(instance, *args, **kwargs):
     """
     Used to fill any additional fields after the save.
@@ -710,8 +716,6 @@ def resourcebase_post_save(instance, *args, **kwargs):
         detail_url=instance.get_absolute_url())
     instance.set_missing_info()
 
-    if not instance.creator:
-        instance.creator = instance.owner
 
 def rating_post_save(instance, *args, **kwargs):
     """
