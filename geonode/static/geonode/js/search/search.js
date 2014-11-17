@@ -35,6 +35,17 @@
             }
         });
 
+        $http.get(LAYER_TYPES_ENDPOINT, {params: params}).success(function(data){
+            if($location.search().hasOwnProperty('layer_type')){
+                data.objects = module.set_initial_filters_from_query(data.objects,
+                    $location.search()['layer_type__name__in'], 'name');
+            }
+            $rootScope.layer_types = data.objects;
+            if (HAYSTACK_FACET_COUNTS && $rootScope.query_data) {
+                module.haystack_facets($http, $rootScope, $location);
+            }
+        });
+
         $http.get(KEYWORDS_ENDPOINT, {params: params}).success(function(data){
             if($location.search().hasOwnProperty('keywords__slug__in')){
                 data.objects = module.set_initial_filters_from_query(data.objects,
@@ -62,6 +73,18 @@
           }
       }
 
+      if ("layer_types" in $rootScope) {
+          $rootScope.later_type_counts = data.meta.facets.layer_type;
+          for (var id in $rootScope.layer_types) {
+              var layer_type = $rootScope.layer_types[id];
+              if (layer_type.identifier in $rootScope.layer_types) {
+                  layer_type.count = $rootScope.layer_types[layer_type.identifier]
+              } else {
+                  layer_type.count = 0;
+              }
+          }
+      }
+
       if ("keywords" in $rootScope) {
           $rootScope.keyword_counts = data.meta.facets.keywords;
           for (var id in $rootScope.keywords) {
@@ -84,6 +107,10 @@
     * and set active class if needed
     */
     if ($('#categories').length > 0){
+       module.load_categories($http, $rootScope, $location);
+    }
+
+    if ($('#layer_types').length > 0){
        module.load_categories($http, $rootScope, $location);
     }
 

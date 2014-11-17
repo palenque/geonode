@@ -24,7 +24,7 @@ if settings.HAYSTACK_SEARCH:
 
 from geonode.people.models import Profile
 from geonode.apps.models import App
-from geonode.layers.models import Layer, Attribute
+from geonode.layers.models import Layer, Attribute, LayerType
 from geonode.maps.models import Map
 from geonode.documents.models import Document
 from geonode.base.models import ResourceBase, TopicCategory
@@ -97,6 +97,7 @@ class CommonModelApi(ModelResource):
             orm_filters.update({'extent': filters['extent']})
         # Nothing returned if +'s are used instead of spaces for text search,
         # so swap them out. Must be a better way of doing this?
+
         for filter in orm_filters:
             if filter in ['title__contains', 'q']:
                 orm_filters[filter] = orm_filters[filter].replace("+", " ")
@@ -450,7 +451,8 @@ class CommonModelApi(ModelResource):
             'thumbnail_url',
             'detail_url',
             'rating',
-            'metadata_edited'
+            'metadata_edited',
+            'palenque_type_id'
         ]
 
         if isinstance(
@@ -461,6 +463,10 @@ class CommonModelApi(ModelResource):
             data['objects'] = list(data['objects'].values(*VALUES))
             # TODO: Improve
             for obj in data['objects']:
+
+                if obj['palenque_type_id'] is not None:
+                   obj['layer_type'] = LayerType.objects.get(id=obj['palenque_type_id']).name
+                obj.pop('palenque_type_id')
                 if obj['category'] is not None: 
                     obj['category_description'] = TopicCategory.objects.get(id=obj['category']).gn_description
 
@@ -555,6 +561,24 @@ class LayerResource(CommonModelApi):
         queryset = Layer.objects.all().distinct().order_by('-date')
         resource_name = 'layers'
         excludes = ['csw_anytext', 'metadata_xml']
+
+        filtering = {'title': ALL,
+                 'keywords': ALL_WITH_RELATIONS,
+                 'category': ALL_WITH_RELATIONS,
+                 'owner': ALL_WITH_RELATIONS,
+                 'creator': ALL_WITH_RELATIONS,
+                 'app': ALL_WITH_RELATIONS,
+                 'layer_type': ALL,
+                 'date': ALL,
+                 }
+
+    def build_filters(self, filters={}):
+        """adds filtering by group functionality"""
+
+        orm_filters = super(LayerResource, self).build_filters(filters)
+
+        filters = dict((k.replace('layer_type','palenque_type__name'),v) for k,v in filters.items())
+        return orm_filters
 
 
 class MapResource(CommonModelApi):

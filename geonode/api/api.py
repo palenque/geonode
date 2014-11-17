@@ -8,7 +8,7 @@ from avatar.templatetags.avatar_tags import avatar_url
 from guardian.shortcuts import get_objects_for_user
 
 from geonode.base.models import TopicCategory
-from geonode.layers.models import Layer
+from geonode.layers.models import Layer, LayerType
 from geonode.maps.models import Map
 from geonode.documents.models import Document
 from geonode.groups.models import GroupProfile
@@ -302,4 +302,25 @@ class ProfileResource(ModelResource):
 
         filtering = {
             'username': ALL,
+        }
+
+class LayerTypeResource(TypeFilteredResource):
+
+    """Layer Type api"""
+
+    def dehydrate_count(self, bundle):
+        resources = bundle.obj.layer_set.all()
+        permitted = get_objects_for_user(
+            bundle.request.user,
+            'base.view_resourcebase').values_list(
+            'id',
+            flat=True)
+        return resources.filter(id__in=permitted).count()
+
+    class Meta:
+        queryset = LayerType.objects.all()
+        resource_name = 'layer_types'
+        allowed_methods = ['get']
+        filtering = {
+            'name': ALL,
         }
