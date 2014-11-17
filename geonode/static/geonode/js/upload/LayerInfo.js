@@ -184,6 +184,7 @@ define(function (require, exports) {
         }
 
         form_data.append('charset', $('#charset').val());
+        form_data.append('palenque_type', $('#palenque-type').val());
         return form_data;
     };
 
@@ -322,10 +323,13 @@ define(function (require, exports) {
             });
         } else if (resp.success === true) {
             self.polling = false;
-            if(typeof(resp.type)=='undefined')
+            console.log(resp)
+            if(resp['fill_metadata']){
+                window.location = resp.url + '/metadata';
+            }
+            else{
                 self.displayUploadedLayerLinks(resp);
-            else
-                window.location = resp.url + '/metadata'
+            }
         } else {
             self.polling = false;
             self.logStatus({

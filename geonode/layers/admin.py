@@ -23,6 +23,7 @@ from django.contrib import admin
 from geonode.base.admin import MediaTranslationAdmin
 from geonode.layers.models import Layer, Attribute, Style
 from geonode.layers.models import LayerFile, UploadSession
+from geonode.layers.models import LayerType, AttributeType
 
 import autocomplete_light
 
@@ -41,7 +42,7 @@ class LayerAdmin(MediaTranslationAdmin):
         'category')
     list_display_links = ('id',)
     list_editable = ('title', 'category')
-    list_filter = ('owner', 'category', 'layer_type',
+    list_filter = ('palenque_type', 'layer_type', 'owner', 'category',  
                    'restriction_code_type__identifier', 'date', 'date_type')
     search_fields = ('typename', 'title', 'abstract', 'purpose',)
     filter_horizontal = ('contacts',)
@@ -85,6 +86,51 @@ class UploadSessionAdmin(admin.ModelAdmin):
     list_display = ('date', 'user', 'processed')
     inlines = [LayerFileInline]
 
+
+class AttributeTypeInline(admin.TabularInline):
+    model = AttributeType
+
+
+class LayerTypeAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'name',
+        # 'service_type',
+        # 'title',
+        # 'date',
+        # 'category'
+    )
+    # list_display_links = ('id',)
+    # list_editable = ('title', 'category')
+    # list_filter = ('owner', 'category', 'layer_type',
+    #                'restriction_code_type__identifier', 'date', 'date_type')
+    # search_fields = ('typename', 'title', 'abstract', 'purpose',)
+    # filter_horizontal = ('contacts',)
+    # date_hierarchy = 'date'
+    # readonly_fields = ('uuid', 'typename', 'workspace')
+    inlines = [AttributeTypeInline]
+    form = autocomplete_light.modelform_factory(LayerType)
+
+
+class AttributeTypeAdmin(admin.ModelAdmin):
+    model = AttributeType
+    list_display_links = ('id',)
+    list_display = (
+        'id',
+        'layer_type',
+        'name',
+        'attribute_type',
+        'magnitude',
+        # 'attribute_type',
+        # 'display_order',
+        # 'field',
+        # 'magnitude',
+    )
+    list_filter = ('layer_type', 'attribute_type',)
+    # search_fields = ('attribute', 'attribute_label',)
+
+admin.site.register(LayerType, LayerTypeAdmin)
+admin.site.register(AttributeType, AttributeTypeAdmin)
 admin.site.register(Layer, LayerAdmin)
 admin.site.register(Attribute, AttributeAdmin)
 admin.site.register(Style, StyleAdmin)

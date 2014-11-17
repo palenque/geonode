@@ -30,7 +30,9 @@ from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
 from django.core.urlresolvers import reverse
 
-from geonode.base.models import ResourceBase, ResourceBaseManager, resourcebase_post_save
+from geonode.base.models import TopicCategory
+from geonode.base.models import ResourceBase, ResourceBaseManager
+from geonode.base.models import resourcebase_post_save, resourcebase_pre_save
 from geonode.people.utils import get_valid_user
 from agon_ratings.models import OverallRating
 
@@ -44,6 +46,63 @@ kml_exts = ['.kml']
 vec_exts = shp_exts + csv_exts + kml_exts
 
 cov_exts = ['.tif', '.tiff', '.geotiff', '.geotif']
+
+
+class LayerType(models.Model):
+    'Layer type'
+
+    name = models.CharField(_('name'), max_length=255, unique=True)
+    label = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(
+        _('description'), max_length=255, blank=True, null=True
+    )
+    fill_metadata = models.BooleanField(
+        blank=True, default=False,
+        help_text=_('defines if metadata must be filled after upload')
+    )
+    is_default = models.BooleanField(
+        blank=True, default=False,
+        help_text=_('defines if it is the default layer type')
+    )
+
+    def required_attributes(self):
+        return self.attribute_type_set.filter(required=True)
+
+    def __unicode__(self):
+        return self.label or self.name
+
+
+class AttributeType(models.Model):
+    'Attributes related to a layer type'
+    
+    layer_type = models.ForeignKey(
+        LayerType, blank=False, null=False, unique=False, related_name='attribute_type_set'
+    )
+    
+    name = models.CharField(
+        _('name'), help_text=_('name of attribute as it will be stored in the database'),
+        max_length=255, blank=False, null=True, unique=False
+    )    
+
+    label = models.CharField(
+        _('label'), help_text=_('label to show'),
+        max_length=255, blank=False, null=True
+    )    
+
+    required = models.BooleanField(
+        blank=True, default=False,
+        help_text=_('defines if the attribute is required to save the whole attribute set')
+    )
+
+    attribute_type = models.CharField(
+        _('attribute type'), help_text=_('the data type of the attribute (integer, string, geometry, etc)'),
+        max_length=50, blank=False, null=False, default='xsd:string', unique=False
+    )
+    
+    magnitude = models.CharField(
+        _('magnitude'), help_text=_('unit'), max_length=255,
+        blank=True, null=True, unique=False
+    )
 
 
 class Style(models.Model):
@@ -85,6 +144,7 @@ class Layer(ResourceBase):
     name = models.CharField(max_length=128)
     typename = models.CharField(max_length=128, null=True, blank=True)
     layer_type = models.CharField(max_length=128, null=True, blank=True)
+    palenque_type = models.ForeignKey(LayerType, null=True, blank=True)
     metadata_edited = models.BooleanField(blank=True, default=False)
 
     default_style = models.ForeignKey(
@@ -428,6 +488,9 @@ def pre_save_layer(instance, sender, **kwargs):
     if instance.owner is None:
         instance.owner = get_valid_user()
 
+    if not instance.creator:
+        instance.creator = instance.owner
+
     if instance.uuid == '':
         instance.uuid = str(uuid.uuid1())
 
@@ -511,7 +574,24 @@ def post_delete_layer(instance, sender, **kwargs):
         instance.default_style.delete()
 
 
+def post_save_layer_type(instance, *args, **kwargs):
+    'Updates or creates a category with the layer type name.'
+
+    try:
+        category = TopicCategory.objects.get(identifier=instance.name)
+        category.description = category.gn_description = instance.description
+    except TopicCategory.DoesNotExist:
+        category = TopicCategory(
+            identifier=instance.name,
+            description=instance.description,
+            gn_description=instance.description
+        )
+    category.save()
+
+
 signals.pre_save.connect(pre_save_layer, sender=Layer)
+signals.pre_save.connect(resourcebase_pre_save, sender=Layer)
 signals.post_save.connect(resourcebase_post_save, sender=Layer)
+signals.post_save.connect(post_save_layer_type, sender=LayerType)
 signals.pre_delete.connect(pre_delete_layer, sender=Layer)
 signals.post_delete.connect(post_delete_layer, sender=Layer)

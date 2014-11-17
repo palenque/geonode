@@ -552,8 +552,7 @@ class LayerResource(CommonModelApi):
     """Layer API"""
 
     class Meta(CommonMetaApi):
-        queryset = Layer.objects.exclude(layer_type='monitor').distinct().order_by('-date')
-        #queryset = Layer.objects.all().distinct().order_by('-date')
+        queryset = Layer.objects.all().distinct().order_by('-date')
         resource_name = 'layers'
         excludes = ['csw_anytext', 'metadata_xml']
 

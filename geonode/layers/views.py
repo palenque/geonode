@@ -39,14 +39,14 @@ from django.db.models import F
 from geonode.services.models import Service
 from geonode.layers.forms import LayerForm, LayerUploadForm, NewLayerUploadForm, LayerAttributeForm
 from geonode.base.forms import CategoryForm
-from geonode.layers.models import Layer, Attribute
+from geonode.layers.models import Layer, Attribute, LayerType
 from geonode.base.enumerations import CHARSETS
 from geonode.base.models import TopicCategory
 
 from geonode.utils import default_map_config, llbbox_to_mercator
 from geonode.utils import GXPLayer
 from geonode.utils import GXPMap
-from geonode.layers.utils import file_upload
+from geonode.layers.utils import file_upload, guess_attribute_match
 from geonode.utils import resolve_object
 from geonode.people.forms import ProfileForm, PocForm
 from geonode.security.views import _perms_info_json
@@ -96,12 +96,79 @@ def _resolve_layer(request, typename, permission='base.view_resourcebase',
 
 # Basic Layer Views #
 
+def _precalculate_yield(layer):
+    'Creates fields and precalculate yield.'
+
+    from django.db import connections
+
+    cursor = connections['datastore'].cursor()
+
+    try:
+        cursor.execute("ALTER TABLE %s ADD RENDIMIENTO_HUMEDO double precision;" % layer.name)
+        cursor.execute("ALTER TABLE %s ADD RENDIMIENTO_SECO double precision;" % layer.name)
+    except:
+        pass
+
+    attrs = { a.field: a.attribute  for a in layer.attribute_set.all() if a.field}
+
+    cursor.execute(
+        'UPDATE %s SET RENDIMIENTO_HUMEDO = "MASA_SECO" / ("ANCHO" * "DISTANCIA");' % layer.name
+    )
+    
+    cursor.execute(
+        'UPDATE %s SET RENDIMIENTO_SECO = "MASA_HUMEDO" / ("ANCHO" * "DISTANCIA");' % layer.name
+    )
+
+
+def _rename_fields(layer):
+    'Renames layer table fields to user mapping.'
+
+    from django.db import connections
+    
+    cursor = connections['datastore'].cursor()
+    
+    for attr in layer.attribute_set.filter(
+        field__in=['MASA_HUMEDO', 'MASA_SECO', 'ANCHO', 'DISTANCIA']
+    ):
+        try:
+            cursor.execute(
+                'ALTER TABLE %s RENAME COLUMN "%s" to "%s";' % (
+                    layer.name, attr.attribute, attr.field
+                )
+            )
+        except:
+            pass
+        else:
+            attr.attribute = attr.field
+            attr.save()
+
+
+def _validate_required_attributes(attribute_form):
+    'Validates required attribute mapping'    
+
+    fields = [ attr['field'] for attr in attribute_form.cleaned_data if attr['field'] ]
+
+    is_valid = True
+
+    for rf in ['MASA_HUMEDO', 'MASA_SECO', 'ANCHO', 'DISTANCIA']:
+        if rf in fields and fields.count(rf) > 1:
+            attribute_form._errors[0][rf] = u' field repeated' 
+            is_valid = False             
+        if rf not in fields:
+            # FIXME: validar contenido de _errors
+            attribute_form._errors[0][rf] = u' association required' 
+            is_valid = False
+
+    return is_valid
+
 
 @login_required
 def layer_upload(request, template='upload/layer_upload.html'):
+
     if request.method == 'GET':
         ctx = {
-            'charsets': CHARSETS
+            'charsets': CHARSETS,
+            'palenque_types': LayerType.objects.all(),
         }
         return render_to_response(template,
                                   RequestContext(request, ctx))
@@ -138,7 +205,13 @@ def layer_upload(request, template='upload/layer_upload.html'):
                     charset=form.cleaned_data["charset"],
                     abstract=form.cleaned_data["abstract"],
                     title=form.cleaned_data["layer_title"],
+                    palenque_type=form.cleaned_data["palenque_type"],
                 )
+
+                if not saved_layer.palenque_type.is_default:
+                    saved_layer.keywords.add(
+                        *[saved_layer.palenque_type.name]
+                    )
 
             except Exception as e:
                 logger.exception(e)
@@ -166,6 +239,8 @@ def layer_upload(request, template='upload/layer_upload.html'):
 
         if out['success']:
             status_code = 200
+            # out['palenque_type'] = form.cleaned_data["palenque_type"]
+            out['fill_metadata'] = saved_layer.palenque_type.fill_metadata
         else:
             status_code = 500
         return HttpResponse(
@@ -248,8 +323,28 @@ def layer_detail(request, layername, template='layers/layer_detail.html'):
     return render_to_response(template, RequestContext(request, context_dict))
 
 
+def _validate_required_attributes(layer, attribute_form):
+    'Validates required attribute mapping'    
+
+    fields = [ attr['field'] for attr in attribute_form.cleaned_data if attr['field'] ]
+
+    is_valid = True
+
+    for rf in [str(a.id) for a in layer.palenque_type.required_attributes()]:
+        if rf in fields and fields.count(rf) > 1:
+            attribute_form._errors[0][rf] = u' field repeated' 
+            is_valid = False             
+        if rf not in fields:
+            # FIXME: validar contenido de _errors
+            attribute_form._errors[0][rf] = u' association required' 
+            is_valid = False
+
+    return is_valid
+
+
 @login_required
 def layer_metadata(request, layername, template='layers/layer_metadata.html'):
+    
     layer = _resolve_layer(
         request,
         layername,
@@ -276,8 +371,7 @@ def layer_metadata(request, layername, template='layers/layer_metadata.html'):
         category_form = CategoryForm(
             request.POST,
             prefix="category_choice_field",
-            initial=int(
-                request.POST["category_choice_field"]) if "category_choice_field" in request.POST else None)
+            initial=int(request.POST["category_choice_field"]) if "category_choice_field" in request.POST else None)
     else:
         layer_form = LayerForm(instance=layer, prefix="resource")
         attribute_form = layer_attribute_set(
@@ -286,10 +380,19 @@ def layer_metadata(request, layername, template='layers/layer_metadata.html'):
             queryset=Attribute.objects.order_by('display_order'))
         category_form = CategoryForm(
             prefix="category_choice_field",
-            initial=topic_category.id if topic_category else None)
+            initial=topic_category.id if topic_category else None
+        )
 
-    if request.method == "POST" and layer_form.is_valid(
-    ) and attribute_form.is_valid() and category_form.is_valid():
+        if not layer.metadata_edited and not layer.palenque_type.is_default:
+            guess_attribute_match(layer,attribute_form)
+
+    if (
+        request.method == "POST" and 
+        layer_form.is_valid() and 
+        attribute_form.is_valid() and 
+        _validate_required_attributes(layer, attribute_form) and
+        category_form.is_valid()
+    ):
         new_poc = layer_form.cleaned_data['poc']
         new_author = layer_form.cleaned_data['metadata_author']
         new_keywords = layer_form.cleaned_data['keywords']

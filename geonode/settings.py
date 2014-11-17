@@ -462,8 +462,8 @@ OGC_SERVER = {
 
 # # Uploader Settings
 UPLOADER = {
-    # 'BACKEND': 'geonode.rest',
-    'BACKEND': 'geonode.importer',
+    'BACKEND': 'geonode.rest',
+    # 'BACKEND': 'geonode.importer',
     'OPTIONS': {
         'TIME_ENABLED': False,
         'GEOGIT_ENABLED': False,
