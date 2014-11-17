@@ -64,6 +64,11 @@ class LayerType(models.Model):
         blank=True, default=False,
         help_text=_('defines if it is the default layer type')
     )
+    show_category = models.BooleanField(
+        blank=True, default=True,
+        help_text=_('show category in metadata')
+    )
+
 
     def required_attributes(self):
         return self.attribute_type_set.filter(required=True)
@@ -576,6 +581,9 @@ def post_delete_layer(instance, sender, **kwargs):
 
 def post_save_layer_type(instance, *args, **kwargs):
     'Updates or creates a category with the layer type name.'
+
+    if instance.is_default:
+        return
 
     try:
         category = TopicCategory.objects.get(identifier=instance.name)
