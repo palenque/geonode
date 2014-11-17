@@ -31,7 +31,7 @@ PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 
 # Setting debug to true makes Django serve static media and
 # present pretty error pages.
-DEBUG = TEMPLATE_DEBUG = False
+DEBUG = TEMPLATE_DEBUG = True
 
 # Set to True to load non-minified versions of (static) client dependencies
 # Requires to set-up Node and tools that are required for static development
@@ -414,7 +414,8 @@ NOSE_ARGS = [
 # GeoNode specific settings
 #
 
-SITEURL = "http://protopalenque.ddns.net/"
+#SITEURL = "http://protopalenque.ddns.net/"
+SITEURL = "http://localhost:8000/"
 
 USE_QUEUE = False
 
@@ -437,11 +438,13 @@ CACHE_TIME = 0
 OGC_SERVER = {
     'default': {
         'BACKEND': 'geonode.geoserver',
-        'LOCATION': 'http://protopalenque.ddns.net/geoserver/',
+        #'LOCATION': 'http://protopalenque.ddns.net/geoserver/',
+        'LOCATION': 'http://localhost:8080/geoserver/',
         # PUBLIC_LOCATION needs to be kept like this because in dev mode
         # the proxy won't work and the integration tests will fail
         # the entire block has to be overridden in the local_settings
-        'PUBLIC_LOCATION': 'http://protopalenque.ddns.net/geoserver/',
+        #'PUBLIC_LOCATION': 'http://protopalenque.ddns.net/geoserver/',
+        'PUBLIC_LOCATION': 'http://localhost:8080/geoserver/',
         'USER': 'admin',
         'PASSWORD': 'geoserver',
         'MAPFISH_PRINT_ENABLED': True,
@@ -450,7 +453,7 @@ OGC_SERVER = {
         'GEOGIT_ENABLED': False,
         'WMST_ENABLED': False,
         'BACKEND_WRITE_ENABLED': True,
-        'WPS_ENABLED': False,
+        'WPS_ENABLED': True,
         # Set to name of database in DATABASES dictionary to enable
         'DATASTORE': 'datastore',
         'TIMEOUT': 10  # number of seconds to allow for HTTP requests

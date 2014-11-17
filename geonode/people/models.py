@@ -30,7 +30,7 @@ from geonode.base.enumerations import COUNTRIES
 from geonode.groups.models import GroupProfile
 
 from .utils import format_address
-
+from .enumerations import PROFILE_VALUES
 
 class Profile(AbstractUser):
 
@@ -42,7 +42,7 @@ class Profile(AbstractUser):
         blank=True,
         null=True,
         help_text=_('name of the responsible organization'))
-    profile = models.TextField(_('Profile'), null=True, blank=True, help_text=_('introduce yourself'))
+    profile = models.CharField(_('Profile'), max_length=20, choices=PROFILE_VALUES, null=False, blank=False, default='user', help_text=_('type of user'))
     position = models.CharField(
         _('Position Name'),
         max_length=255,
@@ -103,6 +103,9 @@ class Profile(AbstractUser):
 
     def group_list_all(self):
         return GroupProfile.objects.filter(groupmember__user=self)
+
+    def apps_list_all(self):
+        return [x.app for x in self.appmember_set.filter(role='manager')]
 
     def keyword_list(self):
         """

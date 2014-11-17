@@ -49,3 +49,11 @@ ROLE_VALUES = (
     ('owner', _('party that owns the resource')),
     ('principalInvestigator', _('key party responsible for gathering information and conducting research')),
 )
+
+PROFILE_VALUES = (
+    ('user', _('user')),
+    ('organization', _('organization')),
+    ('developer', _('developer')),
+    ('admin', _('administrator')),
+    ('app', _('application')),
+)

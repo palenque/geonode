@@ -386,6 +386,8 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
 
         layer_form.save()
 
+        _rename_fields(layer)
+        _precalculate_yield(layer)
 
         #     metadata_edited = True
 
