@@ -356,7 +356,7 @@ def layer_metadata(request, layername, template='layers/layer_metadata.html'):
         extra=0,
         form=LayerAttributeForm,
     )
-    topic_category = layer.category
+    topic_category = layer.category or TopicCategory.objects.get(identifier=layer.palenque_type.name)
 
     poc = layer.poc
     metadata_author = layer.metadata_author
