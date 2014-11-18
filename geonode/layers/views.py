@@ -442,6 +442,7 @@ def layer_metadata(request, layername, template='layers/layer_metadata.html'):
         #     la.save()
 
         layer.palenque_type.rename_fields(layer)
+        layer.palenque_type.precalculate_fields(layer)
 
         if new_poc is not None and new_author is not None:
             the_layer = layer_form.save()

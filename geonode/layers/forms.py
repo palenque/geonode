@@ -255,7 +255,13 @@ class LayerAttributeForm(forms.ModelForm):
             self.fields['magnitude'].widget.attrs['size']= 10  
             choices = tuple(
                 [('','-----')] + \
-                [(a.id, a.label,) for a in instance.layer.palenque_type.attribute_type_set.all()]
+                [   
+                    (a.id, a.label,) 
+                    for a in 
+                    instance.layer.palenque_type.attribute_type_set.exclude(
+                        is_precalculated=True
+                    )
+                ]
             )
             self.fields['field'].widget = forms.Select(choices=choices)        
 
