@@ -19,6 +19,7 @@
 <script type="text/javascript">
   $("body").attr('ng-controller', 'MainController');
   CATEGORIES_ENDPOINT = '{% url 'api_dispatch_list' api_name='api' resource_name='categories' %}';
+  LAYER_TYPES_ENDPOINT = '{% url 'api_dispatch_list' api_name='api' resource_name='layer_types' %}';
   KEYWORDS_ENDPOINT = '{% url 'api_dispatch_list' api_name='api' resource_name='keywords' %}';
   HAYSTACK_SEARCH = "{{ HAYSTACK_SEARCH }}".toLowerCase() === "true";
   HAYSTACK_FACET_COUNTS = "{{ HAYSTACK_FACET_COUNTS }}".toLowerCase() === "true";

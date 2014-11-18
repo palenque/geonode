@@ -1,7 +1,7 @@
 from tastypie.api import Api
 
 from .api import TagResource, TopicCategoryResource, ProfileResource, \
-    GroupResource, AppResource
+    GroupResource, AppResource, LayerTypeResource
 from .resourcebase_api import LayerResource, MapResource, DocumentResource, \
     ResourceBaseResource, FeaturedResourceBaseResource
 from .monitor_api import MonitorResource
@@ -19,3 +19,4 @@ api.register(TopicCategoryResource())
 api.register(GroupResource())
 api.register(AppResource())
 api.register(FeaturedResourceBaseResource())
+api.register(LayerTypeResource())

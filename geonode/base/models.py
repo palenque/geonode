@@ -737,6 +737,8 @@ def share(instance, created=False, update_fields=None, **kwargs):
     for app_member in owner.appmember_set.all():
         app = app_member.app
         alter_ego = app.get_alter_ego()
+        if alter_ego is None: 
+            continue
 
         if not alter_ego:
             continue 
