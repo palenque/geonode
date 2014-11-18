@@ -738,6 +738,9 @@ def share(instance, created=False, update_fields=None, **kwargs):
         app = app_member.app
         alter_ego = app.get_alter_ego()
 
+        if not alter_ego:
+            continue 
+
         if (instance.tag.name in app.keyword_list()
             and created 
             and not alter_ego.has_perm('view_resourcebase', resource)
@@ -757,6 +760,9 @@ def unshare(instance, **kwargs):
     for app_member in owner.appmember_set.all():
         app = app_member.app
         alter_ego = app.get_alter_ego()
+
+        if not alter_ego:
+            continue 
 
         if (instance.tag.name in app.keyword_list()
             and manager.has_perm('view_resourcebase', resource)

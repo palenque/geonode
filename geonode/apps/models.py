@@ -116,8 +116,11 @@ class App(models.Model):
         """
         Returns a queryset of the group's managers.
         """
-        return get_user_model().objects.get(
-            id=self.member_queryset().get(role='alter_ego').user_id)
+        try:
+            return get_user_model().objects.get(
+                id=self.member_queryset().get(role='alter_ego').user_id)
+        except (App.DoesNotExist, AppMember.DoesNotExist) as e:
+            return
 
     def user_is_member(self, user):
         if not user.is_authenticated():

@@ -6,7 +6,6 @@ from tastypie.exceptions import BadRequest
 from geonode.layers.models import Layer
 from geonode.monitors.views import monitor_upload, monitor_metadata
 
-from .authorization import AttributeAuthorization
 from .resourcebase_api import MultipartResource, CommonModelApi, CommonMetaApi
 
 
@@ -36,7 +35,6 @@ class MonitorResource(MultipartResource, CommonModelApi):
         -F layer_title='monitor test'
         -F abstract='monitor test'
         -F 'permissions={"users":{},"groups":{}}' 
-        -F 'attributes=[{"attribute_label":"Masa Seco", "field": "MASA_SECO"}]'
         -F 'attributes=[
             {"attribute": "MASA_1", "field": "MASA_HUMEDO", "magnitude": "kg"}, 
             {"attribute":"MASA_2", "field": "MASA_SECO", "magnitude": "kg"}]'

@@ -68,35 +68,34 @@
         </fieldset>
 
       {% if not layer.palenque_type.is_default %}
-      
-        <br/>
-        <legend>{% trans "Attributes" %}</legend>
-        {% if not layer_form.instance.metadata_edited %}
-          <div class="alert alert-info">{% trans "The associations and units are suggested. Please check them." %}</div>
-        {% endif %}
+        {% if not layer.metadata_edited %}
+          <br/>
+          <legend>{% trans "Attributes" %}</legend>
+          {% if not layer_form.instance.metadata_edited %}
+            <div class="alert alert-info">{% trans "The associations and units are suggested. Please check them." %}</div>
+          {% endif %}
 
-        {{ attribute_form.management_form }}
-        <table cellpadding="5" cellspacing="5" width="100%">
-            <tr>
-              <th style="text-align: left;">{% trans "Attribute" %}</th>
-              <th style="text-align: left;">{% trans "Association" %}</th>
-              <th style="text-align: left;">{% trans "Unit" %}</th>
-              <th style="text-align: left;" width="50%">&nbsp;</th>
-          </tr>
-            {% for form in attribute_form.forms %}
-            {% if form.attribute %}
-            <tr>
-              <td><div style="display:none">{{form.id}}</div>{{form.attribute}}</td>
-              <td> {{form.field}}</td>
-              <td> {{form.magnitude}}</td>
-              <td> {{form.attribute_label}} {{form.display_order}} {{form.description}}</td>
+          {{ attribute_form.management_form }}
+          <table cellpadding="5" cellspacing="5" width="100%">
+              <tr>
+                <th style="text-align: left;">{% trans "Attribute" %}</th>
+                <th style="text-align: left;">{% trans "Association" %}</th>
+                <th style="text-align: left;">{% trans "Unit" %}</th>
+                <th style="text-align: left;" width="50%">&nbsp;</th>
             </tr>
-            {% endif %}
-            {% endfor %}
-        </table>
-      
+              {% for form in attribute_form.forms %}
+              {% if form.attribute %}
+              <tr>
+                <td><div style="display:none">{{form.id}}</div>{{form.attribute}}</td>
+                <td> {{form.field}}</td>
+                <td> {{form.magnitude}}</td>
+                <td> {{form.attribute_label}} {{form.display_order}} {{form.description}}</td>
+              </tr>
+              {% endif %}
+              {% endfor %}
+          </table>
+        {% endif %}
       {% else %}
-
         <header>{% trans "Attributes" %}</header>
         {{ attribute_form.management_form }}
         <table cellpadding="5" cellspacing="5" width="100%"><tr><th style="text-align: left;">{% trans "Attribute" %}</th><th style="text-align: left;">{% trans "Label" %}</th><th style="text-align: left;">{% trans "Description" %}</th><th style="text-align: left;">{% trans "Display Order" %}</th></tr>
@@ -106,7 +105,6 @@
             {% endif %}
             {% endfor %}
         </table>
-
       {% endif %}
 
     <fieldset class="form-controls modal-forms modal hide fade" id="poc_form" >

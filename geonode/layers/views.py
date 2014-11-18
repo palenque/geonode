@@ -330,13 +330,13 @@ def _validate_required_attributes(layer, attribute_form):
 
     is_valid = True
 
-    for rf in [str(a.id) for a in layer.palenque_type.required_attributes()]:
+    for rf, attr in [(str(a.id), a,) for a in layer.palenque_type.required_attributes()]:
         if rf in fields and fields.count(rf) > 1:
-            attribute_form._errors[0][rf] = u' field repeated' 
+            attribute_form._errors[0][attr.name] = u' field repeated' 
             is_valid = False             
         if rf not in fields:
             # FIXME: validar contenido de _errors
-            attribute_form._errors[0][rf] = u' association required' 
+            attribute_form._errors[0][attr.name] = u' association required' 
             is_valid = False
 
     return is_valid
@@ -356,7 +356,12 @@ def layer_metadata(request, layername, template='layers/layer_metadata.html'):
         extra=0,
         form=LayerAttributeForm,
     )
-    topic_category = layer.category or TopicCategory.objects.get(identifier=layer.palenque_type.name)
+
+    # TODO: revisarlo despues de agregar metadata configurable
+    if layer.palenque_type.is_default:
+        topic_category = layer.category
+    else:
+        topic_category = TopicCategory.objects.get(identifier=layer.palenque_type.name)
 
     poc = layer.poc
     metadata_author = layer.metadata_author
@@ -393,6 +398,12 @@ def layer_metadata(request, layername, template='layers/layer_metadata.html'):
         _validate_required_attributes(layer, attribute_form) and
         category_form.is_valid()
     ):
+
+        # se permite editar solo una vez
+        if not layer.palenque_type.is_default and layer.metadata_edited:
+           return HttpResponseRedirect(reverse('monitor_metadata', args=(layer.service_typename,)))
+
+
         new_poc = layer_form.cleaned_data['poc']
         new_author = layer_form.cleaned_data['metadata_author']
         new_keywords = layer_form.cleaned_data['keywords']
@@ -420,13 +431,17 @@ def layer_metadata(request, layername, template='layers/layer_metadata.html'):
         new_category = TopicCategory.objects.get(
             id=category_form.cleaned_data['category_choice_field'])
 
-        for form in attribute_form.cleaned_data:
-            la = Attribute.objects.get(id=int(form['id'].id))
-            la.description = form["description"]
-            la.attribute_label = form["attribute_label"]
-            la.visible = form["visible"]
-            la.display_order = form["display_order"]
-            la.save()
+        
+        attribute_form.save()
+        # for form in attribute_form.cleaned_data:
+        #     la = Attribute.objects.get(id=int(form['id'].id))
+        #     la.description = form["description"]
+        #     la.attribute_label = form["attribute_label"]
+        #     la.visible = form["visible"]
+        #     la.display_order = form["display_order"]
+        #     la.save()
+
+        layer.palenque_type.rename_fields(layer)
 
         if new_poc is not None and new_author is not None:
             the_layer = layer_form.save()
@@ -434,8 +449,8 @@ def layer_metadata(request, layername, template='layers/layer_metadata.html'):
             the_layer.metadata_author = new_author
             the_layer.keywords.clear()
             the_layer.keywords.add(*new_keywords)
-            # ResourceBase.objects.get(id=the_layer.id).keywords.add(*new_keywords)
             the_layer.category = new_category
+            the_layer.metadata_edited = True
             the_layer.save()
             return HttpResponseRedirect(
                 reverse(

@@ -22,8 +22,7 @@ import logging
 
 from datetime import datetime
 
-
-from django.db import models
+from django.db import models, connections
 from django.db.models import signals
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
@@ -58,7 +57,7 @@ class LayerType(models.Model):
     )
     fill_metadata = models.BooleanField(
         blank=True, default=False,
-        help_text=_('defines if metadata must be filled after upload')
+        help_text=_('defines if metadata must be filled out after uploading')
     )
     is_default = models.BooleanField(
         blank=True, default=False,
@@ -69,6 +68,39 @@ class LayerType(models.Model):
         help_text=_('show category in metadata')
     )
 
+    def rename_fields(self, layer):
+        'Renames fiels in the layer table.'
+
+        if layer.palenque_type.is_default:
+            return
+
+        cursor = connections['datastore'].cursor()
+
+        for attr in layer.attribute_set.exclude(attribute='the_geom'):
+            if attr.field:
+                attr_type = AttributeType.objects.get(id=attr.field)
+                try:
+                    cursor.execute(
+                        'ALTER TABLE %s RENAME COLUMN "%s" to "%s";' % (
+                            layer.name, attr.attribute, attr_type.name
+                        )
+                    )
+                except:
+                    pass # TODO: logging
+                else:
+                    attr.attribute = attr_type.name
+                    attr.save()
+            else:
+                try:
+                    cursor.execute(
+                        'ALTER TABLE %s DROP COLUMN "%s";' % (
+                            layer.name, attr.attribute
+                        )
+                    )
+                except:
+                    pass # TODO: logging
+                else:
+                    attr.delete()
 
     def required_attributes(self):
         return self.attribute_type_set.filter(required=True)
@@ -94,10 +126,19 @@ class AttributeType(models.Model):
         max_length=255, blank=False, null=True
     )    
 
+    description = models.CharField(max_length=255, blank=False, null=True)    
+
     required = models.BooleanField(
         blank=True, default=False,
         help_text=_('defines if the attribute is required to save the whole attribute set')
     )
+
+    is_precalculated = models.BooleanField(
+        blank=True, default=False,
+        help_text=_('defines if this will be a precalculated with the sql field')
+    )
+
+    sql_expression = models.CharField(max_length=255, blank=False, null=True)
 
     attribute_type = models.CharField(
         _('attribute type'), help_text=_('the data type of the attribute (integer, string, geometry, etc)'),
