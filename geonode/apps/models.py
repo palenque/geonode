@@ -120,11 +120,7 @@ class App(models.Model):
             return get_user_model().objects.get(
                 id=self.member_queryset().get(role='alter_ego').user_id)
         except (App.DoesNotExist, AppMember.DoesNotExist) as e:
-<<<<<<< HEAD
             return
-=======
-            return None
->>>>>>> 75a8a5ef8d143536a11928a8bbbfca7b0c736b8b
 
     def user_is_member(self, user):
         if not user.is_authenticated():
