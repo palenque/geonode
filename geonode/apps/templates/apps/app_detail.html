@@ -136,9 +136,13 @@
           <div class="tab-pane active list paginate-contents" id="all">
               {% autopaginate object_list 5 %}
                 {% for obj in object_list %}
+
                   {% if obj.layer_type == 'monitor' %}
                     {% include "apps/_monitor_resource.html" %}
                   {% else %}
+                    {% include "apps/_layer_resource.html" %}
+                  {% endif %}
+                {% comment %}
                 <article>
                   <div class="content">
                     <div class="item-header">
@@ -167,7 +171,8 @@
                     </div>
                   </div>
                 </article>
-                {% endif %}
+                {% endcomment %}
+
                 {% endfor %}
             </div>
               {% paginate %}

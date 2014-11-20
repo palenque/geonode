@@ -33,6 +33,7 @@ from geonode.layers.models import Layer, Attribute, LayerType, AttributeType
 from geonode.people.models import Profile
 from geonode.base.models import Region
 from geonode.layers.units import *
+from geonode.apps.models import App
 
 import autocomplete_light
 import pint
@@ -41,6 +42,8 @@ import pint
 class JSONField(forms.CharField):
 
     def clean(self, text):
+        if not self.required and text is None: 
+            return
         text = super(JSONField, self).clean(text)
         try:
             return json.loads(text)
@@ -152,14 +155,48 @@ class LayerUploadForm(forms.Form):
 
     charset = forms.CharField(required=False)
 
+    owner_and_creator = forms.CharField(required=False)
+    owner = forms.CharField(required=False)
+    creator = forms.CharField(required=False)
+
     spatial_files = (
         "base_file",
         "dbf_file",
         "shx_file",
         "prj_file")
 
+
+    def clean_owner(self):
+        p = map(int, self.cleaned_data['owner_and_creator'].split(','))
+        try:
+            return Profile.objects.get(id=p[0])
+        except:
+            raise forms.ValidationError("Cannot find user %d" % p[0])
+
+
+    def clean_creator(self):
+        p = map(int, self.cleaned_data['owner_and_creator'].split(','))
+        if p[1] == 0:
+            return self.cleaned_data['owner']
+
+        try:
+            creator = Profile.objects.get(id=p[1])
+        except: 
+            raise forms.ValidationError("Cannot find user %d" % p[1])
+
+        owner = self.cleaned_data['owner']
+        if creator != owner and not creator.has_perm('transfer_resourcebase',owner):
+            raise forms.ValidationError("Cannot transfer ownership to %s via %s" % (owner.username, app.title))
+        return creator
+
+    def clean_palenque_type(self):
+        if self.cleaned_data['palenque_type'] is None:
+            self.cleaned_data['palenque_type'] = LayerType.objects.get(name='default')
+        return self.cleaned_data['palenque_type']
+
     def clean(self):
         cleaned = super(LayerUploadForm, self).clean()
+
         base_name, base_ext = os.path.splitext(cleaned["base_file"].name)
         if base_ext.lower() == '.zip':
             # for now, no verification, but this could be unified
@@ -217,7 +254,7 @@ class NewLayerUploadForm(LayerUploadForm):
 
     abstract = forms.CharField(required=False)
     layer_title = forms.CharField(required=False)
-    permissions = JSONField()
+    permissions = JSONField(required=False)
     charset = forms.CharField(required=False)
     palenque_type = forms.ModelChoiceField(
         required=False, queryset=LayerType.objects.all()

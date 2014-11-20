@@ -36,6 +36,11 @@ class Profile(AbstractUser):
 
     """Fully featured Geonode user"""
 
+    class Meta:
+        permissions = (
+            ("transfer_resourcebase", "Can transfer resources to this user"),
+        )
+
     organization = models.CharField(
         _('Organization Name'),
         max_length=255,
@@ -88,7 +93,12 @@ class Profile(AbstractUser):
             (space or comma-separated'))
 
     def get_absolute_url(self):
-        return reverse('profile_detail', args=[self.username, ])
+        if self.profile == 'application':
+            apps = self.appmember_set.filter(role='alter_ego').all()
+            if len(apps) > 0:
+                return reverse('app_detail', args=[apps[0].app])
+        else:
+            return reverse('profile_detail', args=[self.username, ])
 
     def __unicode__(self):
         return u"%s" % (self.username)

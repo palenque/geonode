@@ -42,13 +42,14 @@ from geonode.base.forms import CategoryForm
 from geonode.layers.models import Layer, Attribute, LayerType
 from geonode.base.enumerations import CHARSETS
 from geonode.base.models import TopicCategory
-
+from geonode.apps.models import App
 from geonode.utils import default_map_config, llbbox_to_mercator
 from geonode.utils import GXPLayer
 from geonode.utils import GXPMap
 from geonode.layers.utils import file_upload, guess_attribute_match
 from geonode.utils import resolve_object
 from geonode.people.forms import ProfileForm, PocForm
+from geonode.people.models import Profile
 from geonode.security.views import _perms_info_json
 from geonode.documents.models import get_related_documents
 
@@ -169,11 +170,36 @@ def layer_upload(request, template='upload/layer_upload.html'):
         ctx = {
             'charsets': CHARSETS,
             'palenque_types': LayerType.objects.all(),
+            'owner_candidates': [(request.user,None)],
         }
+
+        if request.user.profile == 'developer':
+            for appmember in request.user.appmember_set.filter(role='manager'):
+                app = appmember.app
+                app_alter_ego = app.get_alter_ego()
+                if app_alter_ego is not None:
+                    for member in app.appmember_set.filter(role='member'):
+                        user = member.user
+                        if app_alter_ego.has_perm('transfer_resourcebase',user):
+                            ctx['owner_candidates'].append((user,app_alter_ego))
+
+        # elif request.user.profile == 'application':
+        #     apps = App.objects.filter(appmember__role='alter_ego', appmember__user=request.user)
+        #     ctx['owner_candidates'].extend(Profile.objects.filter(appmember__app_id__in=[app.id for app in apps]))
+        #ctx['owner_candidates'] = list(set(ctx['owner_candidates']))
         return render_to_response(template,
                                   RequestContext(request, ctx))
     elif request.method == 'POST':
-        form = NewLayerUploadForm(request.POST, request.FILES)
+
+        data = request.POST.copy()
+
+        if 'owner' not in data:
+            data['owner_and_creator'] = '%d,0' % request.user.id
+        else:
+            owner = Profile.objects.get(username=data['owner'])
+            data['owner_and_creator'] = '%d,%d' % (owner.id,request.user.id)
+
+        form = NewLayerUploadForm(data, request.FILES)
         tempdir = None
         errormsgs = []
         out = {'success': False}
@@ -191,7 +217,6 @@ def layer_upload(request, template='upload/layer_upload.html'):
                     form.cleaned_data["base_file"].name)
 
             name = slugify(name_base.replace(".", "_"))
-
             try:
                 # Moved this inside the try/except block because it can raise
                 # exceptions when unicode characters are present.
@@ -200,12 +225,13 @@ def layer_upload(request, template='upload/layer_upload.html'):
                 saved_layer = file_upload(
                     base_file,
                     name=name,
-                    user=request.user,
+                    user=form.cleaned_data['owner'],
                     overwrite=False,
                     charset=form.cleaned_data["charset"],
                     abstract=form.cleaned_data["abstract"],
                     title=form.cleaned_data["layer_title"],
                     palenque_type=form.cleaned_data["palenque_type"],
+                    creator=form.cleaned_data['creator']
                 )
 
                 if not saved_layer.palenque_type.is_default:
@@ -241,6 +267,7 @@ def layer_upload(request, template='upload/layer_upload.html'):
             status_code = 200
             # out['palenque_type'] = form.cleaned_data["palenque_type"]
             out['fill_metadata'] = saved_layer.palenque_type.fill_metadata
+            out['layer_id'] = saved_layer.id
         else:
             status_code = 500
         return HttpResponse(
@@ -340,7 +367,6 @@ def _validate_required_attributes(layer, attribute_form):
             is_valid = False
 
     return is_valid
-
 
 @login_required
 def layer_metadata(request, layername, template='layers/layer_metadata.html'):

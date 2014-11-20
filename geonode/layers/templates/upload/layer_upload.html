@@ -64,7 +64,7 @@
     </section>
 
     <section class="palenque-type">
-      <p>{% trans "Select the layer type or leave default" %}</p>
+      <p>{% trans "Layer type" %}</p>
       <select id="palenque-type">
         {% for pt in palenque_types %}
           <option value="{{pt.id}}" {% if pt.is_default %}selected="selected"{% endif %}>{{ pt }}</option>
@@ -73,7 +73,7 @@
     </section>
 
     <section class="charset">
-      <p>{% trans "Select the charset or leave default" %}</p>
+      <p>{% trans "Charset" %}</p>
       <select id="charset">
         {% for charset in charsets %}
         {% if charset.0 == 'UTF-8' %} 
@@ -83,6 +83,33 @@
         {% endif %}
         {% endfor %}
       </select>
+    </section>
+
+    <section class="owner">
+      <p>{% trans "Owner" %}</p>
+      <select id="owner-id">
+        {% for user,app in owner_candidates %}
+          {% if app %}
+            <option value="{{user.id}},{{app.id}}">
+              {{ user.username }} via '{{app.username}}'
+            </option>
+          {% else %}
+            {% if user == creator %}
+              <option value="{{user.id}},0" selected="selected">
+                myself ({{ user.username }})
+              </option>
+            {% else %}
+              <option value="{{user.id}},0">
+                {{ user.username }}
+              </option>
+            {% endif %}            
+          {% endif %}
+        {% endfor %}
+      </select>
+    </section>
+
+    <section class="creator">
+      <input type="hidden" id="creator-id" value="{{creator.id}}"></input>
     </section>
 
     <section>

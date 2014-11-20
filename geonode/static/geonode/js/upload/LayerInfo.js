@@ -185,6 +185,8 @@ define(function (require, exports) {
 
         form_data.append('charset', $('#charset').val());
         form_data.append('palenque_type', $('#palenque-type').val());
+        form_data.append('owner_and_creator', $('#owner-id').val());
+        //form_data.append('creator', $('#creator-id').val());
         return form_data;
     };
 

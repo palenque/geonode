@@ -25,6 +25,7 @@ if settings.HAYSTACK_SEARCH:
 from geonode.people.models import Profile
 from geonode.apps.models import App
 from geonode.layers.models import Layer, Attribute, LayerType
+from geonode.layers.views import layer_upload
 from geonode.maps.models import Map
 from geonode.documents.models import Document
 from geonode.base.models import ResourceBase, TopicCategory
@@ -553,7 +554,7 @@ class FeaturedResourceBaseResource(CommonModelApi):
         resource_name = 'featured'
 
 
-class LayerResource(CommonModelApi):
+class LayerResource(MultipartResource, CommonModelApi):
 
     """Layer API"""
 
@@ -561,7 +562,7 @@ class LayerResource(CommonModelApi):
         queryset = Layer.objects.all().distinct().order_by('-date')
         resource_name = 'layers'
         excludes = ['csw_anytext', 'metadata_xml']
-
+        allowed_methods = ['get', 'post']
         filtering = {'title': ALL,
                  'keywords': ALL_WITH_RELATIONS,
                  'category': ALL_WITH_RELATIONS,
@@ -579,6 +580,66 @@ class LayerResource(CommonModelApi):
 
         filters = dict((k.replace('layer_type','palenque_type__name'),v) for k,v in filters.items())
         return orm_filters
+
+
+    def obj_create(self, bundle, request=None, **kwargs):
+        """
+        Ejemplo simple upload:
+
+        curl 
+        --dump-header - 
+        -F base_file=@lvVK4NtGvJ.shp 
+        -F charset=UTF-8
+        -F layer_title='monitor test'
+        -F abstract='monitor test'
+        -F 'permissions={"users":{},"groups":{}}' 
+        -F 'attributes=[
+            {"attribute": "MASA_1", "field": "MASA_HUMEDO", "magnitude": "kg"}, 
+            {"attribute":"MASA_2", "field": "MASA_SECO", "magnitude": "kg"}]'
+        'http://localhost:8000/api/layers/?username=admin&api_key=xxx'
+
+
+        Ejemplo ppciones de permisos:
+        {
+            "users":{"AnonymousUser":["view_resourcebase"], "tinkamako":["change_resourcebase"] }, 
+            "groups":{"foo":["change_resourcebase_permissions"] } 
+        }
+        """
+
+        # creates layer
+        try:
+            result = json.loads(layer_upload(bundle.request).content)
+        except Exception, e:
+            return HttpBadRequest('Error uploading monitor')
+
+        if result['success']:
+            layer = Layer.objects.get(id=result['layer_id'])
+        else:
+            return HttpBadRequest(result['errors'])
+
+
+        # attrs = json.loads(bundle.data['attributes'])
+        # if not attrs:
+        #     raise BadRequest('Attributes mapping required')
+
+        # try:
+        #     mapping = {a['attribute']: {'field': a['field'], 'magnitude': a['magnitude']} for a in attrs}
+
+        #     # FIXME: validar campos requeridos
+
+        #     for attr in layer.attribute_set.filter(attribute__in=mapping.keys()):
+        #         attr.field = mapping[attr.attribute]['field']
+        #         attr.magnitude = mapping[attr.attribute]['magnitude']
+        #         attr.save()
+
+        #     _rename_fields(layer)
+        #     _precalculate_yield(layer)
+
+        # except Exception, e:
+        #     layer.delete()
+        #     raise BadRequest('Error trying to map fields')
+
+        return layer
 
 
 class MapResource(CommonModelApi):
