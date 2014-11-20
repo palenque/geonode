@@ -78,6 +78,33 @@
         </fieldset>
  -->
       <br/>
+
+      <legend>{% trans "Links" %}</legend>
+      <div>
+        <i class="fa fa-plus-square"></i><a id="add-link" href="javascript:void(0)">add a link</a>
+      </div>      
+      <table id="links" cellpadding="5" cellspacing="5" width="50%">
+      <thead><tr>
+        <th>Type</th>
+        <th>Target</th>
+      </tr></thead>
+      <tbody>
+      <tr id="link-prototype" style="display:none">
+        <td><input class="link_type"></input></td>
+        <td>
+          <select class="link_target">
+          </select>
+          <a class="remove-link" href="javascript:void(0)">{% trans "remove" %}</a>
+      </tr>
+      {% for link in layer_form.instance.resourcelinks_forward.all %}
+      <tr>
+
+      </tr>
+      {% endfor %}
+      </tbody>
+      </table>
+      <br/>
+
       <legend>{% trans "Attributes" %}</legend>
       {% if not layer_form.instance.metadata_edited %}
         <div class="alert alert-info">{% trans "The associations and units are suggested. Please check them." %}</div>
@@ -111,4 +138,7 @@
 {% endblock %}
 {% block extra_script %}
  {% include 'metadata_form_js.html' %} 
+
+ {% include 'base/resourcebase_links_js.html' %}
+
 {% endblock %}

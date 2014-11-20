@@ -28,7 +28,7 @@ from geonode.layers.models import Layer, Attribute, LayerType
 from geonode.layers.views import layer_upload
 from geonode.maps.models import Map
 from geonode.documents.models import Document
-from geonode.base.models import ResourceBase, TopicCategory
+from geonode.base.models import ResourceBase, TopicCategory, ResourceBaseLink
 from .authorization import GeoNodeAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
@@ -453,18 +453,17 @@ class CommonModelApi(ModelResource):
             'detail_url',
             'rating',
             'metadata_edited',
-            'palenque_type_id'
+            'palenque_type_id',
         ]
-
         if isinstance(
                 data,
                 dict) and 'objects' in data and not isinstance(
                 data['objects'],
                 list):
+            objects = data['objects']
             data['objects'] = list(data['objects'].values(*VALUES))
             # TODO: Improve
             for obj in data['objects']:
-
                 if obj['palenque_type_id'] is not None:
                    obj['layer_type'] = LayerType.objects.get(id=obj['palenque_type_id']).name
                 obj.pop('palenque_type_id')
@@ -553,10 +552,41 @@ class FeaturedResourceBaseResource(CommonModelApi):
         queryset = ResourceBase.objects.filter(featured=True).order_by('-date')
         resource_name = 'featured'
 
+class ResourceLinkForwardResource(ModelResource):
+
+    link_type = fields.CharField(attribute='link_type')
+    target_uri = fields.ToOneField('geonode.api.resourcebase_api.LayerResource','target')
+
+    class Meta:
+        queryset = ResourceBaseLink.objects.all()
+
+    def dehydrate(self, bundle):
+        bundle.data.pop('resource_uri')
+        bundle.data.pop('id')
+        bundle.data['target_id'] = bundle.obj.target.id
+        return bundle
+
+class ResourceLinkBackwardResource(ModelResource):
+
+    link_type = fields.CharField(attribute='link_type')
+    target = fields.ToOneField('geonode.api.resourcebase_api.LayerResource','source')
+
+    class Meta:
+        queryset = ResourceBaseLink.objects.all()
+
+    def dehydrate(self, bundle):
+        bundle.data.pop('resource_uri')
+        bundle.data.pop('id')
+        bundle.data['target_id'] = bundle.obj.source.id
+        return bundle
+
 
 class LayerResource(MultipartResource, CommonModelApi):
 
     """Layer API"""
+
+    resourcelinks_forward = fields.ToManyField(ResourceLinkForwardResource, 'resourcelinks_forward', full=True, null=True)
+    resourcelinks_backward = fields.ToManyField(ResourceLinkBackwardResource, 'resourcelinks_backward', full=True, null=True)
 
     class Meta(CommonMetaApi):
         queryset = Layer.objects.all().distinct().order_by('-date')

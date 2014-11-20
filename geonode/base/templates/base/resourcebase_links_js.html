@@ -1,0 +1,56 @@
+<script type="text/javascript">
+{% autoescape off %}
+    (function() {
+
+      function add_link(link_type, target) {
+        var elem = $("#link-prototype").clone();
+
+        if(link_type) {
+          elem.find(".link_type").val(link_type);
+        }
+
+        if(target) {
+          elem.find(".link_target").val(target);
+        }
+
+        var i = $("#links tbody tr").length;
+        elem.find(".link_type").attr("name","links-" + i + "-link_type");
+        elem.find(".link_target").attr("name","links-" + i + "-target");
+        elem.show();
+
+        elem.find(".remove-link").click(function(ev) {
+          elem.remove();
+        });
+
+        $("#links tbody").append(elem);        
+      }
+
+      $("#add-link").click(function(ev) {
+        add_link(null,null);
+      });
+
+      $.get('/api/layers')
+        .success(function(data) {
+          var select = $("#link-prototype select");
+          for(i in data.objects) {
+            select.append($("<option>").attr("value",data.objects[i].id).text(data.objects[i].title));
+          }
+          $.get('/api/layers/' + {{ layer_form.instance.id }})
+            .success(function(data) {
+              for(i in data.resourcelinks_forward) {
+                var link = data.resourcelinks_forward[i];
+                add_link(link.link_type, link.target_id);
+              }
+            });
+        });
+      
+    })();
+
+/*    
+    $(document).ready(function() {
+        $('.has-popover').popover({'trigger':'hover'});
+    });
+*/
+
+{% endautoescape %}
+</script> 

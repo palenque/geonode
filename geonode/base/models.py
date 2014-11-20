@@ -639,6 +639,11 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
             ('change_resourcebase_permissions', "Can change permissions"), 
         )
 
+class ResourceBaseLink(models.Model):
+    source = models.ForeignKey(ResourceBase, related_name='resourcelinks_forward')
+    target = models.ForeignKey(ResourceBase, related_name='resourcelinks_backward')
+    link_type = models.CharField(max_length=255)
+
 
 class LinkManager(models.Manager):
     """Helper class to access links grouped by type
