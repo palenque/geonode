@@ -33,6 +33,7 @@ from geonode.base.models import TopicCategory
 from geonode.base.models import ResourceBase, ResourceBaseManager
 from geonode.base.models import resourcebase_post_save, resourcebase_pre_save
 from geonode.people.utils import get_valid_user
+from geonode.layers.units import *
 from agon_ratings.models import OverallRating
 
 #from .enumerations import MONITOR_FIELDS, MAGNITUDES
@@ -68,6 +69,48 @@ class LayerType(models.Model):
         help_text=_('show category in metadata')
     )
 
+    def normalize_units(self, layer):
+        'Converts units.'
+
+        cursor = connections['datastore'].cursor()
+
+        for attr in layer.attribute_set.exclude(attribute='the_geom'):
+            attr_type = AttributeType.objects.get(id=attr.field)
+            
+            if attr_type.is_precalculated:
+                continue
+            
+            cursor.execute(
+                '''UPDATE %s SET "%s" = "%s" * %s;''' % (
+                    layer.name, 
+                    attr.attribute, 
+                    attr.attribute,
+                    str(units(attr.magnitude).to(attr_type.magnitude).magnitude)
+                )
+            )
+
+    def precalculate_fields(self, layer):
+        'Creates fields and precalculate fields.'
+
+        if layer.palenque_type.is_default:
+            return
+
+        cursor = connections['datastore'].cursor()
+
+        for attr in self.attribute_type_set.filter(is_precalculated=True):
+            cursor.execute(
+                '''ALTER TABLE %s ADD "%s" %s;''' % (
+                    layer.name, attr.name, attr.attribute_type
+                )
+            )
+
+            cursor.execute(
+                '''UPDATE %s SET "%s" = %s;''' % (
+                    layer.name, attr.name, attr.sql_expression
+                )
+            )
+
+
     def rename_fields(self, layer):
         'Renames fiels in the layer table.'
 
@@ -75,35 +118,44 @@ class LayerType(models.Model):
             return
 
         cursor = connections['datastore'].cursor()
+    
+        # borra atributos no completados
+        for attr in layer.attribute_set.exclude(attribute='the_geom'):
+            if not attr.field:
+                cursor.execute(
+                    'ALTER TABLE %s DROP COLUMN "%s";' % (
+                        layer.name, attr.attribute
+                    )
+                )
+                attr.delete()
 
+        # crea atributo calculado y renombra los demas
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
             if attr.field:
                 attr_type = AttributeType.objects.get(id=attr.field)
-                try:
+                
+                if attr_type.is_precalculated:
+                    Attribute(
+                        layer=layer, 
+                        attribute=attr_type.name,
+                        label=attr_type.name,
+                        field=str(attr_type.id),
+                        magnitude=attr_type.magnitude
+                    ).save()
+                else:
                     cursor.execute(
                         'ALTER TABLE %s RENAME COLUMN "%s" to "%s";' % (
                             layer.name, attr.attribute, attr_type.name
                         )
                     )
-                except:
-                    pass # TODO: logging
-                else:
                     attr.attribute = attr_type.name
                     attr.save()
-            else:
-                try:
-                    cursor.execute(
-                        'ALTER TABLE %s DROP COLUMN "%s";' % (
-                            layer.name, attr.attribute
-                        )
-                    )
-                except:
-                    pass # TODO: logging
-                else:
-                    attr.delete()
+
+        # TODO: convertir unidades de los campos precalculados
+
 
     def required_attributes(self):
-        return self.attribute_type_set.filter(required=True)
+        return self.attribute_type_set.filter(required=True).exclude(is_precalculated=True)
 
     def __unicode__(self):
         return self.label or self.name
@@ -126,7 +178,7 @@ class AttributeType(models.Model):
         max_length=255, blank=False, null=True
     )    
 
-    description = models.CharField(max_length=255, blank=False, null=True)    
+    description = models.CharField(max_length=255, blank=True, null=True)    
 
     required = models.BooleanField(
         blank=True, default=False,
@@ -138,11 +190,11 @@ class AttributeType(models.Model):
         help_text=_('defines if this will be a precalculated with the sql field')
     )
 
-    sql_expression = models.CharField(max_length=255, blank=False, null=True)
+    sql_expression = models.CharField(max_length=255, blank=True, null=True)
 
     attribute_type = models.CharField(
         _('attribute type'), help_text=_('the data type of the attribute (integer, string, geometry, etc)'),
-        max_length=50, blank=False, null=False, default='xsd:string', unique=False
+        max_length=50, blank=True, null=False, default='xsd:string', unique=False
     )
     
     magnitude = models.CharField(
@@ -209,6 +261,15 @@ class Layer(ResourceBase):
         null=True,
         blank=True,
         related_name='layer_set')
+
+    def rename_fields(self):
+        return self.palenque_type.rename_fields(self)
+
+    def normalize_units(self):
+        return self.palenque_type.normalize_units(self)
+
+    def precalculate_fields(self):
+        return self.palenque_type.precalculate_fields(self)
 
     def is_vector(self):
         return self.storeType == 'dataStore'
