@@ -33,6 +33,7 @@ from geonode.base.models import TopicCategory
 from geonode.base.models import ResourceBase, ResourceBaseManager
 from geonode.base.models import resourcebase_post_save, resourcebase_pre_save
 from geonode.people.utils import get_valid_user
+from geonode.layers.units import *
 from agon_ratings.models import OverallRating
 
 #from .enumerations import MONITOR_FIELDS, MAGNITUDES
@@ -68,6 +69,26 @@ class LayerType(models.Model):
         help_text=_('show category in metadata')
     )
 
+    def normalize_units(self, layer):
+        'Converts units.'
+
+        cursor = connections['datastore'].cursor()
+
+        for attr in layer.attribute_set.exclude(attribute='the_geom'):
+            attr_type = AttributeType.objects.get(id=attr.field)
+            
+            if attr_type.is_precalculated:
+                continue
+            
+            cursor.execute(
+                '''UPDATE %s SET "%s" = "%s" * %s;''' % (
+                    layer.name, 
+                    attr.attribute, 
+                    attr.attribute,
+                    str(units(attr.magnitude).to(attr_type.magnitude).magnitude)
+                )
+            )
+
     def precalculate_fields(self, layer):
         'Creates fields and precalculate fields.'
 
@@ -98,6 +119,7 @@ class LayerType(models.Model):
 
         cursor = connections['datastore'].cursor()
     
+        # borra atributos no completados
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
             if not attr.field:
                 cursor.execute(
@@ -107,6 +129,7 @@ class LayerType(models.Model):
                 )
                 attr.delete()
 
+        # crea atributo calculado y renombra los demas
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
             if attr.field:
                 attr_type = AttributeType.objects.get(id=attr.field)
@@ -127,6 +150,8 @@ class LayerType(models.Model):
                     )
                     attr.attribute = attr_type.name
                     attr.save()
+
+        # TODO: convertir unidades de los campos precalculados
 
 
     def required_attributes(self):
@@ -236,6 +261,15 @@ class Layer(ResourceBase):
         null=True,
         blank=True,
         related_name='layer_set')
+
+    def rename_fields(self):
+        return self.palenque_type.rename_fields(self)
+
+    def normalize_units(self):
+        return self.palenque_type.normalize_units(self)
+
+    def precalculate_fields(self):
+        return self.palenque_type.precalculate_fields(self)
 
     def is_vector(self):
         return self.storeType == 'dataStore'
