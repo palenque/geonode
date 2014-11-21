@@ -35,11 +35,13 @@
           for(i in data.objects) {
             select.append($("<option>").attr("value",data.objects[i].id).text(data.objects[i].title));
           }
-          $.get('/api/layers/' + {{ layer_form.instance.id }})
+          $.get('/api/layers/' + {{ layer_form.instance.id }} + '/links')
             .success(function(data) {
-              for(i in data.resourcelinks_forward) {
-                var link = data.resourcelinks_forward[i];
-                add_link(link.link_type, link.target_id);
+              for(i in data) {
+                var link = data[i];
+                if(link.direction == 'forward') {
+                  add_link(link.link_type, link.target.id);
+                }
               }
             });
         });

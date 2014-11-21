@@ -2,6 +2,7 @@ import re, json
 from django.db.models import Q
 from django.http import HttpResponse
 from django.conf import settings
+from django.core.urlresolvers import reverse
 
 from tastypie.authentication import ApiKeyAuthentication, MultiAuthentication, SessionAuthentication
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
@@ -16,7 +17,7 @@ from django.core.paginator import Paginator, InvalidPage
 from django.http import Http404
 
 from tastypie.utils.mime import build_content_type
-from tastypie.http import HttpNoContent, HttpBadRequest
+from tastypie.http import HttpNoContent, HttpBadRequest, HttpCreated
 from tastypie.exceptions import Unauthorized
 
 if settings.HAYSTACK_SEARCH:
@@ -28,7 +29,7 @@ from geonode.layers.models import Layer, Attribute, LayerType
 from geonode.layers.views import layer_upload
 from geonode.maps.models import Map
 from geonode.documents.models import Document
-from geonode.base.models import ResourceBase, TopicCategory, ResourceBaseLink
+from geonode.base.models import ResourceBase, TopicCategory, ResourceBaseLink, Link
 from .authorization import GeoNodeAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
@@ -552,41 +553,55 @@ class FeaturedResourceBaseResource(CommonModelApi):
         queryset = ResourceBase.objects.filter(featured=True).order_by('-date')
         resource_name = 'featured'
 
-class ResourceLinkForwardResource(ModelResource):
 
-    link_type = fields.CharField(attribute='link_type')
-    target_uri = fields.ToOneField('geonode.api.resourcebase_api.LayerResource','target')
+class LayerRefResource(ModelResource):
+    class Meta:
+        queryset = Layer.objects.all()
+        fields = ['id']
+        include_resource_uri = False
+
+    uri = fields.CharField()
+
+    def dehydrate_uri(self, bundle):
+        return LayerResource().get_resource_uri(bundle.obj)
+
+
+class ResourceLinkResource(ModelResource):
 
     class Meta:
         queryset = ResourceBaseLink.objects.all()
-
-    def dehydrate(self, bundle):
-        bundle.data.pop('resource_uri')
-        bundle.data.pop('id')
-        bundle.data['target_id'] = bundle.obj.target.id
-        return bundle
-
-class ResourceLinkBackwardResource(ModelResource):
+        include_resource_uri = False
 
     link_type = fields.CharField(attribute='link_type')
-    target = fields.ToOneField('geonode.api.resourcebase_api.LayerResource','source')
+    direction = fields.CharField()
+    
+    _target = fields.ToOneField('geonode.api.resourcebase_api.LayerRefResource','target', full=True)
+    _source = fields.ToOneField('geonode.api.resourcebase_api.LayerRefResource','source', full=True)
 
-    class Meta:
-        queryset = ResourceBaseLink.objects.all()
+    def __init__(self, source_obj=None):
+        super(ResourceLinkResource, self).__init__()
+        self.source_obj = source_obj
+
+    def dehydrate_direction(self, bundle):
+        if bundle.obj.source == self.source_obj:
+            return 'forward'
+        else:
+            return 'backward'
 
     def dehydrate(self, bundle):
-        bundle.data.pop('resource_uri')
-        bundle.data.pop('id')
-        bundle.data['target_id'] = bundle.obj.source.id
+        bundle = super(ResourceLinkResource, self).dehydrate(bundle)
+        if self.source_obj == bundle.obj.source:
+            bundle.data['target'] = bundle.data['_target']
+        else:
+            bundle.data['target'] = bundle.data['_source']
+        bundle.data.pop('_target')
+        bundle.data.pop('_source')
         return bundle
 
 
 class LayerResource(MultipartResource, CommonModelApi):
 
     """Layer API"""
-
-    resourcelinks_forward = fields.ToManyField(ResourceLinkForwardResource, 'resourcelinks_forward', full=True, null=True)
-    resourcelinks_backward = fields.ToManyField(ResourceLinkBackwardResource, 'resourcelinks_backward', full=True, null=True)
 
     class Meta(CommonMetaApi):
         queryset = Layer.objects.all().distinct().order_by('-date')
@@ -601,7 +616,59 @@ class LayerResource(MultipartResource, CommonModelApi):
                  'app': ALL_WITH_RELATIONS,
                  'layer_type': ALL,
                  'date': ALL,
+                 'id': ALL,
                  }
+
+
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/(?P<pk>[0-9]+)/links%s$" % (self._meta.resource_name, trailing_slash()), 
+                self.wrap_view('obj_links'), name="api_layer_links"),
+        ]
+
+    def obj_links(self, request, **kwargs):
+        if request.method == 'GET':
+            return self.get_obj_links(request, **kwargs)
+        elif request.method == 'POST':
+            return self.create_obj_link(request, **kwargs)
+        else:
+            return HttpBadRequest("Invalid HTTP Method")
+
+    def create_obj_link(self, request, **kwargs):
+        obj = Layer.objects.get(id=kwargs['pk'])
+        # TODO: only json!!
+        data = json.loads(request.body)
+        target = LayerResource().get_via_uri(data['target'], request)
+        link = ResourceBaseLink()
+        link.link_type = data['link_type']
+        if data['direction'] == 'forward':
+            link.source = obj
+            link.target = target
+        else:
+            link.target = obj
+            link.source = target
+        link.save()
+        return HttpCreated()
+
+
+    def get_obj_links(self, request, **kwargs):
+        try:
+            bundle = self.build_bundle(data={'pk': kwargs['pk']}, request=request)
+            obj = self.cached_obj_get(bundle=bundle, **self.remove_api_resource_names(kwargs))
+ 
+            links_list = []
+            for link in list(obj.resourcelinks_forward.all()) + list(obj.resourcelinks_backward.all()):
+                link_resource = ResourceLinkResource(obj)
+                link_bundle = link_resource.build_bundle(obj=link, request=request)
+                link_bundle = link_resource.full_dehydrate(link_bundle)
+                links_list.append(link_bundle)
+            return self.create_response(request,links_list)
+
+        except ObjectDoesNotExist:
+            return HttpGone()
+        except MultipleObjectsReturned:
+            return HttpMultipleChoices("More than one resource is found at this URI.")        
+
 
     def build_filters(self, filters={}):
         """adds filtering by group functionality"""
@@ -668,8 +735,22 @@ class LayerResource(MultipartResource, CommonModelApi):
         # except Exception, e:
         #     layer.delete()
         #     raise BadRequest('Error trying to map fields')
-
+        
         return layer
+
+        # bundle = self.build_bundle(obj=layer, request=bundle.request)
+        # bundle = self.full_dehydrate(bundle)
+        # return bundle
+
+class LinkResource(ModelResource):
+    class Meta:
+        queryset = Link.objects.all()
+        filtering = {
+            'resource': ALL_WITH_RELATIONS,
+            'mime': ALL,
+        }
+
+    resource = fields.ToOneField(LayerResource,'resource')
 
 
 class MapResource(CommonModelApi):

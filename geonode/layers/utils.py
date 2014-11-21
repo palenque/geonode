@@ -67,7 +67,8 @@ def normalize_attr_name(attr):
 
 def best_candidate(attr,candidates):
     cand_vals = [(x,float(Levenshtein.distance(attr,x))/min([len(x),len(attr)])) for x in candidates]
-    return min(cand_vals, key=lambda x:x[1])
+    if len(cand_vals) == 0: return (None,None)
+    else: return min(cand_vals, key=lambda x:x[1])
 
 def guess_attribute_match(layer,attribute_form):
     candidates = dict([(normalize_attr_name(x.initial['attribute']),x.initial['attribute'])

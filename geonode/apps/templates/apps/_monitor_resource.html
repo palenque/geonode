@@ -24,12 +24,12 @@
         <p class="actions">
           <p class="shared" style="{% if obj.id not in permissions %} display:none {% endif %}">
             <i class="shared fa fa-unlock"></i>
-            <a class="shared share-resource" data-share="false" data-resource-id="{{obj.id}}" href="#">shared</a>
+            <a class="shared share-resource" data-share="false" data-resource-id="{{obj.id}}" href="javascript:void(0)">shared</a>
           </p>
           
           <p class="notshared" style="{% if obj.id in permissions %} display:none {% endif %}">
             <i class="fa fa-lock"></i>
-            <a class="share-resource" data-share="true" data-resource-id="{{obj.id}}" href="#">private</a>
+            <a class="share-resource" data-share="true" data-resource-id="{{obj.id}}" href="javascript:void(0)">private</a>
           </p>
           
         </p>

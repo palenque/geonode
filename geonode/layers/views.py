@@ -163,7 +163,7 @@ def _validate_required_attributes(attribute_form):
     return is_valid
 
 
-@login_required
+#@login_required
 def layer_upload(request, template='upload/layer_upload.html'):
 
     if request.method == 'GET':
@@ -467,7 +467,7 @@ def layer_metadata(request, layername, template='layers/layer_metadata.html'):
         #     la.display_order = form["display_order"]
         #     la.save()
 
-        layer.rename_fields()
+        #layer.rename_fields()
         layer.normalize_units()
         layer.precalculate_fields()
 
