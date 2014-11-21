@@ -162,10 +162,6 @@ class App(models.Model):
         
         AppMember.objects.get(app=self, user=user).delete()
 
-        # le saca permiso de transferir recursos
-        remove_perm('transfer_resourcebase', self.get_alter_ego(), user)
-
-
     def join(self, user, **kwargs):
         'Joins an user to this app as a member.'
 
@@ -183,8 +179,7 @@ class App(models.Model):
         ).distinct():
             assign_perm('view_resourcebase', manager, resource)
 
-        # le asigna permiso de transferir recursos
-        assign_perm('transfer_resourcebase', self.get_alter_ego(), user)
+
 
         # user.groups.add(self.group)
 
