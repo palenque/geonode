@@ -27,7 +27,8 @@ from geonode.utils import forward_mercator
 from geonode.security.models import PermissionLevelMixin
 from taggit.managers import TaggableManager
 from taggit.models import TaggedItem
-from guardian.shortcuts import assign_perm, remove_perm
+from guardian.shortcuts import assign_perm, remove_perm, get_anonymous_user, get_groups_with_perms
+from guardian.models import Group
 
 from geonode.people.models import Profile
 from geonode.people.enumerations import ROLE_VALUES
@@ -480,6 +481,11 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
         self.zoom = zoom
         self.center_x = center_x
         self.center_y = center_y
+
+    def is_public(self):
+        anonymous = Group.objects.get(name='anonymous')
+        perms = get_groups_with_perms(self.get_self_resource(),attach_perms=True)
+        return 'view_resourcebase' in perms.get(anonymous,[])
 
     def download_links(self):
         """assemble download links for pycsw"""
