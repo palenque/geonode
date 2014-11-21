@@ -139,7 +139,7 @@ class MonitorForm(TranslationModelForm):
             'service',
             #'date',
             'metadata_author',
-
+            'palenque_type',
             'contacts',
             'workspace',
             'store',

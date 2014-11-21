@@ -64,7 +64,7 @@
     </section>
 
     <section class="palenque-type">
-      <p>{% trans "Select the layer type or leave default" %}</p>
+      <p>{% trans "Layer type" %}</p>
       <select id="palenque-type">
         {% for pt in palenque_types %}
           <option value="{{pt.id}}" {% if pt.is_default %}selected="selected"{% endif %}>{{ pt }}</option>
@@ -73,7 +73,7 @@
     </section>
 
     <section class="charset">
-      <p>{% trans "Select the charset or leave default" %}</p>
+      <p>{% trans "Charset" %}</p>
       <select id="charset">
         {% for charset in charsets %}
         {% if charset.0 == 'UTF-8' %} 
@@ -95,6 +95,7 @@
 
 {% block sidebar %}
 
+{% comment %}
 {% if GEONODE_SECURITY_ENABLED %}
 <div class="col-md-4">
   <h3>{% trans "Permissions"  %}</h3>
@@ -103,6 +104,7 @@
   </form>
 </div>
 {% endif %}
+{% endcomment %}
 
 {% endblock %}
 

@@ -168,7 +168,7 @@ def layer_upload(request, template='upload/layer_upload.html'):
     if request.method == 'GET':
         ctx = {
             'charsets': CHARSETS,
-            'palenque_types': LayerType.objects.all(),
+            'palenque_types': LayerType.objects.all()
         }
         return render_to_response(template,
                                   RequestContext(request, ctx))
@@ -441,9 +441,10 @@ def layer_metadata(request, layername, template='layers/layer_metadata.html'):
         #     la.display_order = form["display_order"]
         #     la.save()
 
-        layer.rename_fields()
-        layer.normalize_units()
-        layer.precalculate_fields()
+        if not layer.palenque_type.is_default:
+            layer.rename_fields()
+            layer.normalize_units()
+            layer.precalculate_fields()
 
         if new_poc is not None and new_author is not None:
             the_layer = layer_form.save()

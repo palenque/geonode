@@ -41,8 +41,9 @@ from django.db.models import F
 
 from geonode.services.models import Service
 from geonode.layers.forms import LayerForm, LayerUploadForm, NewLayerUploadForm, LayerAttributeForm
+
 from geonode.base.forms import CategoryForm
-from geonode.layers.models import Layer, Attribute
+from geonode.layers.models import Layer, Attribute, LayerType
 from geonode.base.enumerations import CHARSETS
 from geonode.base.models import TopicCategory, ResourceBase
 
@@ -54,6 +55,8 @@ from geonode.utils import resolve_object
 from geonode.people.forms import ProfileForm, PocForm
 from geonode.security.views import _perms_info_json
 from geonode.documents.models import get_related_documents
+
+from .forms import MonitorAttributeForm, MonitorForm
 
 from .enumerations import MONITOR_FIELDS, MONITOR_FIELD_MAGNITUDES
 
@@ -104,7 +107,8 @@ def _resolve_layer(request, typename, permission='base.view_resourcebase',
 def monitor_upload(request, template='upload/monitor_upload.html'):
     if request.method == 'GET':
         ctx = {
-            'charsets': CHARSETS
+            'charsets': CHARSETS,
+            'palenque_type_default': LayerType.objects.get(name='monitor')
         }
         return render_to_response(template,
                                   RequestContext(request, ctx))
@@ -293,7 +297,7 @@ def _rename_fields(layer):
     cursor = connections['datastore'].cursor()
     
     for attr in layer.attribute_set.filter(
-        field__in=['MASA_HUMEDO', 'MASA_SECO', 'ANCHO', 'DISTANCIA']
+        field__in=['MASA_HUMEDO', 'ANCHO', 'DISTANCIA']
     ):
         try:
             cursor.execute(
@@ -307,7 +311,6 @@ def _rename_fields(layer):
             attr.attribute = attr.field
             attr.save()
 
-
 def _validate_required_attributes(attribute_form):
     'Validates required attribute mapping'    
 
@@ -315,7 +318,7 @@ def _validate_required_attributes(attribute_form):
 
     is_valid = True
 
-    for rf in ['MASA_HUMEDO', 'MASA_SECO', 'ANCHO', 'DISTANCIA']:
+    for rf in ['MASA_HUMEDO', 'ANCHO', 'DISTANCIA']:
         if rf in fields and fields.count(rf) > 1:
             attribute_form._errors[0][rf] = u' field repeated' 
             is_valid = False             
@@ -329,8 +332,6 @@ def _validate_required_attributes(attribute_form):
 
 @login_required
 def monitor_metadata(request, layername, template='monitors/monitor_metadata.html'):
-
-    from forms import MonitorAttributeForm, MonitorForm
 
     layer = _resolve_layer(
         request,
@@ -387,7 +388,7 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
         layer_form.save()
 
         _rename_fields(layer)
-        _precalculate_yield(layer)
+        #_precalculate_yield(layer)
 
         #     metadata_edited = True
 

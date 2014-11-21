@@ -14,11 +14,9 @@
     <h2 class="page-title">{% trans "Explore Monitors" %}</h2>
   </div>
   {% with include_filters='date,extent' %}
-  {% with facet_type='layers' %}
   {% with custom_filters='monitors/_filters.html' %}
   {% with custom_snippet='monitors/_monitor_snippet.html' %}
   {% include "search/_search_content.html" %}
-  {% endwith %}
   {% endwith %}
   {% endwith %}
   {% endwith %}
