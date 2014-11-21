@@ -44,7 +44,7 @@ from geonode.layers.forms import LayerForm, LayerUploadForm, NewLayerUploadForm,
 from geonode.base.forms import CategoryForm
 from geonode.layers.models import Layer, Attribute
 from geonode.base.enumerations import CHARSETS
-from geonode.base.models import TopicCategory, ResourceBase, ResourceBaseLink
+from geonode.base.models import TopicCategory, ResourceBase
 
 from geonode.utils import default_map_config, llbbox_to_mercator
 from geonode.utils import GXPLayer
@@ -327,14 +327,6 @@ def _validate_required_attributes(attribute_form):
     return is_valid
 
 
-def _update_links(layer, data):
-
-    ResourceBaseLink.objects.filter(source=layer).delete()
-    for link_type,target in data:
-        link = ResourceBaseLink(link_type=link_type, source=layer, target=ResourceBase.objects.get(id=target))
-        link.save()
-
-
 @login_required
 def monitor_metadata(request, layername, template='monitors/monitor_metadata.html'):
 
@@ -355,7 +347,6 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
 
 
     if request.method == "POST":
-
         layer_form = MonitorForm(request.POST, instance=layer, prefix="resource")
         attribute_form = layer_attribute_set(
             request.POST,
@@ -397,13 +388,6 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
 
         _rename_fields(layer)
         _precalculate_yield(layer)
-
-        nums = set('-'.join(x.split('-')[:2]) for x in request.POST if x.startswith('links-'))
-        link_data = [(request.POST[num+'-link_type'],int(request.POST[num+'-target']))
-            for num in nums]
-
-
-        _update_links(layer, link_data)
 
         #     metadata_edited = True
 
