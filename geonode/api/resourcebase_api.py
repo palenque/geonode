@@ -9,7 +9,7 @@ from tastypie.resources import ModelResource
 from tastypie import fields
 from tastypie.utils import trailing_slash
 
-from guardian.shortcuts import get_objects_for_user
+from guardian.shortcuts import get_objects_for_user, get_anonymous_user
 
 from django.conf.urls import url
 from django.core.paginator import Paginator, InvalidPage
@@ -316,7 +316,6 @@ class CommonModelApi(ModelResource):
 
         # Get the list of objects that matches the filter
         sqs = self.build_haystack_filters(request.GET)
-
         if not settings.SKIP_PERMS_FILTER:
             # Get the list of objects the user has access to
             filter_set = set(
@@ -401,6 +400,7 @@ class CommonModelApi(ModelResource):
         objects = self.obj_get_list(
             bundle=base_bundle,
             **self.remove_api_resource_names(kwargs))
+
         sorted_objects = self.apply_sorting(objects, options=request.GET)
 
         paginator = self._meta.paginator_class(
@@ -460,9 +460,12 @@ class CommonModelApi(ModelResource):
                 dict) and 'objects' in data and not isinstance(
                 data['objects'],
                 list):
-            data['objects'] = list(data['objects'].values(*VALUES))
+
+
             # TODO: Improve
-            for obj in data['objects']:
+            objects = list(data['objects'].values(*VALUES))
+
+            for obj,realobj in zip(objects,data['objects']):
 
                 if obj['palenque_type_id'] is not None:
                    obj['layer_type'] = LayerType.objects.get(id=obj['palenque_type_id']).name
@@ -470,12 +473,26 @@ class CommonModelApi(ModelResource):
                 if obj['category'] is not None: 
                     obj['category_description'] = TopicCategory.objects.get(id=obj['category']).gn_description
 
+                if realobj.is_public():
+                    obj['permission_class'] = "public"
+                elif request.user == realobj.owner:
+                    obj['permission_class'] = "owned"
+                else:
+                    obj['permission_class'] = "shared"
+
+            data['objects'] = objects
+                
+        # XXX FEO!!
+        if 'permission_class' in request.GET:
+            data['objects'] = filter(lambda obj: obj['permission_class'] == request.GET['permission_class'], data['objects'])
+
         desired_format = self.determine_format(request)
         serialized = self.serialize(request, data, desired_format)
         return response_class(
             content=serialized,
             content_type=build_content_type(desired_format),
             **response_kwargs)
+
 
     def transfer_owner(self, request, resource_id, **kwargs):
         '''Transfers ownership of an resource.
@@ -576,10 +593,7 @@ class LayerResource(CommonModelApi):
         """adds filtering by group functionality"""
 
         orm_filters = super(LayerResource, self).build_filters(filters)
-
-        filters = dict((k.replace('layer_type','palenque_type__name'),v) for k,v in filters.items())
         return orm_filters
-
 
 class MapResource(CommonModelApi):
 

@@ -16,7 +16,7 @@ class MonitorResource(MultipartResource, CommonModelApi):
 
     class Meta(CommonMetaApi):
         allowed_methods = ['get', 'post']
-        queryset = Layer.objects.filter(layer_type='monitor').distinct().order_by('-date')
+        queryset = Layer.objects.filter(palenque_type__name='monitor').distinct().order_by('-date')
         resource_name = 'monitors'
         excludes = ['csw_anytext', 'metadata_xml']
 

@@ -1,11 +1,16 @@
 {% load i18n %}
 {% load url from future %}
 
-<ul class="nav nav-pills filter">
+<ul class="nav nav-pills filter" id="sort">
+  <li><a data-value="" data-filter="permission_class" class="selected" ng-click="single_choice_listener($event)">{% trans "All" %}</a></li>
+  <li><a data-value="public" data-filter="permission_class" ng-click="single_choice_listener($event)">{% trans "Public" %}</a></li>
+  <li><a data-value="owned" data-filter="permission_class" ng-click="single_choice_listener($event)">{% trans "Owned by me" %}</a></li>
+  <li><a data-value="shared" data-filter="permission_class" ng-click="single_choice_listener($event)">{% trans "Shared with me" %}</a></li>
+
+{% comment %}
   <li><a href="{% url "layer_browse" %}"{% if layer_filter  == "date" %} class="selected"{% endif %}>{% trans "Most recent" %}</a></li>
   <li><a href="{% url "layer_browse_popular" %}"{% if layer_filter == "popular_count" %} class="selected"{% endif %}>{% trans "Most popular" %}</a></li>
   <li><a href="{% url "layer_browse_shared" %}"{% if layer_filter == "share_count" %} class="selected"{% endif %}>{% trans "Most shared" %}</a></li>
-  {% comment %}
   <li>
     <form action="." class="form-inline">
       <label for="">{% trans "sort by:" %}</label>

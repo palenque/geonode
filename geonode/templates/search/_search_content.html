@@ -1,6 +1,10 @@
 {% load i18n %}
   <div class="col-md-8 filter">      
-    {% include "search/_sort_filters.html" %}
+    {% if custom_sort_filter %}
+      {% include custom_sort_filter %}
+    {% else %}
+      {% include "search/_sort_filters.html" %}
+    {% endif %}
   </div>
   <div class="col-md-12">
     <div class="row" id="contain-slider">

@@ -359,7 +359,7 @@ class Layer(ResourceBase):
         return base_files.get()
 
     def get_absolute_url(self):
-        if self.layer_type == 'monitor':
+        if self.layer_type == 'monitor' or (self.palenque_type is not None and self.palenque_type.name == 'monitor'):
             return reverse('monitor_detail', args=(self.service_typename,))
         return reverse('layer_detail', args=(self.service_typename,))
 
