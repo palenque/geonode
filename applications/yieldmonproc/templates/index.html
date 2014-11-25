@@ -99,7 +99,7 @@
 									$("<div>").addClass("btn").addClass("btn-default").text("process")
 										.click(function(ev) {
 											$(this).text("wait").addClass("disabled");
-											$.post('/yield_monitors/'+obj.id+'/process')
+											$.post('/process',{layer_id: obj.id, username: $("#username").val()})
 												.success(function(ev) {
 													td.html("");
 													td.append(
