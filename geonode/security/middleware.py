@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect
 from re import compile
 from guardian.shortcuts import get_anonymous_user
 
+from geonode.people.models import Profile
 
 class LoginRequiredMiddleware(object):
 
@@ -43,3 +44,18 @@ class LoginRequiredMiddleware(object):
                     '{login_path}?next={request_path}'.format(
                         login_path=self.redirect_to,
                         request_path=request.path))
+
+
+class ApiKeyAuthentication(object):
+
+    def authenticate(self, username=None, password=None):
+        try:
+            user = Profile.objects.get(username=username)
+        except:
+            return None
+
+        if user.api_key.key != password:
+            return None
+
+        return user
+
