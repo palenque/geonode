@@ -8,6 +8,7 @@ from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.resources import ModelResource
 from tastypie import fields
 from tastypie.utils import trailing_slash
+from tastypie.exceptions import ImmediateHttpResponse
 
 from guardian.shortcuts import get_objects_for_user, get_anonymous_user
 
@@ -25,6 +26,8 @@ if settings.HAYSTACK_SEARCH:
 from geonode.people.models import Profile
 from geonode.apps.models import App
 from geonode.layers.models import Layer, Attribute, LayerType
+from geonode.layers.views import layer_upload
+
 from geonode.maps.models import Map
 from geonode.documents.models import Document
 from geonode.base.models import ResourceBase, TopicCategory
@@ -570,7 +573,7 @@ class FeaturedResourceBaseResource(CommonModelApi):
         resource_name = 'featured'
 
 
-class LayerResource(CommonModelApi):
+class LayerResource(MultipartResource, CommonModelApi):
 
     """Layer API"""
 
@@ -578,6 +581,7 @@ class LayerResource(CommonModelApi):
         queryset = Layer.objects.all().distinct().order_by('-date')
         resource_name = 'layers'
         excludes = ['csw_anytext', 'metadata_xml']
+        allowed_methods = ['get','post']
 
         filtering = {'title': ALL,
                  'keywords': ALL_WITH_RELATIONS,
@@ -589,11 +593,55 @@ class LayerResource(CommonModelApi):
                  'date': ALL,
                  }
 
+
     def build_filters(self, filters={}):
         """adds filtering by group functionality"""
 
         orm_filters = super(LayerResource, self).build_filters(filters)
         return orm_filters
+
+    def obj_create(self, bundle, request=None, **kwargs):
+        """
+
+        Ejemplo simple upload:
+
+        curl 
+        --dump-header - 
+        -F base_file=@lvVK4NtGvJ.shp 
+        -F shx_file=@lvVK4NtGvJ.shx 
+        -F dbf_file=@lvVK4NtGvJ.dbf 
+        -F prj_file=@lvVK4NtGvJ.prj 
+        -F charset=UTF-8
+        -F layer_title='monitor test'
+        -F abstract='monitor test'
+        -F 'permissions={"users":{},"groups":{}}' 
+        -F 'attributes=[
+            {"attribute": "MASA_1", "field": "MASA_HUMEDO", "magnitude": "kg"}, 
+            {"attribute":"MASA_2", "field": "MASA_SECO", "magnitude": "kg"}]'
+        'http://localhost:8000/api/monitors/?username=admin&api_key=xxx'
+
+
+        Ejemplo ppciones de permisos:
+        
+        {
+            "users":{"AnonymousUser":["view_resourcebase"], "tinkamako":["change_resourcebase"] }, 
+            "groups":{"foo":["change_resourcebase_permissions"] } 
+        }
+        """
+
+        # creates layer
+        try:
+            result = json.loads(layer_upload(bundle.request).content)
+        except Exception, e:
+            raise ImmediateHttpResponse(response=HttpBadRequest('Error uploading layer: %s\n' % e.message))
+
+        if result['success']:
+            layer = Layer.objects.get(id=result['layer_id'])
+        else:
+            raise ImmediateHttpResponse(response=HttpBadRequest(result['errors']))
+
+        return layer
+
 
 class MapResource(CommonModelApi):
 

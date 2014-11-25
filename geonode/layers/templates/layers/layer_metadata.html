@@ -68,7 +68,7 @@
         </fieldset>
 
       {% if not layer.palenque_type.is_default %}
-        {% if not layer.metadata_edited %}
+        {% if True or not layer.metadata_edited %}
           <br/>
           <legend>{% trans "Attributes" %}</legend>
           {% if not layer_form.instance.metadata_edited %}
