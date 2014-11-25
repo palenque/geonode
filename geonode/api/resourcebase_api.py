@@ -30,7 +30,7 @@ from geonode.layers.views import layer_upload
 
 from geonode.maps.models import Map
 from geonode.documents.models import Document
-from geonode.base.models import ResourceBase, TopicCategory
+from geonode.base.models import ResourceBase, TopicCategory, Link
 from .authorization import GeoNodeAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
@@ -573,6 +573,16 @@ class FeaturedResourceBaseResource(CommonModelApi):
         resource_name = 'featured'
 
 
+
+class LinkResource(ModelResource):
+    class Meta:
+        queryset = Link.objects.all()
+        resource_name = 'links'
+        filtering = {
+            'link_type': ALL
+        }
+
+
 class LayerResource(MultipartResource, CommonModelApi):
 
     """Layer API"""
@@ -592,6 +602,8 @@ class LayerResource(MultipartResource, CommonModelApi):
                  'layer_type': ALL,
                  'date': ALL,
                  }
+
+    links = fields.ToManyField(LinkResource, 'link_set', full=True)
 
 
     def build_filters(self, filters={}):
