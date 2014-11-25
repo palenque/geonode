@@ -162,7 +162,7 @@ _point_template = """
         <CssParameter name="stroke">%(fg)s</CssParameter>
       </Stroke>
     </Mark>
-    <Size>10</Size>
+    <Size>2</Size>
   </Graphic>
 </PointSymbolizer>
 """
