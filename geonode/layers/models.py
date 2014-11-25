@@ -151,8 +151,19 @@ class LayerType(models.Model):
                     attr.attribute = attr_type.name
                     attr.save()
 
-        # TODO: convertir unidades de los campos precalculados
+        # convierte unidades de los campos precalculados
+        for attr in layer.attribute_set.exclude(attribute='the_geom'):
+            attr_type = AttributeType.objects.get(id=attr.field)
 
+            if attr_type.is_precalculated:
+                cursor.execute(
+                    '''UPDATE %s SET "%s" = "%s" * %s;''' % (
+                        layer.name, 
+                        attr.attribute, 
+                        attr.attribute,
+                        str(units(attr.magnitude).to(attr_type.sql_magnitude).magnitude)
+                    )
+                )
 
     def required_attributes(self):
         return self.attribute_type_set.filter(required=True).exclude(is_precalculated=True)
@@ -191,6 +202,7 @@ class AttributeType(models.Model):
     )
 
     sql_expression = models.CharField(max_length=255, blank=True, null=True)
+    sql_magnitude = models.CharField(max_length=255, blank=True, null=True)
 
     attribute_type = models.CharField(
         _('attribute type'), help_text=_('the data type of the attribute (integer, string, geometry, etc)'),

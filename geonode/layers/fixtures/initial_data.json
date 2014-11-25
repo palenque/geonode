@@ -3,33 +3,36 @@
     "pk": 1, 
     "model": "layers.layertype", 
     "fields": {
-        "fill_metadata": false, 
-        "is_default": true, 
         "description": "Default layer", 
-        "name": "default", 
-        "label": "Default"
+        "fill_metadata": false, 
+        "label": "Default", 
+        "is_default": true, 
+        "show_category": true, 
+        "name": "default"
     }
 },
 {
     "pk": 2, 
     "model": "layers.layertype", 
     "fields": {
-        "fill_metadata": false, 
-        "is_default": false, 
         "description": "Suelo", 
-        "name": "suelo", 
-        "label": "Suelo"
+        "fill_metadata": false, 
+        "label": "Suelo", 
+        "is_default": false, 
+        "show_category": true, 
+        "name": "suelo"
     }
 },
 {
     "pk": 3, 
     "model": "layers.layertype", 
     "fields": {
-        "fill_metadata": true, 
-        "is_default": false, 
         "description": "Monitor", 
-        "name": "monitor", 
-        "label": "Monitor"
+        "fill_metadata": true, 
+        "label": "Monitor", 
+        "is_default": false, 
+        "show_category": true, 
+        "name": "monitor"
     }
 },
 {
@@ -37,11 +40,15 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "name": "MASA_SECO", 
+        "description": null, 
         "attribute_type": "xsd:string", 
         "required": true, 
+        "sql_magnitude": null, 
         "label": "Masa (seco)", 
-        "magnitude": "kg"
+        "magnitude": "kg", 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "name": "MASA_SECO"
     }
 },
 {
@@ -49,11 +56,15 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "name": "MASA_HUMEDO", 
+        "description": null, 
         "attribute_type": "xsd:string", 
         "required": true, 
+        "sql_magnitude": null, 
         "label": "Masa (h\u00famedo)", 
-        "magnitude": "kg"
+        "magnitude": "kg", 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "name": "MASA_HUMEDO"
     }
 },
 {
@@ -61,11 +72,15 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "name": "VOLUMEN_SECO", 
+        "description": null, 
         "attribute_type": "xsd:string", 
         "required": false, 
+        "sql_magnitude": null, 
         "label": "Volumen (seco)", 
-        "magnitude": "l"
+        "magnitude": "l", 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "name": "VOLUMEN_SECO"
     }
 },
 {
@@ -73,11 +88,15 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "name": "VOLUMEN_HUMEDO", 
+        "description": null, 
         "attribute_type": "xsd:string", 
         "required": false, 
+        "sql_magnitude": null, 
         "label": "Volumen (h\u00famedo)", 
-        "magnitude": "l"
+        "magnitude": "l", 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "name": "VOLUMEN_HUMEDO"
     }
 },
 {
@@ -85,11 +104,15 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "name": "RENDIMIENTO_SECO", 
-        "attribute_type": "xsd:string", 
+        "description": "", 
+        "attribute_type": "double precision", 
         "required": false, 
+        "sql_magnitude": "kg/m2", 
         "label": "Rendimiento (seco)", 
-        "magnitude": "ton/ha"
+        "magnitude": "ton/ha", 
+        "is_precalculated": true, 
+        "sql_expression": "\"MASA_SECO\" / (\"ANCHO\" * \"DISTANCIA\")", 
+        "name": "RENDIMIENTO_SECO"
     }
 },
 {
@@ -97,11 +120,15 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "name": "RENDIMIENTO_HUMEDO", 
-        "attribute_type": "xsd:string", 
+        "description": "", 
+        "attribute_type": "double precision", 
         "required": false, 
+        "sql_magnitude": "kg/m2", 
         "label": "Rendimiento (h\u00famedo)", 
-        "magnitude": "ton/ha"
+        "magnitude": "ton/ha", 
+        "is_precalculated": true, 
+        "sql_expression": "\"MASA_HUMEDO\" / (\"ANCHO\" * \"DISTANCIA\")", 
+        "name": "RENDIMIENTO_HUMEDO"
     }
 },
 {
@@ -109,11 +136,15 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "name": "FLUJO", 
+        "description": null, 
         "attribute_type": "xsd:string", 
         "required": false, 
+        "sql_magnitude": null, 
         "label": "Flujo", 
-        "magnitude": "kg/sec"
+        "magnitude": "kg/sec", 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "name": "FLUJO"
     }
 },
 {
@@ -121,11 +152,15 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "name": "ALTITUD", 
+        "description": null, 
         "attribute_type": "xsd:string", 
         "required": false, 
+        "sql_magnitude": null, 
         "label": "Altitud", 
-        "magnitude": "m"
+        "magnitude": "m", 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "name": "ALTITUD"
     }
 },
 {
@@ -133,11 +168,15 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "name": "ANCHO", 
+        "description": null, 
         "attribute_type": "xsd:string", 
         "required": true, 
+        "sql_magnitude": null, 
         "label": "Ancho", 
-        "magnitude": "m"
+        "magnitude": "m", 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "name": "ANCHO"
     }
 },
 {
@@ -145,11 +184,15 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "name": "DISTANCIA", 
+        "description": null, 
         "attribute_type": "xsd:string", 
         "required": true, 
+        "sql_magnitude": null, 
         "label": "Distancia", 
-        "magnitude": "m"
+        "magnitude": "m", 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "name": "DISTANCIA"
     }
 },
 {
@@ -157,11 +200,15 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "name": "VELOCIDAD", 
+        "description": null, 
         "attribute_type": "xsd:string", 
         "required": false, 
+        "sql_magnitude": null, 
         "label": "Velocidad", 
-        "magnitude": "m"
+        "magnitude": "m", 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "name": "VELOCIDAD"
     }
 },
 {
@@ -169,11 +216,15 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "name": "TIEMPO", 
+        "description": null, 
         "attribute_type": "xsd:string", 
         "required": false, 
+        "sql_magnitude": null, 
         "label": "Tiempo", 
-        "magnitude": "sec"
+        "magnitude": "sec", 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "name": "TIEMPO"
     }
 }
 ]

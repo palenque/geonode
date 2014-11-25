@@ -2,6 +2,7 @@ from pint import UnitRegistry
 
 units = UnitRegistry()
 units.define('ha = hm**2')
+units.define('m2 = m**2')
 units.define('h = hr')
 
 VOLUME_MAGNITUDES = (
