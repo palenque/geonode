@@ -507,6 +507,14 @@ class Attribute(models.Model, PermissionLevelMixin):
         blank=True,
         null=True,
         unique=False)
+
+    @property
+    def attributetype(self):
+        if self.field is None:
+            return None
+        else:
+            return AttributeType.objects.get(id=self.field)
+
     magnitude = models.CharField(
         _('magnitude'),
         #choices=MAGNITUDES,
@@ -582,8 +590,13 @@ class Attribute(models.Model, PermissionLevelMixin):
     objects = AttributeManager()
 
     def __str__(self):
-        return "%s" % self.attribute_label.encode(
-            "utf-8") if self.attribute_label else self.attribute.encode("utf-8")
+        if self.field is not None:
+            label = AttributeType.objects.get(id=self.field).label
+        elif self.attribute_label is not None:
+            label = self.attribute_label
+        else:
+            label = self.attribute
+        return "%s" % label.encode("utf-8")
 
     def unique_values_as_list(self):
         return self.unique_values.split(',')
