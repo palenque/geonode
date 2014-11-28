@@ -1,5 +1,142 @@
 [
 {
+    "pk": 6, 
+    "model": "eav.attribute", 
+    "fields": {
+        "description": "", 
+        "created": "2014-11-25T13:26:32.295", 
+        "datatype": "enum", 
+        "enum_group": 3, 
+        "required": false, 
+        "site": 1, 
+        "modified": "2014-11-25T13:26:32.313", 
+        "type": "", 
+        "slug": "producto", 
+        "name": "Producto"
+    }
+},
+{
+    "pk": 7, 
+    "model": "eav.attribute", 
+    "fields": {
+        "description": "", 
+        "created": "2014-11-25T13:27:00.117", 
+        "datatype": "text", 
+        "enum_group": null, 
+        "required": false, 
+        "site": 1, 
+        "modified": "2014-11-25T13:27:00.130", 
+        "type": "", 
+        "slug": "lote", 
+        "name": "Lote"
+    }
+},
+{
+    "pk": 8, 
+    "model": "eav.attribute", 
+    "fields": {
+        "description": "", 
+        "created": "2014-11-25T13:27:17.791", 
+        "datatype": "text", 
+        "enum_group": null, 
+        "required": false, 
+        "site": 1, 
+        "modified": "2014-11-25T13:27:17.803", 
+        "type": "", 
+        "slug": "campana", 
+        "name": "Campa\u00f1a"
+    }
+},
+{
+    "pk": 9, 
+    "model": "eav.attribute", 
+    "fields": {
+        "description": "", 
+        "created": "2014-11-26T10:39:20.119", 
+        "datatype": "text", 
+        "enum_group": null, 
+        "required": false, 
+        "site": 1, 
+        "modified": "2014-11-26T10:39:20.132", 
+        "type": "", 
+        "slug": "fase", 
+        "name": "Fase"
+    }
+},
+{
+    "pk": 3, 
+    "model": "eav.enumgroup", 
+    "fields": {
+        "enums": [
+            8, 
+            9, 
+            10, 
+            11
+        ], 
+        "name": "Producto"
+    }
+},
+{
+    "pk": 8, 
+    "model": "eav.enumvalue", 
+    "fields": {
+        "value": "Soja"
+    }
+},
+{
+    "pk": 9, 
+    "model": "eav.enumvalue", 
+    "fields": {
+        "value": "Cebada"
+    }
+},
+{
+    "pk": 10, 
+    "model": "eav.enumvalue", 
+    "fields": {
+        "value": "Trigo"
+    }
+},
+{
+    "pk": 11, 
+    "model": "eav.enumvalue", 
+    "fields": {
+        "value": "Maiz"
+    }
+},
+{
+    "pk": 3, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 3, 
+        "attribute": 6
+    }
+},
+{
+    "pk": 4, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 3, 
+        "attribute": 7
+    }
+},
+{
+    "pk": 5, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 3, 
+        "attribute": 8
+    }
+},
+{
+    "pk": 6, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 2, 
+        "attribute": 9
+    }
+},
+{
     "pk": 1, 
     "model": "layers.layertype", 
     "fields": {
