@@ -34,9 +34,12 @@ from geonode.base.models import ResourceBase, ResourceBaseManager
 from geonode.base.models import resourcebase_post_save, resourcebase_pre_save
 from geonode.people.utils import get_valid_user
 from geonode.layers.units import *
-from agon_ratings.models import OverallRating
+from geonode.security.models import PermissionLevelMixin
 
-#from .enumerations import MONITOR_FIELDS, MAGNITUDES
+import eav
+from agon_ratings.models import OverallRating
+from eav.models import Attribute as EAVAttribute
+
 
 logger = logging.getLogger("geonode.layers.models")
 
@@ -46,6 +49,7 @@ kml_exts = ['.kml']
 vec_exts = shp_exts + csv_exts + kml_exts
 
 cov_exts = ['.tif', '.tiff', '.geotiff', '.geotif']
+
 
 
 class LayerType(models.Model):
@@ -170,6 +174,21 @@ class LayerType(models.Model):
 
     def __unicode__(self):
         return self.label or self.name
+
+# Fix para migracion de south 
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules([], ["^eav\.fields\.EavDatatypeField"])
+add_introspection_rules([], ["^eav\.fields\.EavSlugField"])
+
+class MetadataType(models.Model):
+
+    layer_type = models.ForeignKey(
+        LayerType, blank=False, null=False, unique=False
+    )
+
+    attribute = models.ForeignKey(
+        EAVAttribute, blank=False, null=False
+    )
 
 
 class AttributeType(models.Model):
@@ -446,7 +465,6 @@ class AttributeManager(models.Manager):
             visible=True).order_by('display_order')
 
 
-from geonode.security.models import PermissionLevelMixin
 class Attribute(models.Model, PermissionLevelMixin):
 
     """
@@ -717,3 +735,10 @@ signals.post_save.connect(resourcebase_post_save, sender=Layer)
 signals.post_save.connect(post_save_layer_type, sender=LayerType)
 signals.pre_delete.connect(pre_delete_layer, sender=Layer)
 signals.post_delete.connect(post_delete_layer, sender=Layer)
+
+
+from eav.registry import EavConfig
+class EavConfigClass(EavConfig):
+    manager_attr = 'eav_objects'
+
+eav.register(Layer, EavConfigClass)

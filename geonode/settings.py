@@ -78,8 +78,8 @@ TIME_ZONE = 'America/Chicago'
 LANGUAGE_CODE = 'es'
 
 LANGUAGES = (
-    ('en', 'English'),
     ('es', 'Español'),
+    ('en', 'English'),
     # ('it', 'Italiano'),
     # ('fr', 'Français'),
     # ('de', 'Deutsch'),
@@ -101,9 +101,9 @@ AUTH_USER_MODEL = 'people.Profile'
 # to load the internationalization machinery.
 USE_I18N = True
 
-MODELTRANSLATION_DEFAULT_LANGUAGE = 'en'
+MODELTRANSLATION_DEFAULT_LANGUAGE = 'es'
 
-MODELTRANSLATION_FALLBACK_LANGUAGES = ('en',)
+MODELTRANSLATION_FALLBACK_LANGUAGES = ('es',)
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
@@ -216,6 +216,7 @@ INSTALLED_APPS = (
     'django.contrib.gis',
 
     # Third party apps
+    'eav',
 
     # Utility
     'pagination',
@@ -237,6 +238,9 @@ INSTALLED_APPS = (
     "pinax_theme_bootstrap",
     'django_forms_bootstrap',
 
+    'bootstrapform',
+    'crispy_forms',
+
     # Social
     'account',
     'avatar',
@@ -250,7 +254,14 @@ INSTALLED_APPS = (
     'polymorphic',
     'guardian',
 
+
 ) + GEONODE_APPS
+
+SOUTH_MIGRATION_MODULES = {
+    'taggit': 'taggit.south_migrations',
+}
+
+CRISPY_TEMPLATE_PACK = 'bootstrap3'
 
 LOGGING = {
     'version': 1,

@@ -23,16 +23,23 @@ from django.contrib import admin
 from geonode.base.admin import MediaTranslationAdmin
 from geonode.layers.models import Layer, Attribute, Style
 from geonode.layers.models import LayerFile, UploadSession
-from geonode.layers.models import LayerType, AttributeType
+from geonode.layers.models import LayerType, AttributeType, MetadataType
 
 import autocomplete_light
+
+from eav.forms import BaseDynamicEntityForm
+from eav.admin import BaseEntityAdmin, BaseEntityInline
 
 
 class AttributeInline(admin.TabularInline):
     model = Attribute
 
 
-class LayerAdmin(MediaTranslationAdmin):
+class LayerAdminForm(BaseDynamicEntityForm):
+    model = Layer
+
+# class LayerAdmin(MediaTranslationAdmin):
+class LayerAdmin(BaseEntityAdmin):
     list_display = (
         'id',
         'typename',
@@ -49,7 +56,8 @@ class LayerAdmin(MediaTranslationAdmin):
     date_hierarchy = 'date'
     readonly_fields = ('uuid', 'typename', 'workspace')
     inlines = [AttributeInline]
-    form = autocomplete_light.modelform_factory(Layer)
+    form = LayerAdminForm
+    # form = autocomplete_light.modelform_factory(Layer)
 
 
 class AttributeAdmin(admin.ModelAdmin):
@@ -90,6 +98,8 @@ class UploadSessionAdmin(admin.ModelAdmin):
 class AttributeTypeInline(admin.TabularInline):
     model = AttributeType
 
+class MetadataTypeInline(admin.TabularInline):
+    model = MetadataType
 
 class LayerTypeAdmin(admin.ModelAdmin):
     list_display = (
@@ -108,7 +118,7 @@ class LayerTypeAdmin(admin.ModelAdmin):
     # filter_horizontal = ('contacts',)
     # date_hierarchy = 'date'
     # readonly_fields = ('uuid', 'typename', 'workspace')
-    inlines = [AttributeTypeInline]
+    inlines = [MetadataTypeInline, AttributeTypeInline]
     form = autocomplete_light.modelform_factory(LayerType)
 
 

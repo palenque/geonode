@@ -35,7 +35,6 @@ from geonode.people.enumerations import ROLE_VALUES
 
 logger = logging.getLogger(__name__)
 
-
 class ContactRole(models.Model):
     """
     ContactRole is an intermediate model to bind Profiles as Contacts to Resources and apply roles.

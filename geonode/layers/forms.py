@@ -99,6 +99,8 @@ class LayerForm(TranslationModelForm):
             'creator',
             'app',
             'metadata_edited',
+            'layer_type',
+            'palenque_type',
 
             'contacts',
             'workspace',
@@ -263,7 +265,12 @@ class LayerAttributeForm(forms.ModelForm):
                     )
                 ]
             )
-            self.fields['field'].widget = forms.Select(choices=choices)        
+            self.fields['field'].widget = forms.Select(choices=choices)
+
+            # # deshabilita atributos para capas ya editadas
+            # if instance.layer.metadata_edited:
+            #     for f in self.fields.keys():
+            #         self.fields[f].widget.attrs['disabled'] = 'disabled'
 
     def clean_magnitude(self):
 
