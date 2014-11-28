@@ -50,16 +50,23 @@
               <thead>
                 <tr>
                   <th>{% trans "Attribute Name" %}</th>
+                  <th>{% trans "Unit" %}</th>
+                  <th>{% trans "Description" %}</th>
+                  {% comment %}
                   <th>{% trans "Range" %}</th>
                   <th>{% trans "Average" %}</th>
                   <th>{% trans "Median" %}</th>
                   <th>{% trans "Standard Deviation" %}</th>
+                  {% endcomment %}
                 </tr>
               </thead>
               <tbody>
                 {% for attribute in resource.attribute_set.all %}
                   <tr>
                     <td>{{ attribute }}</td>
+                    <td>{{ attribute.attributetype.magnitude|default:'' }}</td>
+                    <td>{{ attribute.attributetype.description|default:'' }}</td>
+                    {% comment %}
                     {% if attribute.unique_values == "NA" %}
                     <td>{{ attribute.unique_values }}</td>
                     {% else %}
@@ -74,6 +81,7 @@
                     <td>{{ attribute.average|floatformat:"2" }}</td>
                     <td>{{ attribute.median|floatformat:"2" }}</td>
                     <td>{{ attribute.stddev|floatformat:"2" }}</td>
+                    {% endcomment %}
                   </tr>
                 {% endfor %}
               </tbody>

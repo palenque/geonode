@@ -137,8 +137,10 @@
               {% autopaginate object_list 5 %}
                 {% for obj in object_list %}
                   {% if obj.layer_type == 'monitor' %}
-                    {% include "apps/_monitor_resource.html" %}
+                    {% include "apps/_monitor_resource.html" %}                  
                   {% else %}
+                    {% include "apps/_layer_resource.html" %}
+                {% comment %}
                 <article>
                   <div class="content">
                     <div class="item-header">
@@ -167,6 +169,7 @@
                     </div>
                   </div>
                 </article>
+                {% endcomment %}
                 {% endif %}
                 {% endfor %}
             </div>

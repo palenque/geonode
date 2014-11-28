@@ -146,6 +146,7 @@ def monitor_upload(request, template='upload/monitor_upload.html'):
                     abstract=form.cleaned_data["abstract"],
                     title=form.cleaned_data["layer_title"],
                     layer_type='monitor',
+                    palenque_type=LayerType.objects.get(name='monitor')
                 )
 
                 # agrega el keyword "monitor"
@@ -371,10 +372,11 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
 
     if (request.method == "POST"
         and layer_form.is_valid()
-        and attribute_form.is_valid()
-        and _validate_required_attributes(attribute_form)):
+        and layer_form.cleaned_data['metadata_edited'] or 
+            (attribute_form.is_valid() and _validate_required_attributes(attribute_form))):
 
-        attribute_form.save()
+        if not layer_form.cleaned_data['metadata_edited']:
+            attribute_form.save()
         # for form in attribute_form.cleaned_data:
         #     la = Attribute.objects.get(id=int(form['id'].id))
         #     la.description = form["description"]
@@ -387,8 +389,9 @@ def monitor_metadata(request, layername, template='monitors/monitor_metadata.htm
 
         layer_form.save()
 
-        _rename_fields(layer)
-        #_precalculate_yield(layer)
+        if not layer_form.cleaned_data['metadata_edited']:
+            _rename_fields(layer)
+            #_precalculate_yield(layer)
 
         #     metadata_edited = True
 

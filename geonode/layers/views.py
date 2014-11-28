@@ -36,6 +36,8 @@ from django.template.defaultfilters import slugify
 from django.forms.models import inlineformset_factory
 from django.db.models import F
 
+from guardian.shortcuts import assign_perm
+
 from geonode.services.models import Service
 from geonode.layers.forms import LayerForm, LayerUploadForm, NewLayerUploadForm, LayerAttributeForm
 from geonode.base.forms import CategoryForm
@@ -50,6 +52,7 @@ from geonode.layers.utils import file_upload, guess_attribute_match
 from geonode.utils import resolve_object
 from geonode.people.forms import ProfileForm, PocForm
 from geonode.security.views import _perms_info_json
+from geonode.security.models import ADMIN_PERMISSIONS
 from geonode.documents.models import get_related_documents
 
 
@@ -141,6 +144,7 @@ def layer_upload(request, template='upload/layer_upload.html'):
                     abstract=form.cleaned_data["abstract"],
                     title=form.cleaned_data["layer_title"],
                     palenque_type=form.cleaned_data["palenque_type"],
+                    owner=form.cleaned_data["owner"]
                 )
 
                 if not saved_layer.palenque_type.is_default:
@@ -161,6 +165,10 @@ def layer_upload(request, template='upload/layer_upload.html'):
                 permissions = form.cleaned_data["permissions"]
                 if permissions is not None and len(permissions.keys()) > 0:
                     saved_layer.set_permissions(permissions)
+                else:
+                    saved_layer.remove_all_permissions()
+                    for perm in ADMIN_PERMISSIONS:
+                        assign_perm(perm, saved_layer.owner, saved_layer.get_self_resource())
 
             finally:
                 if tempdir is not None:
@@ -176,8 +184,10 @@ def layer_upload(request, template='upload/layer_upload.html'):
             status_code = 200
             # out['palenque_type'] = form.cleaned_data["palenque_type"]
             out['fill_metadata'] = saved_layer.palenque_type.fill_metadata
+            out['layer_id'] = saved_layer.id
         else:
             status_code = 500
+
         return HttpResponse(
             json.dumps(out),
             mimetype='application/json',

@@ -347,6 +347,7 @@ MIDDLEWARE_CLASSES = (
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
     'guardian.backends.ObjectPermissionBackend',
+    'geonode.security.middleware.ApiKeyAuthentication'
 )
 
 ANONYMOUS_USER_ID = -1

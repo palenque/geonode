@@ -41,6 +41,9 @@ import pint
 class JSONField(forms.CharField):
 
     def clean(self, text):
+        if not self.required and not text: 
+            return None
+
         text = super(JSONField, self).clean(text)
         try:
             return json.loads(text)
@@ -216,14 +219,14 @@ class LayerUploadForm(forms.Form):
 class NewLayerUploadForm(LayerUploadForm):
     sld_file = forms.FileField(required=False)
     xml_file = forms.FileField(required=False)
-
     abstract = forms.CharField(required=False)
     layer_title = forms.CharField(required=False)
-    permissions = JSONField()
+    permissions = JSONField(required=False)
     charset = forms.CharField(required=False)
     palenque_type = forms.ModelChoiceField(
         required=False, queryset=LayerType.objects.all()
     )
+    owner = forms.CharField(required=False)
 
     spatial_files = (
         "base_file",
@@ -233,6 +236,17 @@ class NewLayerUploadForm(LayerUploadForm):
         "sld_file",
         "xml_file")
 
+    def clean_palenque_type(self):
+        if self.cleaned_data['palenque_type'] is None:
+            return LayerType.objects.get(name='default')
+        else:
+            return self.cleaned_data['palenque_type']
+
+    def clean_owner(self):
+        if len(self.cleaned_data['owner']) > 0:
+            return Profile.objects.get(username=self.cleaned_data['owner'])
+        else:
+            return self.cleaned_data['owner']
 
 class LayerDescriptionForm(forms.Form):
     title = forms.CharField(300)
