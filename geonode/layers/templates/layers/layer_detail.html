@@ -50,8 +50,10 @@
               <thead>
                 <tr>
                   <th>{% trans "Attribute Name" %}</th>
+                  {% if resource.palenque_type and not resource.palenque_type.is_default %}
                   <th>{% trans "Unit" %}</th>
                   <th>{% trans "Description" %}</th>
+                  {% endif %}
                   {% comment %}
                   <th>{% trans "Range" %}</th>
                   <th>{% trans "Average" %}</th>
@@ -64,8 +66,10 @@
                 {% for attribute in resource.attribute_set.all %}
                   <tr>
                     <td>{{ attribute }}</td>
-                    <td>{{ attribute.attributetype.magnitude|default:'' }}</td>
-                    <td>{{ attribute.attributetype.description|default:'' }}</td>
+                    {% if resource.palenque_type and not resource.palenque_type.is_default %}
+                    <td>{{ attribute.attributetype.magnitude|default:"" }}</td>
+                    <td>{{ attribute.attributetype.description|default:"" }}</td>
+                    {% endif %}
                     {% comment %}
                     {% if attribute.unique_values == "NA" %}
                     <td>{{ attribute.unique_values }}</td>

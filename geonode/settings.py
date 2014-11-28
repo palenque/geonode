@@ -239,7 +239,8 @@ INSTALLED_APPS = (
     'django_forms_bootstrap',
 
     'bootstrapform',
-    'crispy_forms',
+    # 'crispy_forms',
+    'bootstrap3',
 
     # Social
     'account',

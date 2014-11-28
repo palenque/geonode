@@ -95,8 +95,7 @@ setup(name='GeoNode',
         "South==1.0",
         "Pint==0.5.2",
         "python-levenshtein",
-        "git+git://github.com/mvpdev/django-eav.git#egg=django-eav",
-        'django-crispy-forms',
+        'django-bootstrap3',
         'django-bootstrap-form',
 
         # Django Apps

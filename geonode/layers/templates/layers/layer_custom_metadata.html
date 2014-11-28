@@ -2,7 +2,16 @@
 {% load i18n %}
 {% load bootstrap_tags %}
 {% load bootstrap %}
-{% load crispy_forms_tags %}
+{% load bootstrap3 %}
+
+{% block extra_head %}
+{{ block.super }}
+<style>
+.form-group{width:95%;} 
+</style>
+{% endblock %}
+
+
 
 {% block title %}{{ layer.typename }} — {{ block.super }}{% endblock %}
 
@@ -20,6 +29,8 @@
         GeoNode's metadata import supports a subset of ISO, FGDC, and Dublin Core metadata elements.
         Some of your original metadata may have been lost.{% endblocktrans %}</div>
     {% endif %}
+
+    {% bootstrap_formset_errors attribute_form  %}
 
     {% if layer_form.errors or attribute_form.errors or category_form.errors %}
     <div style="background-color: pink">{% blocktrans %}Error updating metadata.  Please check the following fields: {% endblocktrans %}
@@ -44,8 +55,11 @@
         {% endif %}
             </ul>
         </div>
+
     {% endif %}
-    <br/>
+
+
+
     {% csrf_token %}
     <div class="form-controls">
       {{ layer_form|bootstrap_horizontal }}
@@ -71,30 +85,33 @@
         </fieldset>
     {% endcomment %}
 
-    <br/>
     <legend>{% trans "Attributes" %}</legend>
     {% if not layer_form.instance.metadata_edited %}
       <div class="alert alert-info">{% trans "The associations and units are suggested. Please check them." %}</div>
     {% endif %}
 
     {{ attribute_form.management_form }}
-    <table cellpadding="5" cellspacing="5" width="100%">
+
+    <table class="table table-hover  " >
         <tr>
-          <th style="text-align: left;">{% trans "Attribute" %}</th>
-          <th style="text-align: left;">{% trans "Association" %}</th>
-          <th style="text-align: left;">{% trans "Unit" %}</th>
-          <th style="text-align: left;" width="50%">&nbsp;</th>
+          <th >{% trans "Attribute" %}</th>
+          <th >{% trans "Association" %}</th>
+          <th >{% trans "Unit" %}</th>
       </tr>
+      <tbody>
         {% for form in attribute_form.forms %}
         {% if form.attribute %}
+        <div class="hidden">
+        {{form.attribute_label}} {{form.display_order}} {{form.description}}
+        </div>
         <tr>
-          <td><div style="display:none">{{form.id}}</div>{{form.attribute}}</td>
-          <td> {{form.field}}</td>
-          <td> {{form.magnitude}}</td>
-          <td> {{form.attribute_label}} {{form.display_order}} {{form.description}}</td>
+          <td><div style="display:none">{{form.id}}</div>{% bootstrap_field form.attribute layout='inline' %}</td>
+          <td>{% bootstrap_field form.field layout='inline' %} </td>
+          <td> {% bootstrap_field form.magnitude layout='inline' %} </td>
         </tr>
         {% endif %}
         {% endfor %}
+      </tbody>
     </table>
 
 

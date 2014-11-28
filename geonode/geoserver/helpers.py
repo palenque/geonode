@@ -681,7 +681,8 @@ def set_attributes(layer, overwrite=False):
         for field, ftype in attribute_map:
             if field is not None:
                 la, created = Attribute.objects.get_or_create(
-                    layer=layer, attribute=field, attribute_type=ftype)
+                    layer=layer, attribute=field
+                )
                 if created:
                     if is_layer_attribute_aggregable(
                             layer.storeType,
@@ -699,6 +700,7 @@ def set_attributes(layer, overwrite=False):
                             la.sum = result['Sum']
                             la.unique_values = result['unique_values']
                             la.last_stats_updated = datetime.datetime.now()
+                    la.attribute_type = ftype
                     la.attribute_label = field.title()
                     la.visible = ftype.find("gml:") != 0
                     la.display_order = iter

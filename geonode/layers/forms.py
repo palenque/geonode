@@ -281,10 +281,10 @@ class LayerAttributeForm(forms.ModelForm):
             )
             self.fields['field'].widget = forms.Select(choices=choices)
 
-            # # deshabilita atributos para capas ya editadas
-            # if instance.layer.metadata_edited:
-            #     for f in self.fields.keys():
-            #         self.fields[f].widget.attrs['disabled'] = 'disabled'
+            # deshabilita atributos para capas ya editadas
+            if instance.layer.metadata_edited:
+                for f in self.fields.keys():
+                    self.fields[f].widget.attrs['disabled'] = 'disabled'
 
     def clean_magnitude(self):
 

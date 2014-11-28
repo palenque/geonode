@@ -103,12 +103,6 @@ class LayerType(models.Model):
 
         for attr in self.attribute_type_set.filter(is_precalculated=True):
             cursor.execute(
-                '''ALTER TABLE %s ADD "%s" %s;''' % (
-                    layer.name, attr.name, attr.attribute_type
-                )
-            )
-
-            cursor.execute(
                 '''UPDATE %s SET "%s" = %s;''' % (
                     layer.name, attr.name, attr.sql_expression
                 )
@@ -133,27 +127,34 @@ class LayerType(models.Model):
                 )
                 attr.delete()
 
-        # crea atributo calculado y renombra los demas
+        # renombra los demas
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
-            if attr.field:
-                attr_type = AttributeType.objects.get(id=attr.field)
-                
-                if attr_type.is_precalculated:
-                    Attribute(
-                        layer=layer, 
-                        attribute=attr_type.name,
-                        label=attr_type.name,
-                        field=str(attr_type.id),
-                        magnitude=attr_type.magnitude
-                    ).save()
-                else:
-                    cursor.execute(
-                        'ALTER TABLE %s RENAME COLUMN "%s" to "%s";' % (
-                            layer.name, attr.attribute, attr_type.name
-                        )
+            attr_type = AttributeType.objects.get(id=attr.field)
+            if not attr_type.is_precalculated and attr.attribute != attr_type.name:
+                cursor.execute(
+                    'ALTER TABLE %s RENAME COLUMN "%s" to "%s";' % (
+                        layer.name, attr.attribute, attr_type.name
                     )
-                    attr.attribute = attr_type.name
-                    attr.save()
+                )
+                attr.attribute = attr_type.name
+                attr.save()
+
+        # crea atributos y campos para campos precalculados
+        for attr_type in self.attribute_type_set.filter(is_precalculated=True):
+            cursor.execute(
+                '''ALTER TABLE %s ADD "%s" %s;''' % (
+                    layer.name, attr_type.name, attr_type.attribute_type
+                )
+            )
+
+            Attribute(
+                layer=layer, 
+                attribute=attr_type.name,
+                attribute_label=attr_type.name,
+                field=str(attr_type.id),
+                attribute_type='',
+                magnitude=attr_type.magnitude
+            ).save()
 
         # convierte unidades de los campos precalculados
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
@@ -528,7 +529,7 @@ class Attribute(models.Model, PermissionLevelMixin):
 
     @property
     def attributetype(self):
-        if self.field is None:
+        if not self.field:
             return None
         else:
             return AttributeType.objects.get(id=self.field)
@@ -608,9 +609,9 @@ class Attribute(models.Model, PermissionLevelMixin):
     objects = AttributeManager()
 
     def __str__(self):
-        if self.field is not None:
+        if self.field:
             label = AttributeType.objects.get(id=self.field).label
-        elif self.attribute_label is not None:
+        elif self.attribute_label:
             label = self.attribute_label
         else:
             label = self.attribute
