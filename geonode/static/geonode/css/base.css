@@ -57,12 +57,14 @@ article.tab-pane {
 }
 .navbar-brand {
   background: url(../img/logo.png) no-repeat;
+  background-size: 75% 100%;
   margin-top: 10px;
   overflow: hidden;
   text-indent: -9999em;
   width: 140px;
   height: 30px;
 }
+
 .nav-pills a {
   cursor: pointer;
 }
