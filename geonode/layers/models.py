@@ -51,6 +51,7 @@ vec_exts = shp_exts + csv_exts + kml_exts
 cov_exts = ['.tif', '.tiff', '.geotiff', '.geotif']
 
 
+from django.db import transaction
 
 class LayerType(models.Model):
     'Layer type'
@@ -73,7 +74,37 @@ class LayerType(models.Model):
         help_text=_('show category in metadata')
     )
 
-    def normalize_units(self, layer):
+    def update_attributes(self, layer, commit=True):
+        'Updates table fields and attributes to mach layer type attributes.'
+        
+        with transaction.commit_manually(using="default"):
+            try:
+                with transaction.commit_manually(using="datastore"):
+                    try:
+                        self._rename_fields(layer)
+                        self._normalize_units(layer)
+                        self._precalculate_fields(layer)
+                    except:
+                        logging.exception('datastore')
+                        transaction.rollback(using='datastore')
+                        raise
+                    else:
+                        if commit:
+                            transaction.commit(using='datastore')
+                        else:
+                            transaction.rollback(using='datastore')
+            except:
+                logging.exception('default')
+                transaction.rollback(using='default')
+                raise
+            else:
+                if commit:
+                    transaction.commit(using='default')
+                else:
+                    transaction.rollback(using='default')
+
+
+    def _normalize_units(self, layer):
         'Converts units.'
 
         cursor = connections['datastore'].cursor()
@@ -93,7 +124,8 @@ class LayerType(models.Model):
                 )
             )
 
-    def precalculate_fields(self, layer):
+
+    def _precalculate_fields(self, layer):
         'Creates fields and precalculate fields.'
 
         if layer.palenque_type.is_default:
@@ -109,7 +141,7 @@ class LayerType(models.Model):
             )
 
 
-    def rename_fields(self, layer):
+    def _rename_fields(self, layer):
         'Renames fiels in the layer table.'
 
         if layer.palenque_type.is_default:
@@ -117,7 +149,7 @@ class LayerType(models.Model):
 
         cursor = connections['datastore'].cursor()
     
-        # borra atributos no completados
+        # borra campos y atributos no completados
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
             if not attr.field:
                 cursor.execute(
@@ -127,7 +159,7 @@ class LayerType(models.Model):
                 )
                 attr.delete()
 
-        # renombra los demas
+        # renombra demas atributos y campos
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
             attr_type = AttributeType.objects.get(id=attr.field)
             if not attr_type.is_precalculated and attr.attribute != attr_type.name:
@@ -294,14 +326,8 @@ class Layer(ResourceBase):
         blank=True,
         related_name='layer_set')
 
-    def rename_fields(self):
-        return self.palenque_type.rename_fields(self)
-
-    def normalize_units(self):
-        return self.palenque_type.normalize_units(self)
-
-    def precalculate_fields(self):
-        return self.palenque_type.precalculate_fields(self)
+    def update_attributes(self, commit=True):
+        return self.palenque_type.update_attributes(self, commit)
 
     def is_vector(self):
         return self.storeType == 'dataStore'

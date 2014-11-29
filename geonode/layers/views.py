@@ -35,6 +35,7 @@ from django.utils.html import escape
 from django.template.defaultfilters import slugify
 from django.forms.models import inlineformset_factory
 from django.db.models import F
+from django.forms.forms import NON_FIELD_ERRORS
 
 from guardian.shortcuts import assign_perm
 
@@ -277,10 +278,10 @@ def _validate_required_attributes(layer, attribute_form):
 
     for rf, attr in [(str(a.id), a,) for a in layer.palenque_type.required_attributes()]:
         if rf in fields and fields.count(rf) > 1:
-            attribute_form._non_form_errors.append(attr.name + ': field repeated')
+            attribute_form._non_form_errors.append(attr.name + _(': field repeated'))
             is_valid = False             
         if rf not in fields:
-            attribute_form._non_form_errors.append(attr.name + ': association required')
+            attribute_form._non_form_errors.append(attr.name + _(': association required'))
             is_valid = False
 
     return is_valid
@@ -461,13 +462,23 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
         or layer.metadata_edited)
     ):
 
+        updated_attributes = False
+
         if not layer.metadata_edited:
             attribute_form.save()
-            layer.rename_fields()
-            layer.normalize_units()
-            layer.precalculate_fields()
 
-        if not layer.palenque_type.is_default: 
+            # intenta actualizar los attributos y campos en la tabla
+            try:
+                layer.update_attributes(commit=False)
+            except:
+                layer_form._errors[NON_FIELD_ERRORS] = layer_form.error_class([
+                    _(u'Some attributes could be updated. Please review association and types.')
+                ])
+            else:
+                layer.update_attributes()
+                updated_attributes = True
+
+        if updated_attributes and not layer.palenque_type.is_default: 
             the_layer = layer_form.save()
             the_layer.metadata_edited = True
             the_layer.save()
