@@ -465,16 +465,18 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
         updated_attributes = False
 
         if not layer.metadata_edited:
-            attribute_form.save()
-
             # intenta actualizar los attributos y campos en la tabla
+            attribute_form.save(commit=False)
             try:
-                layer.update_attributes(commit=False)
+                layer.update_attributes(commit=False)                
             except:
                 layer_form._errors[NON_FIELD_ERRORS] = layer_form.error_class([
                     _(u'Some attributes could be updated. Please review association and types.')
                 ])
             else:
+                transaction.commit(using='default')
+                transaction.rollback(using='default')
+                attribute_form.save()
                 layer.update_attributes()
                 updated_attributes = True
 
