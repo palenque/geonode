@@ -561,7 +561,7 @@ class ResourceBaseResource(CommonModelApi):
             .distinct().order_by('-date')
         resource_name = 'base'
         excludes = ['csw_anytext', 'metadata_xml']
-
+        authorization = GeoNodeAuthorization()
 
 class FeaturedResourceBaseResource(CommonModelApi):
 
@@ -644,10 +644,12 @@ class LayerResource(MultipartResource, CommonModelApi):
             "groups":{"foo":["change_resourcebase_permissions"] } 
         }
         """
-
-        attrs = json.loads(bundle.data['attributes'])
-        if not attrs:
-            raise BadRequest('Attributes mapping required')
+        if 'attributes' in bundle.data:
+            attrs = json.loads(bundle.data['attributes'])
+        else:
+            attrs = []
+        # if not attrs:
+        #     raise BadRequest('Attributes mapping required')
 
         # creates a layer
         try:

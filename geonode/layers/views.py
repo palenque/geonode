@@ -104,7 +104,6 @@ def _resolve_layer(request, typename, permission='base.view_resourcebase',
 
 @login_required
 def layer_upload(request, template='upload/layer_upload.html'):
-
     if request.method == 'GET':
         ctx = {
             'charsets': CHARSETS,
@@ -140,7 +139,7 @@ def layer_upload(request, template='upload/layer_upload.html'):
                 saved_layer = file_upload(
                     base_file,
                     name=name,
-                    user=request.user,
+                    creator=request.user,
                     overwrite=False,
                     charset=form.cleaned_data["charset"],
                     abstract=form.cleaned_data["abstract"],
@@ -171,6 +170,8 @@ def layer_upload(request, template='upload/layer_upload.html'):
                     saved_layer.remove_all_permissions()
                     for perm in ADMIN_PERMISSIONS:
                         assign_perm(perm, saved_layer.owner, saved_layer.get_self_resource())
+                        if saved_layer.owner != saved_layer.creator:
+                            assign_perm(perm, saved_layer.creator, saved_layer.get_self_resource())
 
             finally:
                 if tempdir is not None:
@@ -559,7 +560,7 @@ def layer_replace(request, layername, template='layers/layer_replace.html'):
                 saved_layer = file_upload(
                     base_file,
                     name=layer.name,
-                    user=request.user,
+                    creator=request.user,
                     overwrite=True,
                     charset=form.cleaned_data["charset"],
                 )
