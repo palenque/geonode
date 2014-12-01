@@ -76,7 +76,6 @@ class CommonMetaApi:
                  'category': ALL_WITH_RELATIONS,
                  'owner': ALL_WITH_RELATIONS,
                  'creator': ALL_WITH_RELATIONS,
-                 'app': ALL_WITH_RELATIONS,
                  'date': ALL,
                  }
     ordering = ['date', 'title', 'popular_count']
@@ -92,7 +91,6 @@ class CommonModelApi(ModelResource):
         full=True)
     owner = fields.ToOneField(ProfileResource, 'owner', full=True)
     creator = fields.ToOneField(ProfileResource, 'creator', full=True, null=True)
-    app = fields.ToOneField(AppResource, 'app', full=True, null=True)
 
     def build_filters(self, filters={}):
         orm_filters = super(CommonModelApi, self).build_filters(filters)
@@ -437,7 +435,6 @@ class CommonModelApi(ModelResource):
         VALUES = [
             # fields in the db
             'creator',
-            'app',
 
             'id',
             'uuid',
@@ -615,7 +612,6 @@ class LayerResource(MultipartResource, CommonModelApi):
                  'category': ALL_WITH_RELATIONS,
                  'owner': ALL_WITH_RELATIONS,
                  'creator': ALL_WITH_RELATIONS,
-                 'app': ALL_WITH_RELATIONS,
                  'layer_type': ALL_WITH_RELATIONS,
                  'date': ALL,
                  }

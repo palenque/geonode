@@ -262,7 +262,6 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='owned_resource')
     
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='created_resource')
-    app = models.ForeignKey(App, blank=True, null=True)
     
     contacts = models.ManyToManyField(settings.AUTH_USER_MODEL, through='ContactRole')
     title = models.CharField(_('title'), max_length=255, help_text=_('name by which the cited resource is known'))
