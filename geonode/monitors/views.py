@@ -108,7 +108,7 @@ def monitor_upload(request, template='upload/monitor_upload.html'):
     if request.method == 'GET':
         ctx = {
             'charsets': CHARSETS,
-            'palenque_type_default': LayerType.objects.get(name='monitor')
+            'layer_type_default': LayerType.objects.get(name='monitor')
         }
         return render_to_response(template,
                                   RequestContext(request, ctx))
@@ -145,8 +145,7 @@ def monitor_upload(request, template='upload/monitor_upload.html'):
                     charset=form.cleaned_data["charset"],
                     abstract=form.cleaned_data["abstract"],
                     title=form.cleaned_data["layer_title"],
-                    layer_type='monitor',
-                    palenque_type=LayerType.objects.get(name='monitor')
+                    layer_type=LayerType.objects.get(name='monitor')
                 )
 
                 # agrega el keyword "monitor"

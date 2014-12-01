@@ -182,9 +182,8 @@ define(function (require, exports) {
                 form_data.append(ext + '_file', file);
             }
         }
-
         form_data.append('charset', $('#charset').val());
-        form_data.append('palenque_type', $('#palenque-type').val());
+        form_data.append('layer_type', $('#layer-type').val());
         return form_data;
     };
 

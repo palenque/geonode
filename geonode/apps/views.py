@@ -108,7 +108,7 @@ class AppDetailView(ListView):
                     content_filter = 'monitors'
                     # TODO: mejorar query
                     layer_objects = Layer.objects.filter(
-                        layer_type='monitor',
+                        layer_type__name='monitor',
                         owner=self.request.user
                     )
                     user_objects = ResourceBase.objects.filter(
@@ -231,7 +231,7 @@ def member_detail(request, app_id, username):
                 content_filter = 'monitors'
                 # TODO: mejorar query
                 layer_objects = Layer.objects.filter(
-                    layer_type='monitor',
+                    layer_type__name='monitor',
                     owner=request.user
                 )                
                 user_objects = ResourceBase.objects.filter(

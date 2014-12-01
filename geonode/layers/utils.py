@@ -72,7 +72,7 @@ def best_candidate(attr,candidates):
 def guess_attribute_match(layer,attribute_form):
     candidates = dict([(normalize_attr_name(x.initial['attribute']),x.initial['attribute'])
         for x in attribute_form.forms])
-    for attr in layer.palenque_type.attribute_type_set.all():
+    for attr in layer.layer_type.attribute_type_set.all():
         cand,score = best_candidate(normalize_attr_name(attr.name), candidates.keys())
         if cand is not None and score < 1.0:
             attr2 = candidates.pop(cand)
@@ -320,7 +320,7 @@ def get_bbox(filename):
 
 def file_upload(filename, name=None, user=None, title=None, abstract=None, 
                 skip=True, overwrite=False, keywords=[], charset='UTF-8', 
-                layer_type=None, palenque_type=None, owner=None):
+                layer_type=None, owner=None):
     """Saves a layer in GeoNode asking as little information as possible.
        Only filename is required, user and title are optional.
     """
@@ -355,7 +355,6 @@ def file_upload(filename, name=None, user=None, title=None, abstract=None,
 
     defaults = {
         'layer_type': layer_type,
-        'palenque_type': palenque_type,
         'upload_session': upload_session,
         'title': title,
         'abstract': abstract,

@@ -36,7 +36,7 @@
     </div>
 
     {% comment %}
-        <fieldset id="category_form" {% if not layer.palenque_type.show_category %}style="display:none;"{% endif %}>
+        <fieldset id="category_form" {% if not layer.layer_type.show_category %}style="display:none;"{% endif %}>
             <label class="control-label required-field">{% trans "Category" %}</label><br/>
             {% autoescape off %}
                 <div style="clear:both;padding-left:175px;">
@@ -70,7 +70,7 @@
       </tr>
       <tbody>
         {% for form in attribute_form.forms %}
-        {% if form.attribute and form.visible.value%}
+        {% if form.attribute %}
         <div class="hidden">
         {{form.attribute_label}} {{form.display_order}} {{form.description}}
         </div>
