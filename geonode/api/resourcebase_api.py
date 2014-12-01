@@ -4,14 +4,12 @@ from django.http import HttpResponse
 from django.conf import settings
 from django.db import transaction
 
-from tastypie.authentication import ApiKeyAuthentication, MultiAuthentication, SessionAuthentication
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.resources import ModelResource
 from tastypie import fields
 from tastypie.utils import trailing_slash
-from tastypie.exceptions import ImmediateHttpResponse
 
-from guardian.shortcuts import get_objects_for_user, get_anonymous_user
+from guardian.shortcuts import get_objects_for_user
 
 from django.conf.urls import url
 from django.core.paginator import Paginator, InvalidPage
@@ -36,7 +34,7 @@ from geonode.base.models import ResourceBase, TopicCategory, Link, InternalLink
 from .authorization import GeoNodeAuthorization, InternalLinkAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
-    FILTER_TYPES, AppResource
+    FILTER_TYPES
 
 LAYER_SUBTYPES = {
     'vector': 'dataStore',
@@ -46,28 +44,7 @@ LAYER_SUBTYPES = {
 FILTER_TYPES.update(LAYER_SUBTYPES)
 
 
-class MultipartResource(object):
-    'Allows multipart request.'
-
-    def deserialize(self, request, data, format=None):
-
-        if not format:
-            format = request.META.get('CONTENT_TYPE', 'application/json')
-
-        if format == 'application/x-www-form-urlencoded':
-            return request.POST
-
-        if format.startswith('multipart'):
-            data = request.POST.copy()
-            data.update(request.FILES)
-
-            return data
-
-        return super(MultipartResource, self).deserialize(request, data, format)
-
-
 class CommonMetaApi:
-    authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
     authorization = GeoNodeAuthorization()
     allowed_methods = ['get']
     filtering = {'title': ALL,
@@ -100,7 +77,6 @@ class CommonModelApi(ModelResource):
             orm_filters.update({'extent': filters['extent']})
         # Nothing returned if +'s are used instead of spaces for text search,
         # so swap them out. Must be a better way of doing this?
-
         for filter in orm_filters:
             if filter in ['title__contains', 'q']:
                 orm_filters[filter] = orm_filters[filter].replace("+", " ")
@@ -319,6 +295,7 @@ class CommonModelApi(ModelResource):
 
         # Get the list of objects that matches the filter
         sqs = self.build_haystack_filters(request.GET)
+
         if not settings.SKIP_PERMS_FILTER:
             # Get the list of objects the user has access to
             filter_set = set(
@@ -398,12 +375,10 @@ class CommonModelApi(ModelResource):
         """
         # TODO: Uncached for now. Invalidation that works for everyone may be
         # impossible.
-
         base_bundle = self.build_bundle(request=request)
         objects = self.obj_get_list(
             bundle=base_bundle,
             **self.remove_api_resource_names(kwargs))
-
         sorted_objects = self.apply_sorting(objects, options=request.GET)
 
         paginator = self._meta.paginator_class(
@@ -446,7 +421,6 @@ class CommonModelApi(ModelResource):
             'owner_id',
             'share_count',
             'popular_count',
-            'date',
             'srid',
             'category',
             'supplemental_information',
@@ -495,61 +469,16 @@ class CommonModelApi(ModelResource):
             content_type=build_content_type(desired_format),
             **response_kwargs)
 
-
-    def transfer_owner(self, request, resource_id, **kwargs):
-        '''Transfers ownership of an resource.
-
-        curl 
-        --dump-header -  
-        -H "Content-Type: application/json" 
-        -X  PUT 
-        --data '{"new_owner_id": 25, "app_id": 14}' 
-        'http://localhost:8000/api/base/79/transfer_owner/?username=foo&api_key=c003062347b82a8cdd4014e9f8edb5c2aef63c7a'
-        '''
-
-        self.method_check(request, allowed=['put'])
-        self.is_authenticated(request)
-        self.throttle_check(request)
-
-        try:
-            data = json.loads(request.body)
-            new_owner_id = int(data['new_owner_id'])
-            app_id = int(data['app_id'])
-            new_owner = Profile.objects.get(id=new_owner_id)
-            app = App.objects.get(id=app_id)
-            resource  = ResourceBase.objects.get(id=resource_id)
-        except Exception as e:
-            return HttpBadRequest()
-
-        if not (app.user_is_role(request.user, "manager") and
-            resource.owner == request.user):
-            raise Unauthorized()
-
-        resource.transfer_owner(new_owner, app)
-
-        return HttpNoContent()
-
-
     def prepend_urls(self):
-        urls = [
-            url(
-                r"^(?P<resource_name>%s)/(?P<resource_id>\d+)/transfer_owner%s$" % (
-                    self._meta.resource_name, trailing_slash()
-                ),
-                self.wrap_view('transfer_owner'), 
-                name="api_transfer_owner"
-            )
-        ]
-
         if settings.HAYSTACK_SEARCH:
-            return urls + [
+            return [
                 url(r"^(?P<resource_name>%s)/search%s$" % (
                     self._meta.resource_name, trailing_slash()
                     ),
-                    self.wrap_view('get_search'), name="api_get_search")
+                    self.wrap_view('get_search'), name="api_get_search"),
             ]
         else:
-            return urls
+            return []
 
 
 class ResourceBaseResource(CommonModelApi):
@@ -570,7 +499,6 @@ class FeaturedResourceBaseResource(CommonModelApi):
     class Meta(CommonMetaApi):
         queryset = ResourceBase.objects.filter(featured=True).order_by('-date')
         resource_name = 'featured'
-
 
 
 class LinkResource(ModelResource):
@@ -600,7 +528,7 @@ class LayerResource(MultipartResource, CommonModelApi):
     links = fields.ToManyField(LinkResource, 'link_set', full=True)
 
     class Meta(CommonMetaApi):
-        queryset = Layer.objects.all().distinct().order_by('-date')
+        queryset = Layer.objects.distinct().order_by('-date')
         resource_name = 'layers'
         excludes = ['csw_anytext', 'metadata_xml', 'layer_type']
         allowed_methods = ['get','post']
