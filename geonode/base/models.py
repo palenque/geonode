@@ -776,6 +776,12 @@ def unshare(instance, **kwargs):
             remove_perm('view_resourcebase', alter_ego, resource)
 
 
+class InternalLink(models.Model):
+    source = models.ForeignKey(ResourceBase, related_name='internal_links_forward_set')
+    target = models.ForeignKey(ResourceBase, related_name='internal_links_backward_set')
+    name = models.CharField(max_length=255, help_text=_('For example "rasterized"'))
+
+
 signals.post_save.connect(rating_post_save, sender=OverallRating)
 signals.post_save.connect(share, sender=TaggedItem)
 signals.post_delete.connect(unshare, sender=TaggedItem)

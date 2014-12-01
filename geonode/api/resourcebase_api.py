@@ -30,11 +30,10 @@ from geonode.apps.models import App
 from geonode.layers.models import Layer, LayerType, AttributeType
 from geonode.layers.views import layer_upload
 
-
 from geonode.maps.models import Map
 from geonode.documents.models import Document
-from geonode.base.models import ResourceBase, TopicCategory, Link
-from .authorization import GeoNodeAuthorization
+from geonode.base.models import ResourceBase, TopicCategory, Link, InternalLink
+from .authorization import GeoNodeAuthorization, InternalLinkAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
     FILTER_TYPES, AppResource
@@ -722,3 +721,19 @@ class DocumentResource(CommonModelApi):
             }
         queryset = Document.objects.distinct().order_by('-date')
         resource_name = 'documents'
+
+
+class InternalLinkResource(ModelResource):
+    class Meta:
+        authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
+        authorization = InternalLinkAuthorization()
+        queryset = InternalLink.objects.all()
+        resource_name = 'internal_links'
+        allowed_methods = ['get','post','delete']
+        filtering = {
+            'name': ALL,
+        }
+        fields = ['name','source','target']
+
+    source = fields.ToOneField(ResourceBaseResource, 'source')
+    target = fields.ToOneField(ResourceBaseResource, 'target')
