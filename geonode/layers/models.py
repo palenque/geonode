@@ -290,7 +290,6 @@ class Layer(ResourceBase):
     storeType = models.CharField(max_length=128)
     name = models.CharField(max_length=128)
     typename = models.CharField(max_length=128, null=True, blank=True)
-    layer_type = models.CharField(max_length=128, null=True, blank=True)
     palenque_type = models.ForeignKey(LayerType, null=True, blank=True)
     metadata_edited = models.BooleanField(blank=True, default=False)
 
@@ -390,7 +389,7 @@ class Layer(ResourceBase):
         return base_files.get()
 
     def get_absolute_url(self):
-        if self.layer_type == 'monitor':
+        if self.palenque_type.name == 'monitor':
             return reverse('monitor_detail', args=(self.service_typename,))
         return reverse('layer_detail', args=(self.service_typename,))
 

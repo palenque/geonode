@@ -102,7 +102,6 @@ class LayerForm(TranslationModelForm):
             'creator',
             'app',
             'metadata_edited',
-            'layer_type',
             'palenque_type',
 
             'contacts',

@@ -320,7 +320,7 @@ def get_bbox(filename):
 
 def file_upload(filename, name=None, user=None, title=None, abstract=None, 
                 skip=True, overwrite=False, keywords=[], charset='UTF-8', 
-                layer_type=None, palenque_type=None, owner=None):
+                palenque_type=None, owner=None):
     """Saves a layer in GeoNode asking as little information as possible.
        Only filename is required, user and title are optional.
     """
@@ -354,7 +354,6 @@ def file_upload(filename, name=None, user=None, title=None, abstract=None,
     bbox_x0, bbox_x1, bbox_y0, bbox_y1 = get_bbox(filename)
 
     defaults = {
-        'layer_type': layer_type,
         'palenque_type': palenque_type,
         'upload_session': upload_session,
         'title': title,
