@@ -102,7 +102,7 @@ class LayerForm(TranslationModelForm):
             'creator',
             'app',
             'metadata_edited',
-            'palenque_type',
+            'layer_type',
 
             'contacts',
             'workspace',
@@ -222,7 +222,7 @@ class NewLayerUploadForm(LayerUploadForm):
     layer_title = forms.CharField(required=False)
     permissions = JSONField(required=False)
     charset = forms.CharField(required=False)
-    palenque_type = forms.ModelChoiceField(
+    layer_type = forms.ModelChoiceField(
         required=False, queryset=LayerType.objects.all()
     )
     owner = forms.CharField(required=False)
@@ -235,11 +235,11 @@ class NewLayerUploadForm(LayerUploadForm):
         "sld_file",
         "xml_file")
 
-    def clean_palenque_type(self):
-        if self.cleaned_data['palenque_type'] is None:
+    def clean_layer_type(self):
+        if self.cleaned_data['layer_type'] is None:
             return LayerType.objects.get(name='default')
         else:
-            return self.cleaned_data['palenque_type']
+            return self.cleaned_data['layer_type']
 
     def clean_owner(self):
         if len(self.cleaned_data['owner']) > 0:
@@ -261,7 +261,7 @@ class LayerAttributeForm(forms.ModelForm):
 
         self.fields['attribute'].widget.attrs['readonly'] = True
         
-        if instance.layer.palenque_type.is_default:
+        if instance.layer.layer_type.is_default:
             self.fields['display_order'].widget.attrs['size'] = 3
         else:
             for field in ['attribute_label','description','display_order']:
@@ -273,7 +273,7 @@ class LayerAttributeForm(forms.ModelForm):
                 [   
                     (a.id, a.label,) 
                     for a in 
-                    instance.layer.palenque_type.attribute_type_set.exclude(
+                    instance.layer.layer_type.attribute_type_set.exclude(
                         is_precalculated=True
                     )
                 ]
@@ -287,9 +287,9 @@ class LayerAttributeForm(forms.ModelForm):
 
     def clean_magnitude(self):
 
-        palenque_type = self.instance.layer.palenque_type
-        if not palenque_type.is_default and self.cleaned_data['field']:
-            if palenque_type.attribute_type_set.filter(id=self.cleaned_data['field']):
+        layer_type = self.instance.layer.layer_type
+        if not layer_type.is_default and self.cleaned_data['field']:
+            if layer_type.attribute_type_set.filter(id=self.cleaned_data['field']):
                 attribute_type = AttributeType.objects.get(id=self.cleaned_data['field'])
                 if not self.cleaned_data['magnitude']:
                     raise forms.ValidationError("Unit not specified. Default is '%s'" \

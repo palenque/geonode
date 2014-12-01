@@ -67,7 +67,7 @@ class BaseDynamicEntityForm(ModelForm):
 
         # TODO: hacer generico?
         attributes = self.entity.get_all_attributes().filter(
-            metadatatype__in=self.instance.palenque_type.metadatatype_set.all()
+            metadatatype__in=self.instance.layer_type.metadatatype_set.all()
         )
 
         for attribute in attributes:

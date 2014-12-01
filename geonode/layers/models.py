@@ -77,7 +77,7 @@ class LayerType(models.Model):
     def update_attributes(self, layer):
         'Updates table fields and attributes to mach layer type attributes.'
 
-        if layer.palenque_type.is_default:
+        if layer.layer_type.is_default:
             return
 
         with transaction.atomic(using="datastore"):
@@ -290,7 +290,7 @@ class Layer(ResourceBase):
     storeType = models.CharField(max_length=128)
     name = models.CharField(max_length=128)
     typename = models.CharField(max_length=128, null=True, blank=True)
-    palenque_type = models.ForeignKey(LayerType, null=True, blank=True)
+    layer_type = models.ForeignKey(LayerType, null=True, blank=True)
     metadata_edited = models.BooleanField(blank=True, default=False)
 
     default_style = models.ForeignKey(
@@ -311,7 +311,7 @@ class Layer(ResourceBase):
         related_name='layer_set')
 
     def update_attributes(self):
-        return self.palenque_type.update_attributes(self)
+        return self.layer_type.update_attributes(self)
 
     def is_vector(self):
         return self.storeType == 'dataStore'
@@ -389,7 +389,7 @@ class Layer(ResourceBase):
         return base_files.get()
 
     def get_absolute_url(self):
-        if self.palenque_type.name == 'monitor':
+        if self.layer_type.name == 'monitor':
             return reverse('monitor_detail', args=(self.service_typename,))
         return reverse('layer_detail', args=(self.service_typename,))
 
