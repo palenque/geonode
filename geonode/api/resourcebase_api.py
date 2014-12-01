@@ -1,7 +1,8 @@
-import re, json
+import re, json, logging
 from django.db.models import Q
 from django.http import HttpResponse
 from django.conf import settings
+from django.db import transaction
 
 from tastypie.authentication import ApiKeyAuthentication, MultiAuthentication, SessionAuthentication
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
@@ -19,14 +20,16 @@ from django.http import Http404
 from tastypie.utils.mime import build_content_type
 from tastypie.http import HttpNoContent, HttpBadRequest
 from tastypie.exceptions import Unauthorized
+from tastypie.exceptions import BadRequest
 
 if settings.HAYSTACK_SEARCH:
     from haystack.query import SearchQuerySet  # noqa
 
 from geonode.people.models import Profile
 from geonode.apps.models import App
-from geonode.layers.models import Layer, Attribute, LayerType
+from geonode.layers.models import Layer, LayerType, AttributeType
 from geonode.layers.views import layer_upload
+
 
 from geonode.maps.models import Map
 from geonode.documents.models import Document
@@ -468,11 +471,12 @@ class CommonModelApi(ModelResource):
             # TODO: Improve
             objects = list(data['objects'].values(*VALUES))
 
-            for obj,realobj in zip(objects,data['objects']):
-
+            for obj,realobj in zip(objects, data['objects']):
+                
                 if obj['palenque_type_id'] is not None:
                    obj['layer_type'] = LayerType.objects.get(id=obj['palenque_type_id']).name
                 obj.pop('palenque_type_id')
+                
                 if obj['category'] is not None: 
                     obj['category_description'] = TopicCategory.objects.get(id=obj['category']).gn_description
 
@@ -583,14 +587,27 @@ class LinkResource(ModelResource):
         }
 
 
+class LayerTypeResource(ModelResource):
+
+    class Meta:
+        resource_name = 'layer_types'
+        queryset = LayerType.objects.all()
+        fields = ['name', 'description', 'fill_metadata']
+        filtering = {
+            'name': ALL,
+        }
+
 class LayerResource(MultipartResource, CommonModelApi):
 
     """Layer API"""
 
+    layer_type = fields.ForeignKey(LayerTypeResource, 'palenque_type', full=True)
+    links = fields.ToManyField(LinkResource, 'link_set', full=True)
+
     class Meta(CommonMetaApi):
         queryset = Layer.objects.all().distinct().order_by('-date')
         resource_name = 'layers'
-        excludes = ['csw_anytext', 'metadata_xml']
+        excludes = ['csw_anytext', 'metadata_xml', 'layer_type']
         allowed_methods = ['get','post']
 
         filtering = {'title': ALL,
@@ -599,18 +616,10 @@ class LayerResource(MultipartResource, CommonModelApi):
                  'owner': ALL_WITH_RELATIONS,
                  'creator': ALL_WITH_RELATIONS,
                  'app': ALL_WITH_RELATIONS,
-                 'layer_type': ALL,
+                 'layer_type': ALL_WITH_RELATIONS,
                  'date': ALL,
                  }
 
-    links = fields.ToManyField(LinkResource, 'link_set', full=True)
-
-
-    def build_filters(self, filters={}):
-        """adds filtering by group functionality"""
-
-        orm_filters = super(LayerResource, self).build_filters(filters)
-        return orm_filters
 
     def obj_create(self, bundle, request=None, **kwargs):
         """
@@ -623,14 +632,15 @@ class LayerResource(MultipartResource, CommonModelApi):
         -F shx_file=@lvVK4NtGvJ.shx 
         -F dbf_file=@lvVK4NtGvJ.dbf 
         -F prj_file=@lvVK4NtGvJ.prj 
+        -F palenque_type=monitor
         -F charset=UTF-8
         -F layer_title='monitor test'
         -F abstract='monitor test'
         -F 'permissions={"users":{},"groups":{}}' 
         -F 'attributes=[
-            {"attribute": "MASA_1", "field": "MASA_HUMEDO", "magnitude": "kg"}, 
-            {"attribute":"MASA_2", "field": "MASA_SECO", "magnitude": "kg"}]'
-        'http://localhost:8000/api/monitors/?username=admin&api_key=xxx'
+            {"attribute": "MASA_1", "mapping": "MASA_HUMEDO", "magnitude": "kg"}, 
+            {"attribute":"MASA_2", "mapping": "MASA_SECO", "magnitude": "kg"}]'
+        'http://localhost:8000/api/layers/?username=admin&api_key=xxx'
 
 
         Ejemplo ppciones de permisos:
@@ -641,18 +651,56 @@ class LayerResource(MultipartResource, CommonModelApi):
         }
         """
 
-        # creates layer
+        attrs = json.loads(bundle.data['attributes'])
+        if not attrs:
+            raise BadRequest('Attributes mapping required')
+
+        # creates a layer
         try:
+            layer_type = LayerType.objects.get(
+                name=bundle.request.POST.get('palenque_type', 'default')
+            )
+            bundle.request.POST['palenque_type'] = layer_type.id
             result = json.loads(layer_upload(bundle.request).content)
         except Exception, e:
-            raise ImmediateHttpResponse(response=HttpBadRequest('Error uploading layer: %s\n' % e.message))
+            raise BadRequest('Error uploading layer')
 
         if result['success']:
             layer = Layer.objects.get(id=result['layer_id'])
         else:
-            raise ImmediateHttpResponse(response=HttpBadRequest(result['errors']))
+            raise BadRequest(result['errors'])
+
+        if layer.palenque_type.is_default:
+            return layer
+
+        # map attributes
+        try:
+            mapping = {a['attribute']: {'mapping': a['mapping'], 'magnitude': a['magnitude']} for a in attrs}
+
+            with transaction.atomic(using="default"):
+                
+                for attr in layer.attribute_set.filter(attribute__in=mapping.keys()):
+                    attr.field = str(
+                        AttributeType.objects.get(
+                            layer_type=layer.palenque_type, 
+                            name=mapping[attr.attribute]['mapping']
+                        ).id
+                    )
+                    attr.magnitude = mapping[attr.attribute]['magnitude']
+                    attr.save()
+
+                layer.update_attributes()
+                layer.metadata_edited = True
+                layer.save()
+
+        except Exception, e:
+            logging.exception('Error trying to map fields')
+            layer.delete()
+            raise BadRequest('Error trying to map fields')
 
         return layer
+
+
 
 
 class MapResource(CommonModelApi):

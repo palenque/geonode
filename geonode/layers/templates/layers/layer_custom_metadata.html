@@ -11,8 +11,6 @@
 </style>
 {% endblock %}
 
-
-
 {% block title %}{{ layer.typename }} — {{ block.super }}{% endblock %}
 
 {% block body_class %}data{% endblock %}
@@ -30,12 +28,11 @@
         Some of your original metadata may have been lost.{% endblocktrans %}</div>
     {% endif %}
 
-    {% bootstrap_form_errors layer_form  %}
     {% bootstrap_formset_errors attribute_form  %}
 
     {% csrf_token %}
     <div class="form-controls">
-      {{ layer_form|bootstrap_horizontal }}
+      {% bootstrap_form layer_form layout='horizontal' %}
     </div>
 
     {% comment %}
@@ -73,7 +70,7 @@
       </tr>
       <tbody>
         {% for form in attribute_form.forms %}
-        {% if form.attribute %}
+        {% if form.attribute and form.visible.value%}
         <div class="hidden">
         {{form.attribute_label}} {{form.display_order}} {{form.description}}
         </div>

@@ -3,11 +3,10 @@ import json
 from tastypie.resources import Resource
 from tastypie.exceptions import BadRequest
 
-from geonode.layers.models import Layer
+from geonode.layers.models import Layer, LayerType
 from geonode.monitors.views import monitor_upload, monitor_metadata
 
 from .resourcebase_api import MultipartResource, CommonModelApi, CommonMetaApi
-
 
 
 class MonitorResource(MultipartResource, CommonModelApi):
@@ -31,13 +30,14 @@ class MonitorResource(MultipartResource, CommonModelApi):
         -F shx_file=@lvVK4NtGvJ.shx 
         -F dbf_file=@lvVK4NtGvJ.dbf 
         -F prj_file=@lvVK4NtGvJ.prj 
+        -F palenque_type=monitor
         -F charset=UTF-8
         -F layer_title='monitor test'
         -F abstract='monitor test'
         -F 'permissions={"users":{},"groups":{}}' 
         -F 'attributes=[
-            {"attribute": "MASA_1", "field": "MASA_HUMEDO", "magnitude": "kg"}, 
-            {"attribute":"MASA_2", "field": "MASA_SECO", "magnitude": "kg"}]'
+            {"attribute": "MASA_1", "mapping": "MASA_HUMEDO", "magnitude": "kg"}, 
+            {"attribute":"MASA_2", "mapping": "MASA_SECO", "magnitude": "kg"}]'
         'http://localhost:8000/api/monitors/?username=admin&api_key=xxx'
 
 
@@ -49,11 +49,14 @@ class MonitorResource(MultipartResource, CommonModelApi):
         }
         """
 
-        from geonode.monitors.views import _rename_fields, _precalculate_yield
+        attrs = json.loads(bundle.data['attributes'])
+        if not attrs:
+            raise BadRequest('Attributes mapping required')
 
-        # creates layer
+        # creates a layer
         try:
             result = json.loads(monitor_upload(bundle.request).content)
+            result['palenque_type'] = LayerType.objects.get(name=result.get('palenque_type'))
         except Exception, e:
             raise BadRequest('Error uploading monitor')
 
@@ -61,24 +64,29 @@ class MonitorResource(MultipartResource, CommonModelApi):
             layer = Layer.objects.get(id=result['layer_id'])
         else:
             raise BadRequest(result['errors'])
-
-
-        attrs = json.loads(bundle.data['attributes'])
-        if not attrs:
-            raise BadRequest('Attributes mapping required')
-
+        
+        return layer
+        # map attributes
         try:
-            mapping = {a['attribute']: {'field': a['field'], 'magnitude': a['magnitude']} for a in attrs}
+            mapping = {a['attribute']: {'field': a['mapping'], 'magnitude': a['magnitude']} for a in attrs}
 
-            # FIXME: validar campos requeridos
+            with transaction.commit_manually(using="default"):
 
-            for attr in layer.attribute_set.filter(attribute__in=mapping.keys()):
-                attr.field = mapping[attr.attribute]['field']
-                attr.magnitude = mapping[attr.attribute]['magnitude']
-                attr.save()
+                # FIXME: validar campos requeridos
+                for attr in layer.attribute_set.filter(attribute__in=mapping.keys()):
+                    attr.field = mapping[attr.attribute]['mapping']
+                    attr.magnitude = mapping[attr.attribute]['magnitude']
+                    attr.save()
 
-            _rename_fields(layer)
-            _precalculate_yield(layer)
+                try:
+                    layer.update_attributes(commit=False)
+                except:
+                    layer_form._errors[NON_FIELD_ERRORS] = layer_form.error_class([
+                        _(u'Some attributes could be updated. Please review association and types.')
+                    ])
+                else:
+                    layer.update_attributes()
+                    updated_attributes = True
 
         except Exception, e:
             layer.delete()

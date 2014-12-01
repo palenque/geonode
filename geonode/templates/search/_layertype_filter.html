@@ -4,7 +4,7 @@
   <ul class="nav closed" id="layer_types">
     {% verbatim %}
       <li ng-repeat="layer_type in layer_types">
-        <a data-value="{{ layer_type.name }}" data-filter="layer_type__in" 
+        <a data-value="{{ layer_type.name }}" data-filter="layer_type__name__in" 
          ng-click="multiple_choice_listener($event)" class="{{layer_type.active}}">{{ layer_type.name }}
           <span class="badge pull-right">{{ layer_type.count }}</span>
         </a>

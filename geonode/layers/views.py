@@ -22,6 +22,7 @@ import os
 import logging
 import shutil
 
+from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.core.urlresolvers import reverse
 from django.core.exceptions import PermissionDenied
@@ -462,29 +463,23 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
         or layer.metadata_edited)
     ):
 
-        updated_attributes = False
-
         if not layer.metadata_edited:
-            # intenta actualizar los attributos y campos en la tabla
-            attribute_form.save(commit=False)
             try:
-                layer.update_attributes(commit=False)                
+
+                with transaction.atomic(using='default'):
+                    attribute_form.save()
+                    layer.update_attributes()
+
+                the_layer = layer_form.save()
+                the_layer.metadata_edited = True
+                the_layer.save()
+
+                return HttpResponseRedirect(reverse('layer_detail', args=(layer.service_typename,)))
+
             except:
                 layer_form._errors[NON_FIELD_ERRORS] = layer_form.error_class([
                     _(u'Some attributes could be updated. Please review association and types.')
                 ])
-            else:
-                transaction.commit(using='default')
-                transaction.rollback(using='default')
-                attribute_form.save()
-                layer.update_attributes()
-                updated_attributes = True
-
-        if updated_attributes and not layer.palenque_type.is_default: 
-            the_layer = layer_form.save()
-            the_layer.metadata_edited = True
-            the_layer.save()
-            return HttpResponseRedirect(reverse('layer_detail', args=(layer.service_typename,)))
 
     new_attribute_form = layer_attribute_set(
         instance=layer,

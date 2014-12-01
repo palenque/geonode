@@ -22,6 +22,7 @@ import logging
 
 from datetime import datetime
 
+from django.db import transaction
 from django.db import models, connections
 from django.db.models import signals
 from django.contrib.contenttypes.models import ContentType
@@ -51,7 +52,6 @@ vec_exts = shp_exts + csv_exts + kml_exts
 cov_exts = ['.tif', '.tiff', '.geotiff', '.geotif']
 
 
-from django.db import transaction
 
 class LayerType(models.Model):
     'Layer type'
@@ -74,35 +74,23 @@ class LayerType(models.Model):
         help_text=_('show category in metadata')
     )
 
-    def update_attributes(self, layer, commit=True):
+    def update_attributes(self, layer):
         'Updates table fields and attributes to mach layer type attributes.'
-        
-        with transaction.commit_manually(using="default"):
-            try:
-                with transaction.commit_manually(using="datastore"):
-                    try:
-                        self._rename_fields(layer)
-                        self._normalize_units(layer)
-                        self._precalculate_fields(layer)
-                    except:
-                        logging.exception('datastore')
-                        transaction.rollback(using='datastore')
-                        raise
-                    else:
-                        if commit:
-                            transaction.commit(using='datastore')
-                        else:
-                            transaction.rollback(using='datastore')
-            except:
-                logging.exception('default')
-                transaction.rollback(using='default')
-                raise
-            else:
-                if commit:
-                    transaction.commit(using='default')
-                else:
-                    transaction.rollback(using='default')
 
+        if layer.palenque_type.is_default:
+            return
+
+        with transaction.atomic(using="datastore"):
+            self._validate_required_attributes(layer)
+            self._rename_fields(layer)
+            self._normalize_units(layer)
+            self._precalculate_fields(layer)
+
+    def _validate_required_attributes(self, layer):
+
+        for attr_type in self.required_attributes():
+            if not layer.attribute_set.filter(field=str(attr_type.id)):
+                raise Exception('Attribute Type required')
 
     def _normalize_units(self, layer):
         'Converts units.'
@@ -124,12 +112,12 @@ class LayerType(models.Model):
                 )
             )
 
+            attr.magnitude = attr_type.magnitude
+            attr.save()
+
 
     def _precalculate_fields(self, layer):
         'Creates fields and precalculate fields.'
-
-        if layer.palenque_type.is_default:
-            return
 
         cursor = connections['datastore'].cursor()
 
@@ -140,15 +128,11 @@ class LayerType(models.Model):
                 )
             )
 
-
     def _rename_fields(self, layer):
         'Renames fiels in the layer table.'
 
-        if layer.palenque_type.is_default:
-            return
-
         cursor = connections['datastore'].cursor()
-    
+
         # borra campos y atributos no completados
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
             if not attr.field:
@@ -169,6 +153,7 @@ class LayerType(models.Model):
                     )
                 )
                 attr.attribute = attr_type.name
+                attr.visible = True
                 attr.save()
 
         # crea atributos y campos para campos precalculados
@@ -184,7 +169,7 @@ class LayerType(models.Model):
                 attribute=attr_type.name,
                 attribute_label=attr_type.name,
                 field=str(attr_type.id),
-                attribute_type='',
+                attribute_type=attr_type.attribute_type,
                 magnitude=attr_type.magnitude
             ).save()
 
@@ -326,8 +311,8 @@ class Layer(ResourceBase):
         blank=True,
         related_name='layer_set')
 
-    def update_attributes(self, commit=True):
-        return self.palenque_type.update_attributes(self, commit)
+    def update_attributes(self):
+        return self.palenque_type.update_attributes(self)
 
     def is_vector(self):
         return self.storeType == 'dataStore'
@@ -405,7 +390,7 @@ class Layer(ResourceBase):
         return base_files.get()
 
     def get_absolute_url(self):
-        if self.layer_type == 'monitor' or (self.palenque_type is not None and self.palenque_type.name == 'monitor'):
+        if self.layer_type == 'monitor':
             return reverse('monitor_detail', args=(self.service_typename,))
         return reverse('layer_detail', args=(self.service_typename,))
 

@@ -337,14 +337,14 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "description": null, 
+        "description": "", 
         "attribute_type": "xsd:string", 
         "required": false, 
-        "sql_magnitude": null, 
+        "sql_magnitude": "", 
         "label": "Velocidad", 
-        "magnitude": "m", 
+        "magnitude": "km/h", 
         "is_precalculated": false, 
-        "sql_expression": null, 
+        "sql_expression": "", 
         "name": "VELOCIDAD"
     }
 },
