@@ -4,12 +4,12 @@ from .api import TagResource, TopicCategoryResource, ProfileResource, \
     GroupResource, AppResource, LayerTypeResource
 from .resourcebase_api import LayerResource, MapResource, DocumentResource, \
     ResourceBaseResource, FeaturedResourceBaseResource, LinkResource
-from .monitor_api import MonitorResource
+#from .monitor_api import MonitorResource
 
 api = Api(api_name='api')
 
 api.register(LayerResource())
-api.register(MonitorResource())
+#api.register(MonitorResource())
 api.register(MapResource())
 api.register(DocumentResource())
 api.register(ProfileResource())

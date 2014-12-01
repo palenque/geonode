@@ -70,7 +70,6 @@
     <ul class="nav nav-pills filter">
       <li><a href="{{ object.detail_url }}" {% if content_filter  == "all" %}class="selected"{% endif %}>{% trans "All contents" %}</a></li>
       <li><a href="{{ object.detail_url }}?content=layers"{% if content_filter == "layers" %} class="selected"{% endif %}>{% trans "Layers" %}</a></li>
-      <li><a href="{{ object.detail_url }}?content=monitors"{% if content_filter == "monitors" %} class="selected"{% endif %}>{% trans "Monitors" %}</a></li>
       <li><a href="{{ object.detail_url }}?content=maps"{% if content_filter == "maps" %} class="selected"{% endif %}>{% trans "Maps" %}</a></li>
       <li><a href="{{ object.detail_url }}?content=documents"{% if content_filter == "documents" %} class="selected"{% endif %}>{% trans "Documents" %}</a></li>
       <li><a href="{{ object.detail_url }}?content={{ content_filter }}&sortby=date"{% if sortby_field == "date" %} class="selected"{% endif %}>{% trans "Sort by date" %}</a></li>

@@ -389,8 +389,8 @@ class Layer(ResourceBase):
         return base_files.get()
 
     def get_absolute_url(self):
-        if self.layer_type.name == 'monitor':
-            return reverse('monitor_detail', args=(self.service_typename,))
+        # if self.layer_type.name == 'monitor':
+        #     return reverse('monitor_detail', args=(self.service_typename,))
         return reverse('layer_detail', args=(self.service_typename,))
 
     def attribute_config(self):
