@@ -456,7 +456,7 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
         
         if not layer.metadata_edited:
             guess_attribute_match(layer,attribute_form)
-    import pdb;pdb.set_trace()
+
     if (
         request.method == "POST" and 
         layer_form.is_valid() and 
@@ -465,7 +465,7 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
     ):
 
         the_layer = layer_form.save()
-        
+
         if not layer.metadata_edited:
             try:
 
