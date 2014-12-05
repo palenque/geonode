@@ -90,7 +90,7 @@ class LayerType(models.Model):
 
         for attr_type in self.required_attributes():
             if not layer.attribute_set.filter(field=str(attr_type.id)):
-                raise Exception('Attribute Type required')
+                raise Exception(_('Attribute Type "%s" required') % attr_type.name)
 
     def _normalize_units(self, layer):
         'Converts units.'
@@ -103,30 +103,50 @@ class LayerType(models.Model):
             if attr_type.is_precalculated:
                 continue
             
-            cursor.execute(
-                '''UPDATE %s SET "%s" = "%s" * %s;''' % (
-                    layer.name, 
-                    attr.attribute, 
-                    attr.attribute,
-                    str(units(attr.magnitude).to(attr_type.magnitude).magnitude)
+            try:
+                cursor.execute(
+                    '''UPDATE %s SET "%s" = "%s" * %s;''' % (
+                        layer.name, 
+                        attr.attribute, 
+                        attr.attribute,
+                        str(units(attr.magnitude).to(attr_type.magnitude).magnitude)
+                    )
                 )
-            )
+            except Exception as e:
+                logging.exception('Error normalizing magnitudes')
+                raise Exception(
+                    'Error normalizing magnitude for field %s to %s.') % (
+                        attr.attribute, 
+                        str(units(attr.magnitude).to(attr_type.magnitude).magnitude
+                    ) + \
+                    'Please check magnitudes.'
+                )
 
             attr.magnitude = attr_type.magnitude
             attr.save()
 
 
     def _precalculate_fields(self, layer):
-        'Creates fields and precalculate fields.'
+        'Precalculates fields.'
 
         cursor = connections['datastore'].cursor()
 
         for attr in self.attribute_type_set.filter(is_precalculated=True):
-            cursor.execute(
-                '''UPDATE %s SET "%s" = %s;''' % (
-                    layer.name, attr.name, attr.sql_expression
+            try:
+                cursor.execute(
+                    '''UPDATE %s SET "%s" = %s;''' % (
+                        layer.name, attr.name, attr.sql_expression
+                    )
                 )
-            )
+            except Exception as e:
+                import pdb;pdb.set_trace()
+                logging.exception('Error trying to precalculate field "%s".' % attr.name)
+                raise Exception(
+                    'Error trying to precalculate field "%s" (%s).' % (
+                        attr.name, attr.sql_expression
+                    ) + \
+                    'Please check field types, associations and values.'
+                )
 
     def _rename_fields(self, layer):
         'Renames fiels in the layer table.'
@@ -136,33 +156,56 @@ class LayerType(models.Model):
         # borra campos y atributos no completados
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
             if not attr.field:
-                cursor.execute(
-                    'ALTER TABLE %s DROP COLUMN "%s";' % (
-                        layer.name, attr.attribute
+                try:
+                    cursor.execute(
+                        'ALTER TABLE %s DROP COLUMN "%s";' % (
+                            layer.name, attr.attribute
+                        )
                     )
-                )
+                except Exception as e:
+                    logging.exception('Error droping field "%s".' % attr.attribute)
+                    raise Exception(
+                        'Error droping field "%s". ' % attr.attribute + \
+                        'Please check field associations.'
+                    )
                 attr.delete()
 
         # renombra demas atributos y campos
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
             attr_type = AttributeType.objects.get(id=attr.field)
             if not attr_type.is_precalculated and attr.attribute != attr_type.name:
-                cursor.execute(
-                    'ALTER TABLE %s RENAME COLUMN "%s" to "%s";' % (
-                        layer.name, attr.attribute, attr_type.name
+                try:
+                    cursor.execute(
+                        'ALTER TABLE %s RENAME COLUMN "%s" to "%s";' % (
+                            layer.name, attr.attribute, attr_type.name
+                        )
                     )
-                )
+                except Exception as e:
+                    logging.exception(
+                        'Error renaming field "%s" to "%s"' % (attr.attribute, attr_type.name)
+                    )
+                    raise Exception(
+                        'Error renaming field "%s" to "%s". ' % (attr.attribute, attr_type.name) + \
+                        'Please check field associations.'
+                    )
                 attr.attribute = attr_type.name
                 attr.visible = True
                 attr.save()
 
         # crea atributos y campos para campos precalculados
         for attr_type in self.attribute_type_set.filter(is_precalculated=True):
-            cursor.execute(
-                '''ALTER TABLE %s ADD "%s" %s;''' % (
-                    layer.name, attr_type.name, attr_type.attribute_type
+            try:
+                cursor.execute(
+                    '''ALTER TABLE %s ADD "%s" %s;''' % (
+                        layer.name, attr_type.name, attr_type.attribute_type
+                    )
                 )
-            )
+            except Exception as e:
+                logging.exception('Error creating field "%s".' % attr_type.name)
+                raise Exception(
+                    'Error renaming field "%s". ' % attr_type.name + \
+                    'Please check field associations.'
+                )
 
             Attribute(
                 layer=layer, 
@@ -178,14 +221,29 @@ class LayerType(models.Model):
             attr_type = AttributeType.objects.get(id=attr.field)
 
             if attr_type.is_precalculated:
-                cursor.execute(
-                    '''UPDATE %s SET "%s" = "%s" * %s;''' % (
-                        layer.name, 
-                        attr.attribute, 
-                        attr.attribute,
-                        str(units(attr.magnitude).to(attr_type.sql_magnitude).magnitude)
+                try:
+                    cursor.execute(
+                        '''UPDATE %s SET "%s" = "%s" * %s;''' % (
+                            layer.name, 
+                            attr.attribute, 
+                            attr.attribute,
+                            str(units(attr.magnitude).to(attr_type.sql_magnitude).magnitude)
+                        )
                     )
-                )
+                except Exception as e:
+                    logging.exception(
+                        'Error converting magnitude for field "%s" to "%s".' % (
+                            attr.attribute,
+                            str(units(attr.magnitude).to(attr_type.sql_magnitude).magnitude)
+                        )
+                    )
+                    raise Exception(
+                        'Error converting magnitude for field "%s" to "%s". ' % (
+                            attr.attribute,
+                            str(units(attr.magnitude).to(attr_type.sql_magnitude).magnitude)
+                        ) + 'Please check magnitudes.'
+                    )
+
 
     def required_attributes(self):
         return self.attribute_type_set.filter(required=True).exclude(is_precalculated=True)

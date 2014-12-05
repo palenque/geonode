@@ -476,10 +476,8 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
 
                 return HttpResponseRedirect(reverse('layer_detail', args=(layer.service_typename,)))
 
-            except:
-                layer_form._errors[NON_FIELD_ERRORS] = layer_form.error_class([
-                    _(u'Some attributes could be updated. Please review association and types.')
-                ])
+            except Exception as e:
+                layer_form._errors[NON_FIELD_ERRORS] = layer_form.error_class([unicode(e)])
 
     new_attribute_form = layer_attribute_set(
         instance=layer,

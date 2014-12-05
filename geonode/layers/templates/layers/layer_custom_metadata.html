@@ -70,11 +70,11 @@
       </tr>
       <tbody>
         {% for form in attribute_form.forms %}
-        {% if form.attribute and form.visible.value%}
+        {% if form.attribute %}
         <div class="hidden">
         {{form.attribute_label}} {{form.display_order}} {{form.description}}
         </div>
-        <tr>
+        <tr class="{% if not form.visible.value %}{% endif %}">
           <td><div style="display:none">{{form.id}}</div>{% bootstrap_field form.attribute layout='inline' %}</td>
           <td>{% bootstrap_field form.field layout='inline' %} </td>
           <td> {% bootstrap_field form.magnitude layout='inline' %} </td>

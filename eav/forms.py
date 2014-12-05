@@ -51,8 +51,8 @@ class BaseDynamicEntityForm(ModelForm):
         'int': IntegerField,
         'date': DateTimeField,
         'bool': BooleanField,
-        # 'enum': ChoiceField,
-        'enum': ModelChoiceField
+        'enum': ChoiceField,
+        # 'enum': ModelChoiceField
     }
 
     def __init__(self, data=None, *args, **kwargs):
@@ -82,17 +82,16 @@ class BaseDynamicEntityForm(ModelForm):
 
             datatype = attribute.datatype
             if datatype == attribute.TYPE_ENUM:
-                enums = attribute.get_choices() \
-                                 .values_list('id', 'value')
+                enums = attribute.get_choices().values_list('value', 'value')
 
                 choices = [('', '-----')] + list(enums)
 
-                # defaults.update({'choices': choices})
-                # # import pdb;pdb.set_trace()
-                defaults.update({'queryset': attribute.get_choices()})
+                defaults.update({'choices': choices})
+                # defaults.update({'queryset': attribute.get_choices()})
                 if value:
                     # defaults.update({'initial': value.pk})
-                    defaults.update({'initial': value})
+                    defaults.update({'initial': value.value})
+
 
             elif datatype == attribute.TYPE_DATE:
                 defaults.update({'widget': AdminSplitDateTime})
@@ -125,10 +124,10 @@ class BaseDynamicEntityForm(ModelForm):
         for attribute in self.entity.get_all_attributes():
             value = self.cleaned_data.get(attribute.slug)
             if attribute.datatype == attribute.TYPE_ENUM:
-                # if value:
-                #     value = attribute.enum_group.enums.get(pk=value)
-                # else:
-                if not value:
+                if value:
+                    # value = attribute.enum_group.enums.get(pk=value)
+                    value = attribute.enum_group.enums.get(value=value)
+                else:
                     value = None
 
             setattr(self.entity, attribute.slug, value)
