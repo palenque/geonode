@@ -27,7 +27,7 @@ class YieldMonitorProcessing(object):
             return ans
         layer_type = 'monitor'
         resp = requests.get('%s/layers' % self.palenque_api_url, 
-            params=dict(owner__username=username, palenque_type__name=layer_type, api_key=self.api_key, username=self.username))
+            params=dict(owner__username=username, layer_type__name=layer_type, api_key=self.api_key, username=self.username))
         if not resp.ok:
             ans = dict(status='error', message=resp.text)
             return ans

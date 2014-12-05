@@ -109,7 +109,7 @@ for _id, producto, campania in monitores_serie_1[:1]:
                 'attributes': json.dumps(attributes),
                 'charset':'UTF-8',
                 'keywords': u"Agricultura de precisión, Mapa de rinde",
-                'palenque_type': 'monitor',
+                'layer_type': 'monitor',
                 'layer_title': _id,
                 # 'abstract': resource['description'],
                 'permissions': '{"users":{},"groups":{}}'             

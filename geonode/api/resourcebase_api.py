@@ -723,7 +723,7 @@ class LayerResource(MultipartResource, CommonModelApi):
                         super(LayerMetadataForm, self).__init__(data, *args, **kwargs)
                         meta_fields = [
                             a.slug for a in layer.eav.get_all_attributes().filter(
-                                metadatatype__in=layer.palenque_type.metadatatype_set.all()
+                                metadatatype__in=layer.layer_type.metadatatype_set.all()
                             )
                         ]
                         for f in self.fields.keys():

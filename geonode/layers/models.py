@@ -90,7 +90,7 @@ class LayerType(models.Model):
 
         for attr_type in self.required_attributes():
             if not layer.attribute_set.filter(field=str(attr_type.id)):
-                raise Exception(_('Attribute Type "%s" required') % attr_type.name)
+                raise Exception('Attribute Type "%s" required' % attr_type.name)
 
     def _normalize_units(self, layer):
         'Converts units.'
@@ -115,9 +115,9 @@ class LayerType(models.Model):
             except Exception as e:
                 logging.exception('Error normalizing magnitudes')
                 raise Exception(
-                    'Error normalizing magnitude for field %s to %s.') % (
+                    'Error normalizing magnitude for field %s to %s. ' % (
                         attr.attribute, 
-                        str(units(attr.magnitude).to(attr_type.magnitude).magnitude
+                        str(units(attr.magnitude).to(attr_type.magnitude).magnitude)
                     ) + \
                     'Please check magnitudes.'
                 )
@@ -139,7 +139,6 @@ class LayerType(models.Model):
                     )
                 )
             except Exception as e:
-                import pdb;pdb.set_trace()
                 logging.exception('Error trying to precalculate field "%s".' % attr.name)
                 raise Exception(
                     'Error trying to precalculate field "%s" (%s).' % (
