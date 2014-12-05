@@ -32,11 +32,10 @@ from geonode.apps.models import App
 from geonode.layers.models import Layer, LayerType, AttributeType
 from geonode.layers.views import layer_upload
 
-
 from geonode.maps.models import Map
 from geonode.documents.models import Document
-from geonode.base.models import ResourceBase, TopicCategory, Link
-from .authorization import GeoNodeAuthorization
+from geonode.base.models import ResourceBase, TopicCategory, Link, InternalLink
+from .authorization import GeoNodeAuthorization, InternalLinkAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
     FILTER_TYPES, AppResource
@@ -81,7 +80,6 @@ class CommonMetaApi:
                  'category': ALL_WITH_RELATIONS,
                  'owner': ALL_WITH_RELATIONS,
                  'creator': ALL_WITH_RELATIONS,
-                 'app': ALL_WITH_RELATIONS,
                  'date': ALL,
                  }
     ordering = ['date', 'title', 'popular_count']
@@ -97,7 +95,6 @@ class CommonModelApi(ModelResource):
         full=True)
     owner = fields.ToOneField(ProfileResource, 'owner', full=True)
     creator = fields.ToOneField(ProfileResource, 'creator', full=True, null=True)
-    app = fields.ToOneField(AppResource, 'app', full=True, null=True)
 
     def build_filters(self, filters={}):
         orm_filters = super(CommonModelApi, self).build_filters(filters)
@@ -442,7 +439,6 @@ class CommonModelApi(ModelResource):
         VALUES = [
             # fields in the db
             'creator',
-            'app',
 
             'id',
             'uuid',
@@ -463,7 +459,7 @@ class CommonModelApi(ModelResource):
             'detail_url',
             'rating',
             'metadata_edited',
-            'palenque_type_id'
+            'layer_type'
         ]
 
         if isinstance(
@@ -478,9 +474,8 @@ class CommonModelApi(ModelResource):
 
             for obj,realobj in zip(objects, data['objects']):
                 
-                if obj['palenque_type_id'] is not None:
-                   obj['layer_type'] = LayerType.objects.get(id=obj['palenque_type_id']).name
-                obj.pop('palenque_type_id')
+                if obj['layer_type'] is not None:
+                   obj['layer_type'] = LayerType.objects.get(id=obj['layer_type']).name
                 
                 if obj['category'] is not None: 
                     obj['category_description'] = TopicCategory.objects.get(id=obj['category']).gn_description
@@ -571,7 +566,7 @@ class ResourceBaseResource(CommonModelApi):
             .distinct().order_by('-date')
         resource_name = 'base'
         excludes = ['csw_anytext', 'metadata_xml']
-
+        authorization = GeoNodeAuthorization()
 
 class FeaturedResourceBaseResource(CommonModelApi):
 
@@ -606,7 +601,7 @@ class LayerResource(MultipartResource, CommonModelApi):
 
     """Layer API"""
 
-    layer_type = fields.ForeignKey(LayerTypeResource, 'palenque_type', full=True)
+    layer_type = fields.ForeignKey(LayerTypeResource, 'layer_type', full=True)
     links = fields.ToManyField(LinkResource, 'link_set', full=True)
 
     class Meta(CommonMetaApi):
@@ -620,7 +615,6 @@ class LayerResource(MultipartResource, CommonModelApi):
                  'category': ALL_WITH_RELATIONS,
                  'owner': ALL_WITH_RELATIONS,
                  'creator': ALL_WITH_RELATIONS,
-                 'app': ALL_WITH_RELATIONS,
                  'layer_type': ALL_WITH_RELATIONS,
                  'date': ALL,
                  }
@@ -637,7 +631,7 @@ class LayerResource(MultipartResource, CommonModelApi):
         -F shx_file=@lvVK4NtGvJ.shx 
         -F dbf_file=@lvVK4NtGvJ.dbf 
         -F prj_file=@lvVK4NtGvJ.prj 
-        -F palenque_type=monitor
+        -F layer_type=monitor
         -F charset=UTF-8
         -F layer_title='monitor test'
         -F abstract='monitor test'
@@ -658,12 +652,13 @@ class LayerResource(MultipartResource, CommonModelApi):
         }
         """
 
+
         # creates a layer
         try:
             layer_type = LayerType.objects.get(
-                name=bundle.request.POST.get('palenque_type', 'default')
+                name=bundle.request.POST.get('layer_type', 'default')
             )
-            bundle.request.POST['palenque_type'] = layer_type.id
+            bundle.request.POST['layer_type'] = layer_type.id
             result = json.loads(layer_upload(bundle.request).content)
         except Exception, e:
             raise BadRequest('Error uploading layer: %s' % unicode(e))
@@ -690,7 +685,7 @@ class LayerResource(MultipartResource, CommonModelApi):
         else:
             raise BadRequest('Error metadata: %s' % json.dumps(form.errors))
 
-        if layer.palenque_type.is_default:
+        if layer.layer_type.is_default:
             return layer
 
         # save attributes
@@ -709,7 +704,7 @@ class LayerResource(MultipartResource, CommonModelApi):
                 for attr in layer.attribute_set.filter(attribute__in=mapping.keys()):
                     attr.field = str(
                         AttributeType.objects.get(
-                            layer_type=layer.palenque_type, 
+                            layer_type=layer.layer_type, 
                             name=mapping[attr.attribute]['mapping']
                         ).id
                     )
@@ -782,3 +777,19 @@ class DocumentResource(CommonModelApi):
             }
         queryset = Document.objects.distinct().order_by('-date')
         resource_name = 'documents'
+
+
+class InternalLinkResource(ModelResource):
+    class Meta:
+        authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
+        authorization = InternalLinkAuthorization()
+        queryset = InternalLink.objects.all()
+        resource_name = 'internal_links'
+        allowed_methods = ['get','post','delete']
+        filtering = {
+            'name': ALL,
+        }
+        fields = ['name','source','target']
+
+    source = fields.ToOneField(ResourceBaseResource, 'source')
+    target = fields.ToOneField(ResourceBaseResource, 'target')

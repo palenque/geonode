@@ -10,8 +10,8 @@ import subprocess
 class YieldMonitorProcessing(object):
     lookup = TemplateLookup(directories=[os.path.join(os.path.dirname(__file__),'templates')])
     palenque_api_url = 'http://localhost:8000/api'
-    username = 'app3'
-    api_key = 'e5dd0825188c7e68ff9883f0bb98fbb2d67d2e68'
+    username = 'yieldmonproc'
+    api_key = 'bd51709e7c2a867e6debb058fbc99e321253e02e'
 
     @cherrypy.expose
     def index(self):
@@ -27,18 +27,26 @@ class YieldMonitorProcessing(object):
             return ans
         layer_type = 'monitor'
         resp = requests.get('%s/layers' % self.palenque_api_url, 
-            params=dict(owner__username=username, layer_type=layer_type, api_key=self.api_key, username=self.username))
+            params=dict(owner__username=username, palenque_type__name=layer_type, api_key=self.api_key, username=self.username))
         if not resp.ok:
             ans = dict(status='error', message=resp.text)
             return ans
         data = simplejson.loads(resp.text)
-        print data
+        
+        resp = requests.get('%s/internal_links/' % self.palenque_api_url,
+            params=dict(resource__owner__username=username, name='rasterized', api_key=self.api_key, username=self.username))
+        if not resp.ok:
+            ans = dict(status='error', message=resp.text)
+            return ans
+        data2 = simplejson.loads(resp.text)
+
         objs = []
         for obj in data['objects']:
             objs.append(dict(
                 id=obj['id'],
-                product=obj['category_description'],
+                product=obj['supplemental_information'], #category_description'],
                 date=obj['date'],
+                processed=any(x for x in data2['objects'] if x['source'] == '/api/base/%s/' % obj['id']),
                 title=obj['title']))
         ans=dict(status='ok',objects=objs)
         return ans
@@ -54,11 +62,13 @@ class YieldMonitorProcessing(object):
         urllib.urlretrieve(url, "/tmp/layer/layer.zip")
         subprocess.call(['unzip','/tmp/layer/layer.zip'])
 
-        dirname = os.path.dirname(__file__)
-        subprocess.call(os.path.join(dirname,'process_'
+        # dirname = os.path.dirname(__file__)
+        # subprocess.call(os.path.join(dirname,'process_'
+
     @cherrypy.expose
     @cherrypy.tools.json_out()
     def process(self, username, layer_id):
+        import ipdb; ipdb.set_trace()
         # get original layer data
         resp = requests.get('%s/layers/%s' % (self.palenque_api_url,layer_id),
             params={'owner__username':username, 'api_key':self.api_key, 'username':self.username})
@@ -67,11 +77,11 @@ class YieldMonitorProcessing(object):
             return ans
         layer = simplejson.loads(resp.text)
 
-        # download the data
-        shape_url = (x for x in layer['links'] if x['mime'] == "SHAPE-ZIP").next()
-        print shape_url['url']
-        self.download(shape_url['url'])
-        return "OK"
+        # # # download the data
+        # # shape_url = (x for x in layer['links'] if x['mime'] == "SHAPE-ZIP").next()
+        # # print shape_url['url']
+        # # self.download(shape_url['url'])
+        # # return "OK"
 
         # upload new layer
         params = {'username': self.username, 'api_key': self.api_key}
@@ -87,13 +97,14 @@ class YieldMonitorProcessing(object):
         url = resp.headers['location']
         new_layer_id = url.split('/')[-2]
 
-        # # link new layer
-        # url = '%s/layers/%s/links/' % (self.palenque_api_url, layer_id)
-        # data = {'direction':'forward', 'target':'/api/layers/%s/' % new_layer_id, 'link_type': 'rasterized'}
-        # resp = requests.post(url, headers=headers, params=params, data=simplejson.dumps(data))
-        # if not resp.ok:
-        #     ans = dict(status='error', message=resp.text)
-        #     return ans
+        # link new layer
+        url = '%s/internal_links/' % self.palenque_api_url
+        data = {'name': 'rasterized', 'source': '/api/base/%s/' % layer['id'], 'target': '/api/base/%s/' % new_layer_id}
+        headers['Content-Type'] = 'application/json'
+        resp = requests.post(url, headers=headers, params=params, data=simplejson.dumps(data))
+        if not resp.ok:
+            ans = dict(status='error', message=resp.text)
+            return ans
 
         # ok!!
         ans = dict(status='ok', message=resp.text)

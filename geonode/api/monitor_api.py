@@ -15,7 +15,7 @@ class MonitorResource(MultipartResource, CommonModelApi):
 
     class Meta(CommonMetaApi):
         allowed_methods = ['get', 'post']
-        queryset = Layer.objects.filter(palenque_type__name='monitor').distinct().order_by('-date')
+        queryset = Layer.objects.filter(layer_type__name='monitor').distinct().order_by('-date')
         resource_name = 'monitors'
         excludes = ['csw_anytext', 'metadata_xml']
 
@@ -30,7 +30,7 @@ class MonitorResource(MultipartResource, CommonModelApi):
         -F shx_file=@lvVK4NtGvJ.shx 
         -F dbf_file=@lvVK4NtGvJ.dbf 
         -F prj_file=@lvVK4NtGvJ.prj 
-        -F palenque_type=monitor
+        -F layer_type=monitor
         -F charset=UTF-8
         -F layer_title='monitor test'
         -F abstract='monitor test'
@@ -56,7 +56,7 @@ class MonitorResource(MultipartResource, CommonModelApi):
         # creates a layer
         try:
             result = json.loads(monitor_upload(bundle.request).content)
-            result['palenque_type'] = LayerType.objects.get(name=result.get('palenque_type'))
+            result['layer_type'] = LayerType.objects.get(name=result.get('layer_type'))
         except Exception, e:
             raise BadRequest('Error uploading monitor')
 

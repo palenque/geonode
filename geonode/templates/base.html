@@ -41,9 +41,11 @@
             <li id="nav_layers">
               <a href="{% url "layer_browse" %}">{% trans "Layers" %}</a>
             </li>
+            {% comment %}
             <li id="nav_monitors">
               <a href="{% url "monitor_browse" %}">{% trans "Monitors" %}</a>
             </li>            
+            {% endcomment %}
             <li id="nav_maps">
               <a href="{% url "maps_browse" %}">{% trans "Maps" %}</a>
             </li>

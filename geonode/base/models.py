@@ -262,7 +262,6 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='owned_resource')
     
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='created_resource')
-    app = models.ForeignKey(App, blank=True, null=True)
     
     contacts = models.ManyToManyField(settings.AUTH_USER_MODEL, through='ContactRole')
     title = models.CharField(_('title'), max_length=255, help_text=_('name by which the cited resource is known'))
@@ -775,6 +774,12 @@ def unshare(instance, **kwargs):
             and manager.has_perm('view_resourcebase', resource)
         ):
             remove_perm('view_resourcebase', alter_ego, resource)
+
+
+class InternalLink(models.Model):
+    source = models.ForeignKey(ResourceBase, related_name='internal_links_forward_set')
+    target = models.ForeignKey(ResourceBase, related_name='internal_links_backward_set')
+    name = models.CharField(max_length=255, help_text=_('For example "rasterized"'))
 
 
 signals.post_save.connect(rating_post_save, sender=OverallRating)

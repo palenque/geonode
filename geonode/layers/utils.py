@@ -72,7 +72,7 @@ def best_candidate(attr,candidates):
 def guess_attribute_match(layer,attribute_form):
     candidates = dict([(normalize_attr_name(x.initial['attribute']),x.initial['attribute'])
         for x in attribute_form.forms])
-    for attr in layer.palenque_type.attribute_type_set.all():
+    for attr in layer.layer_type.attribute_type_set.all():
         cand,score = best_candidate(normalize_attr_name(attr.name), candidates.keys())
         if cand is not None and score < 1.0:
             attr2 = candidates.pop(cand)
@@ -318,14 +318,14 @@ def get_bbox(filename):
     return [bbox_x0, bbox_x1, bbox_y0, bbox_y1]
 
 
-def file_upload(filename, name=None, user=None, title=None, abstract=None, 
+def file_upload(filename, name=None, creator=None, title=None, abstract=None, 
                 skip=True, overwrite=False, keywords=[], charset='UTF-8', 
-                layer_type=None, palenque_type=None, owner=None):
+                layer_type=None, owner=None):
     """Saves a layer in GeoNode asking as little information as possible.
        Only filename is required, user and title are optional.
     """
     # Get a valid user
-    theuser = get_valid_user(user)
+    theuser = get_valid_user(creator)
 
     # Create a new upload session
     upload_session = UploadSession.objects.create(user=theuser)
@@ -355,11 +355,11 @@ def file_upload(filename, name=None, user=None, title=None, abstract=None,
 
     defaults = {
         'layer_type': layer_type,
-        'palenque_type': palenque_type,
         'upload_session': upload_session,
         'title': title,
         'abstract': abstract,
-        'owner': owner or user,
+        'owner': owner or creator,
+        'creator': creator,
         'charset': charset,
         'bbox_x0': bbox_x0,
         'bbox_x1': bbox_x1,
@@ -486,7 +486,7 @@ def upload(incoming, user=None, overwrite=False,
         if save_it:
             try:
                 layer = file_upload(filename,
-                                    user=user,
+                                    creator=user,
                                     overwrite=overwrite,
                                     keywords=keywords,
                                     )

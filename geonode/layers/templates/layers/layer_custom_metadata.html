@@ -36,7 +36,7 @@
     </div>
 
     {% comment %}
-        <fieldset id="category_form" {% if not layer.palenque_type.show_category %}style="display:none;"{% endif %}>
+        <fieldset id="category_form" {% if not layer.layer_type.show_category %}style="display:none;"{% endif %}>
             <label class="control-label required-field">{% trans "Category" %}</label><br/>
             {% autoescape off %}
                 <div style="clear:both;padding-left:175px;">

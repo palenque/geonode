@@ -104,11 +104,10 @@ def _resolve_layer(request, typename, permission='base.view_resourcebase',
 
 @login_required
 def layer_upload(request, template='upload/layer_upload.html'):
-
     if request.method == 'GET':
         ctx = {
             'charsets': CHARSETS,
-            'palenque_types': LayerType.objects.all()
+            'layer_types': LayerType.objects.all()
         }
         return render_to_response(template,
                                   RequestContext(request, ctx))
@@ -140,18 +139,18 @@ def layer_upload(request, template='upload/layer_upload.html'):
                 saved_layer = file_upload(
                     base_file,
                     name=name,
-                    user=request.user,
+                    creator=request.user,
                     overwrite=False,
                     charset=form.cleaned_data["charset"],
                     abstract=form.cleaned_data["abstract"],
                     title=form.cleaned_data["layer_title"],
-                    palenque_type=form.cleaned_data["palenque_type"],
+                    layer_type=form.cleaned_data["layer_type"],
                     owner=form.cleaned_data["owner"]
                 )
 
-                if not saved_layer.palenque_type.is_default:
+                if not saved_layer.layer_type.is_default:
                     saved_layer.keywords.add(
-                        *[saved_layer.palenque_type.name]
+                        *[saved_layer.layer_type.name]
                     )
 
             except Exception as e:
@@ -171,6 +170,8 @@ def layer_upload(request, template='upload/layer_upload.html'):
                     saved_layer.remove_all_permissions()
                     for perm in ADMIN_PERMISSIONS:
                         assign_perm(perm, saved_layer.owner, saved_layer.get_self_resource())
+                        if saved_layer.owner != saved_layer.creator:
+                            assign_perm(perm, saved_layer.creator, saved_layer.get_self_resource())
 
             finally:
                 if tempdir is not None:
@@ -184,8 +185,8 @@ def layer_upload(request, template='upload/layer_upload.html'):
 
         if out['success']:
             status_code = 200
-            # out['palenque_type'] = form.cleaned_data["palenque_type"]
-            out['fill_metadata'] = saved_layer.palenque_type.fill_metadata
+            # out['layer_type'] = form.cleaned_data["layer_type"]
+            out['fill_metadata'] = saved_layer.layer_type.fill_metadata
             out['layer_id'] = saved_layer.id
         else:
             status_code = 500
@@ -277,7 +278,7 @@ def _validate_required_attributes(layer, attribute_form):
 
     is_valid = True
 
-    for rf, attr in [(str(a.id), a,) for a in layer.palenque_type.required_attributes()]:
+    for rf, attr in [(str(a.id), a,) for a in layer.layer_type.required_attributes()]:
         if rf in fields and fields.count(rf) > 1:
             attribute_form._non_form_errors.append(attr.name + _(': field repeated'))
             is_valid = False             
@@ -429,7 +430,7 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
             super(LayerMetadataForm, self).__init__(data, *args, **kwargs)
             meta_fields = [
                 a.slug for a in layer.eav.get_all_attributes().filter(
-                    metadatatype__in=layer.palenque_type.metadatatype_set.all()
+                    metadatatype__in=layer.layer_type.metadatatype_set.all()
                 )
             ]
             for f in self.fields.keys():
@@ -501,7 +502,7 @@ def layer_metadata(request, layername, template='layers/layer_metadata.html'):
         _PERMISSION_MSG_METADATA
     )
 
-    if layer.palenque_type.is_default:
+    if layer.layer_type.is_default:
         return layer_default_metadata(request, layername)
     else:
         return layer_custom_metadata(request, layername)
@@ -556,7 +557,7 @@ def layer_replace(request, layername, template='layers/layer_replace.html'):
                 saved_layer = file_upload(
                     base_file,
                     name=layer.name,
-                    user=request.user,
+                    creator=request.user,
                     overwrite=True,
                     charset=form.cleaned_data["charset"],
                 )

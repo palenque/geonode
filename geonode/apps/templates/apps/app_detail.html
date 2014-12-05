@@ -63,7 +63,6 @@
         <ul class="nav nav-pills filter" id="sort">
           <li><a href="{{ object.detail_url }}?" {% if content_filter  == "all" %}class="selected"{% endif %}>{% trans "All contents" %}</a></li>
           <li><a href="{{ object.detail_url }}?content=layers"{% if content_filter == "layers" %} class="selected"{% endif %}>{% trans "Layers" %}</a></li>
-          <li><a href="{{ object.detail_url }}?content=monitors"{% if content_filter == "monitors" %} class="selected"{% endif %}>{% trans "Monitors" %}</a></li>
           <li><a href="{{ object.detail_url }}?content=documents"{% if content_filter == "documents" %} class="selected"{% endif %}>{% trans "Documents" %}</a></li>
         </ul>
     </div>
@@ -136,10 +135,7 @@
           <div class="tab-pane active list paginate-contents" id="all">
               {% autopaginate object_list 5 %}
                 {% for obj in object_list %}
-                  {% if obj.layer_type == 'monitor' %}
-                    {% include "apps/_monitor_resource.html" %}                  
-                  {% else %}
-                    {% include "apps/_layer_resource.html" %}
+                  {% include "apps/_layer_resource.html" %}
                 {% comment %}
                 <article>
                   <div class="content">
@@ -170,7 +166,6 @@
                   </div>
                 </article>
                 {% endcomment %}
-                {% endif %}
                 {% endfor %}
             </div>
               {% paginate %}

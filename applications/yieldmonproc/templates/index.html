@@ -91,20 +91,21 @@
 							  .append($("<td>").text(obj.product));
 							var td = $("<td>");
 							if(obj.processed) {
-								td.append(
+								td.append($("<div>").append(
 									$("<span>").addClass("glyphicon").addClass("glyphicon-ok")
-								);
+								));
 							} else {
 								td.append(
-									$("<div>").addClass("btn").addClass("btn-default").text("process")
+									$("<div>").addClass("btn").addClass("btn-default").data('id',obj.id).text("process")
 										.click(function(ev) {
+											debugger;
 											$(this).text("wait").addClass("disabled");
-											$.post('/process',{layer_id: obj.id, username: $("#username").val()})
+											$.post('/process',{layer_id: $(this).data('id'), username: $("#username").val()})
 												.success(function(ev) {
-													td.html("");
-													td.append(
+													$(this).html("");
+													$(this).append(
 														$("<span>").addClass("glyphicon").addClass("glyphicon-ok")
-													);													
+													);
 												})
 												.error(function(ev) {
 													// todo

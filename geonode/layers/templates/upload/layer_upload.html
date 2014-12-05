@@ -63,10 +63,10 @@
       <div id="file-queue"></div>
     </section>
 
-    <section class="palenque-type">
+    <section class="layer-type">
       <p>{% trans "Layer type" %}</p>
-      <select id="palenque-type">
-        {% for pt in palenque_types %}
+      <select id="layer-type">
+        {% for pt in layer_types %}
           <option value="{{pt.id}}" {% if pt.is_default %}selected="selected"{% endif %}>{{ pt }}</option>
         {% endfor %}
       </select>
