@@ -177,14 +177,14 @@
     "model": "layers.attributetype", 
     "fields": {
         "layer_type": 3, 
-        "description": null, 
+        "description": "", 
         "attribute_type": "xsd:string", 
-        "required": true, 
-        "sql_magnitude": null, 
+        "required": false, 
+        "sql_magnitude": "", 
         "label": "Masa (seco)", 
         "magnitude": "kg", 
         "is_precalculated": false, 
-        "sql_expression": null, 
+        "sql_expression": "", 
         "name": "MASA_SECO"
     }
 },
@@ -247,7 +247,7 @@
         "sql_magnitude": "kg/m2", 
         "label": "Rendimiento (seco)", 
         "magnitude": "ton/ha", 
-        "is_precalculated": true, 
+        "is_precalculated": false, 
         "sql_expression": "\"MASA_SECO\" / (\"ANCHO\" * \"DISTANCIA\")", 
         "name": "RENDIMIENTO_SECO"
     }

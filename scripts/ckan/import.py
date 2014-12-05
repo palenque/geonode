@@ -43,13 +43,13 @@ monitores_serie_1 = [
 ]
 
 
-geonode = 'localhost:8000'
-username = 'tinkamako'
-api_key = '31c72b0d06a9174a89862e13dd7c86d6d9b26fd5'
+# geonode = 'localhost:8000'
+# username = 'tinkamako'
+# api_key = '31c72b0d06a9174a89862e13dd7c86d6d9b26fd5'
 
-# geonode = 'http://protopalenque.ddns.net/'
-# username = 'palenque'
-# api_key = '1cbfdc7c09a678e82c7213845979730105f57589'
+geonode = 'http://protopalenque.ddns.net/'
+username = 'palenque'
+api_key = '1cbfdc7c09a678e82c7213845979730105f57589'
 
 
 # monitores
@@ -121,77 +121,75 @@ for _id, producto, campania in monitores_serie_1[:1]:
         print '.'*80
 
 
-# geovectors = requests.get('http://agrodatos.info/api/3/action/resource_search?query=format:geo:vector').json()['result']['results']
-# shapefiles = requests.get('http://agrodatos.info/api/3/action/resource_search?query=format:shapefile').json()['result']['results']
 
-# packages = requests.get('http://agrodatos.info/api/3/action/package_list').json()['result']
-# for package in packages[6:]:
+packages = requests.get('http://agrodatos.info/api/3/action/package_list').json()['result']
+for package in packages[6:]:
 
-#     result = requests.get('http://agrodatos.info/api/3/action/package_show?id=%s' % package).json()['result']
-#     resources = result['resources']
-#     tags = [t['name'] for t in result['tags']]
-#     purpose = result['notes']
+    result = requests.get('http://agrodatos.info/api/3/action/package_show?id=%s' % package).json()['result']
+    resources = result['resources']
+    tags = [t['name'] for t in result['tags']]
+    purpose = result['notes']
 
 
-#     for resource in resources:
+    for resource in resources:
 
-#         if resource['format'] not in ['shapefile', 'geo:vector']:
-#             continue
+        if resource['format'] not in ['shapefile', 'geo:vector']:
+            continue
 
-#         filename = os.path.basename(resource['url'])
-#         root = resource['id']
+        filename = os.path.basename(resource['url'])
+        root = resource['id']
         
-#         if os.path.exists(root):
-#             continue
+        if os.path.exists(root):
+            continue
         
-#         os.mkdir(root)
-#         path = os.path.join(root, filename)
-#         print 'descargando', resource['url'], '...'
-#         urllib.URLopener().retrieve(resource['url'], path)
+        os.mkdir(root)
+        path = os.path.join(root, filename)
+        print 'descargando', resource['url'], '...'
+        urllib.URLopener().retrieve(resource['url'], path)
 
-#         if zipfile.is_zipfile(path):
-#             zipfile.ZipFile(file(path)).extractall(root)
+        if zipfile.is_zipfile(path):
+            zipfile.ZipFile(file(path)).extractall(root)
 
-#             shapefile = {}
-#             for f in os.listdir(root):
-#                 if f.split('.')[-1] in ['dbf', 'prj', 'shp', 'shx']:
-#                     shapefile[f.split('.')[-1]] = file(os.path.join(root, f))
+            shapefile = {}
+            for f in os.listdir(root):
+                if f.split('.')[-1] in ['dbf', 'prj', 'shp', 'shx']:
+                    shapefile[f.split('.')[-1]] = file(os.path.join(root, f))
 
-#             files = {
-#                 'base_file': shapefile.get('shp'),
-#                 'dbf_file': shapefile.get('dbf'),
-#                 'prj_file': shapefile.get('prj'),
-#                 'shx_file': shapefile.get('shx')
-#             }
+            files = {
+                'base_file': shapefile.get('shp'),
+                'dbf_file': shapefile.get('dbf'),
+                'prj_file': shapefile.get('prj'),
+                'shx_file': shapefile.get('shx')
+            }
 
-#             print tags, purpose,{
-#                 'keywords': tags,
-#                 'purpose': purpose,
-#                 'layer_title': resource['name'],
-#                 'abstract': resource['description'],
-#                 'permissions': '{"users":{},"groups":{}}'             
-#             }
-#             print resource
-#             print
+            print tags, purpose,{
+                'keywords': tags,
+                'purpose': purpose,
+                'layer_title': resource['name'],
+                'abstract': resource['description'],
+                'permissions': '{"users":{},"groups":{}}'             
+            }
+            print resource
+            print
 
 
-#             url = 'http://%s/api/layers/?username=%s&api_key=%s' % (geonode, username, api_key)
-#             print 'cargando', resource['name'], '...'
+            url = 'http://%s/api/layers/?username=%s&api_key=%s' % (geonode, username, api_key)
+            print 'cargando', resource['name'], '...'
             
-#             r = requests.post(
-#                 url, 
-#                 files=files,
-#                 data={
-#                     'charset':'UTF-8',
-#                     'keywords': tags,
-#                     'purpose': purpose,
-#                     'layer_title': resource['name'],
-#                     'abstract': resource['description'],
-#                     'permissions': '{"users":{},"groups":{}}'             
-#                 }
-#             )
+            r = requests.post(
+                url, 
+                files=files,
+                data={
+                    'charset':'UTF-8',
+                    'keywords': tags,
+                    'purpose': purpose,
+                    'layer_title': resource['name'],
+                    'abstract': resource['description'],
+                    'permissions': '{"users":{},"groups":{}}'             
+                }
+            )
 
-#             print
-#             print resource['name'], r.ok, '' if r.ok else r.content
-#             print '.'*80
+            print
+            print resource['name'], r.ok, '' if r.ok else r.content
+            print '.'*80
 
