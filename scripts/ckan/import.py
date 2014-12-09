@@ -52,100 +52,21 @@ username = 'palenque'
 api_key = '1cbfdc7c09a678e82c7213845979730105f57589'
 
 
-# monitores
-for _id, producto, campania in monitores_serie_1:
+def import_monitors():
+    for _id, producto, campania in monitores_serie_1:
 
-    filename = _id
-    root = _id
+        filename = _id
+        root = _id
 
-    if os.path.exists(root):
-        continue
-    
-    os.mkdir(root)
-    path = os.path.join(root, filename)
-
-    url = 'http://agrodatos.info/monitores/serie-1/%s.zip' % _id
-    print 'downloading', url, '...'
-    urllib.URLopener().retrieve(url, path)
-
-    if zipfile.is_zipfile(path):
-        zipfile.ZipFile(file(path)).extractall(root)
-
-        shapefile = {}
-        for f in os.listdir(root):
-            if f.split('.')[-1] in ['dbf', 'prj', 'shp', 'shx']:
-                shapefile[f.split('.')[-1]] = file(os.path.join(root, f))
-
-        print shapefile
-
-        files = {
-            'base_file': shapefile.get('shp'),
-            'dbf_file': shapefile.get('dbf'),
-            'prj_file': shapefile.get('prj'),
-            'shx_file': shapefile.get('shx')
-        }
-
-        attributes = [
-            {"attribute": "ELEVACION", "mapping": "ALTITUD", "magnitude": "m"}, 
-            {"attribute":"ANCHO", "mapping": "ANCHO", "magnitude": "m"},
-            {"attribute":"DISTANCIA", "mapping": "DISTANCIA", "magnitude": "m"},
-            {"attribute":"FLUJO", "mapping": "FLUJO", "magnitude": "kg/s"},
-            {"attribute":"MASA", "mapping": "MASA_HUMEDO", "magnitude": "kg"},
-        ]
-
-        metadata = {
-            'campana': campania, 
-            'producto': producto.capitalize()
-        }
-
-        url = 'http://%s/api/layers/?username=%s&api_key=%s' % (geonode, username, api_key)
-
-        print 'uploading', _id, '...'
-        r = requests.post(
-            url, 
-            files=files,
-            data={
-                'metadata': json.dumps(metadata),
-                'attributes': json.dumps(attributes),
-                'charset':'UTF-8',
-                'keywords': u"Agricultura de precisión, Mapa de rinde",
-                'layer_type': 'monitor',
-                'layer_title': _id,
-                # 'abstract': resource['description'],
-                'permissions': '{"users":{},"groups":{}}'             
-            }
-        )
-
-        print
-        print _id, r.ok, '' if r.ok else r.content
-        print '.'*80
-
-
-
-packages = requests.get('http://agrodatos.info/api/3/action/package_list').json()['result']
-for package in packages:
-
-    result = requests.get('http://agrodatos.info/api/3/action/package_show?id=%s' % package).json()['result']
-    resources = result['resources']
-    tags = [t['name'] for t in result['tags']]
-    purpose = result['notes']
-
-
-    for resource in resources:
-
-        if resource['format'] not in ['shapefile', 'geo:vector']:
-            continue
-
-        filename = os.path.basename(resource['url'])
-        root = resource['id']
-        
         if os.path.exists(root):
             continue
         
         os.mkdir(root)
         path = os.path.join(root, filename)
-        print 'descargando', resource['url'], '...'
-        urllib.URLopener().retrieve(resource['url'], path)
+
+        url = 'http://agrodatos.info/monitores/serie-1/%s.zip' % _id
+        print 'downloading', url, '...'
+        urllib.URLopener().retrieve(url, path)
 
         if zipfile.is_zipfile(path):
             zipfile.ZipFile(file(path)).extractall(root)
@@ -155,6 +76,8 @@ for package in packages:
                 if f.split('.')[-1] in ['dbf', 'prj', 'shp', 'shx']:
                     shapefile[f.split('.')[-1]] = file(os.path.join(root, f))
 
+            print shapefile
+
             files = {
                 'base_file': shapefile.get('shp'),
                 'dbf_file': shapefile.get('dbf'),
@@ -162,34 +85,116 @@ for package in packages:
                 'shx_file': shapefile.get('shx')
             }
 
-            print tags, purpose,{
-                'keywords': tags,
-                'purpose': purpose,
-                'layer_title': resource['name'],
-                'abstract': resource['description'],
-                'permissions': '{"users":{},"groups":{}}'             
-            }
-            print resource
-            print
+            attributes = [
+                {"attribute": "ELEVACION", "mapping": "ALTITUD", "magnitude": "m"}, 
+                {"attribute":"ANCHO", "mapping": "ANCHO", "magnitude": "m"},
+                {"attribute":"DISTANCIA", "mapping": "DISTANCIA", "magnitude": "m"},
+                {"attribute":"FLUJO", "mapping": "FLUJO", "magnitude": "kg/s"},
+                {"attribute":"MASA", "mapping": "MASA_HUMEDO", "magnitude": "kg"},
+            ]
 
+            metadata = {
+                'campana': campania, 
+                'producto': producto.capitalize()
+            }
 
             url = 'http://%s/api/layers/?username=%s&api_key=%s' % (geonode, username, api_key)
-            print 'cargando', resource['name'], '...'
-            
+
+            print 'uploading', _id, '...'
             r = requests.post(
                 url, 
                 files=files,
                 data={
+                    'metadata': json.dumps(metadata),
+                    'attributes': json.dumps(attributes),
                     'charset':'UTF-8',
+                    'keywords': u"Agricultura de precisión, Mapa de rinde",
+                    'layer_type': 'monitor',
+                    'layer_title': _id,
+                    # 'abstract': resource['description'],
+                    'permissions': '{"users":{},"groups":{}}'             
+                }
+            )
+
+            print
+            print _id, r.ok, '' if r.ok else r.content
+            print '.'*80
+
+
+
+def import_layers():
+    packages = requests.get('http://agrodatos.info/api/3/action/package_list').json()['result']
+    for package in packages:
+
+        result = requests.get('http://agrodatos.info/api/3/action/package_show?id=%s' % package).json()['result']
+        resources = result['resources']
+        tags = [t['name'] for t in result['tags']]
+        purpose = result['notes']
+
+
+        for resource in resources:
+
+            if resource['format'] not in ['shapefile', 'geo:vector']:
+                continue
+
+            filename = os.path.basename(resource['url'])
+            root = resource['id']
+            
+            if os.path.exists(root):
+                continue
+            
+            os.mkdir(root)
+            path = os.path.join(root, filename)
+            print 'descargando', resource['url'], '...'
+            urllib.URLopener().retrieve(resource['url'], path)
+
+            if zipfile.is_zipfile(path):
+                zipfile.ZipFile(file(path)).extractall(root)
+
+                shapefile = {}
+                for f in os.listdir(root):
+                    if f.split('.')[-1] in ['dbf', 'prj', 'shp', 'shx']:
+                        shapefile[f.split('.')[-1]] = file(os.path.join(root, f))
+
+                files = {
+                    'base_file': shapefile.get('shp'),
+                    'dbf_file': shapefile.get('dbf'),
+                    'prj_file': shapefile.get('prj'),
+                    'shx_file': shapefile.get('shx')
+                }
+
+                print tags, purpose,{
                     'keywords': tags,
                     'purpose': purpose,
                     'layer_title': resource['name'],
                     'abstract': resource['description'],
                     'permissions': '{"users":{},"groups":{}}'             
                 }
-            )
+                print resource
+                print
 
-            print
-            print resource['name'], r.ok, '' if r.ok else r.content
-            print '.'*80
 
+                url = 'http://%s/api/layers/?username=%s&api_key=%s' % (geonode, username, api_key)
+                print 'cargando', resource['name'], '...'
+                
+                r = requests.post(
+                    url, 
+                    files=files,
+                    data={
+                        'charset':'UTF-8',
+                        'keywords': tags,
+                        'purpose': purpose,
+                        'layer_title': resource['name'],
+                        'abstract': resource['description'],
+                        'permissions': '{"users":{},"groups":{}}'             
+                    }
+                )
+
+                print
+                print resource['name'], r.ok, '' if r.ok else r.content
+                print '.'*80
+
+
+if __name__ == '__main__':
+    import_monitors()
+    import_layers()
