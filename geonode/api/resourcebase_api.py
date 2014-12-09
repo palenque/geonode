@@ -608,7 +608,7 @@ class LayerResource(MultipartResource, CommonModelApi):
         queryset = Layer.objects.all().distinct().order_by('-date')
         resource_name = 'layers'
         excludes = ['csw_anytext', 'metadata_xml', 'layer_type']
-        allowed_methods = ['get','post']
+        allowed_methods = ['get','post', 'put']
 
         filtering = {'title': ALL,
                  'keywords': ALL_WITH_RELATIONS,
@@ -619,6 +619,130 @@ class LayerResource(MultipartResource, CommonModelApi):
                  'date': ALL,
                  }
 
+    def _set_default_metadata(self, bundle, layer, update=False):
+
+        now = dt.datetime.now()
+
+        bundle.request.POST['charset'] = bundle.request.POST.get(
+            'charset', layer.charset if update else 'utf-8' 
+        )
+        bundle.request.POST['rating'] = bundle.request.POST.get(
+            'rating', layer.rating if update else '0'
+        )
+        bundle.request.POST['language'] = bundle.request.POST.get(
+            'language', layer.language if update else 'eng'
+        )
+        bundle.request.POST['title'] = bundle.request.POST.get(
+            'title', layer.title if update else layer.title
+        )
+        bundle.request.POST['date_type'] = bundle.request.POST.get(
+            'date_type', layer.date_type if update else 'publication'
+        )
+        bundle.request.POST['supplemental_information'] = bundle.request.POST.get(
+            'supplemental_information', layer.supplemental_information if update else 'no info.'
+        )
+
+        date_str = bundle.request.POST.get('date')
+        if date_str:
+            date = dt.datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S')
+            date_part = date.strftime("%Y-%m-%d")
+            time_part = date.strftime("%H:%M:%S")
+        else:
+            if update:
+                date_part = layer.date.strftime("%Y-%m-%d")
+                time_part = layer.date.strftime("%H:%M:%S")                
+            else:
+                date_part = now.strftime("%Y-%m-%d")
+                time_part = now.strftime("%H:%M:%S")
+        bundle.request.POST['date_0'] = date_part
+        bundle.request.POST['date_1'] = time_part
+
+        form = LayerForm(bundle.request.POST, instance=layer)
+        if form.is_valid():
+            form.save()
+        else:
+            raise BadRequest('Error metadata: %s' % json.dumps(form.errors))
+
+    def _create_layer(self, bundle):
+
+        try:
+            layer_type = LayerType.objects.get(
+                name=bundle.request.POST.get('layer_type', 'default')
+            )
+            bundle.request.POST['layer_type'] = layer_type.id
+            result = json.loads(layer_upload(bundle.request).content)
+        except Exception, e:
+            raise BadRequest('Error uploading layer: %s' % unicode(e))
+
+        if result['success']:
+            return Layer.objects.get(id=result['layer_id'])
+        else:
+            raise BadRequest(result['errors'])
+
+    def _set_attributes(self, bundle, layer):
+
+        attrs = json.loads(bundle.data.get('attributes', '{}'))
+        if not attrs:
+            raise BadRequest('Attributes mapping required')
+
+        mapping = {a['attribute']: {'mapping': a['mapping'], 'magnitude': a['magnitude']} for a in attrs}
+
+        for attr in layer.attribute_set.filter(attribute__in=mapping.keys()):
+            attr.field = str(
+                AttributeType.objects.get(
+                    layer_type=layer.layer_type, 
+                    name=mapping[attr.attribute]['mapping']
+                ).id
+            )
+            attr.magnitude = mapping[attr.attribute]['magnitude']
+            attr.save()
+
+        layer.update_attributes()
+        layer.metadata_edited = True
+        layer.save()
+
+    def _set_metadata(self, bundle, layer):
+
+        class LayerMetadataForm(BaseDynamicEntityForm):
+
+            def __init__(self, data=None, *args, **kwargs):
+                super(LayerMetadataForm, self).__init__(data, *args, **kwargs)
+                meta_fields = [
+                    a.slug for a in layer.eav.get_all_attributes().filter(
+                        metadatatype__in=layer.layer_type.metadatatype_set.all()
+                    )
+                ]
+                for f in self.fields.keys():
+                    if f not in meta_fields:
+                        del self.fields[f] 
+            
+            class Meta:
+                model = Layer
+
+        if bundle.request.POST.get('metadata'):
+            bundle.request.POST.update(json.loads(bundle.request.POST.get('metadata')))
+            layer_form = LayerMetadataForm(bundle.request.POST, instance=layer)
+
+            if layer_form.is_valid():
+                layer_form.save()
+            else:
+                raise BadRequest('Error metadata: %s' % json.dumps(layer_form.errors))
+
+    def obj_update(self, bundle, pk, **kwargs):
+        '''Update metadata.
+
+        curl 
+        --dump-header - 
+        -H "Content-Type: application/json" 
+        -X PUT --data 'metadata={"campana": "xxx", "lote": "111", "producto": "Soja"}&purpose=foo'
+        'http://localhost:8000/api/layers/4/?username=admin&api_key=xxx'
+        '''
+
+        bundle.request.POST._mutable = True
+        layer = Layer.objects.get(id=pk)
+        self._set_default_metadata(bundle, layer, update=True)
+        if not layer.layer_type.is_default:
+            self._set_metadata(bundle, layer)
 
     def obj_create(self, bundle, request=None, **kwargs):
         """
@@ -652,105 +776,22 @@ class LayerResource(MultipartResource, CommonModelApi):
         }
         """
 
-
-        # creates a layer
-        try:
-            layer_type = LayerType.objects.get(
-                name=bundle.request.POST.get('layer_type', 'default')
-            )
-            bundle.request.POST['layer_type'] = layer_type.id
-            result = json.loads(layer_upload(bundle.request).content)
-        except Exception, e:
-            raise BadRequest('Error uploading layer: %s' % unicode(e))
-
-        if result['success']:
-            layer = Layer.objects.get(id=result['layer_id'])
-        else:
-            raise BadRequest(result['errors'])
-        
-        # save default metadata
-
-        now = dt.datetime.now()
-        bundle.request.POST['rating'] = bundle.request.POST.get('rating', '0')
-        bundle.request.POST['language'] = bundle.request.POST.get('language', 'eng')
-        bundle.request.POST['title'] = bundle.request.POST.get('title', layer.title)
-        bundle.request.POST['date_type'] = bundle.request.POST.get('date_type', 'publication')
-        bundle.request.POST['supplemental_information'] = bundle.request.POST.get('supplemental_information', 'no info.')
-        bundle.request.POST['date_0'] = bundle.request.POST.get('date') or now.strftime("%Y-%m-%d")
-        bundle.request.POST['date_1'] = bundle.request.POST.get('time') or now.strftime("%H:%M:%S")
-        
-        form = LayerForm(bundle.request.POST, instance=layer)
-        if form.is_valid():
-            form.save()
-        else:
-            raise BadRequest('Error metadata: %s' % json.dumps(form.errors))
+        layer = self._create_layer(bundle)
+        self._set_default_metadata(bundle, layer)
 
         if layer.layer_type.is_default:
             return layer
 
-        # save attributes
-
-        attrs = json.loads(bundle.data.get('attributes', '{}'))
-        if not attrs:
-            raise BadRequest('Attributes mapping required')
-
         try:
             with transaction.atomic(using="default"):
-
-                # map attributes
-
-                mapping = {a['attribute']: {'mapping': a['mapping'], 'magnitude': a['magnitude']} for a in attrs}
-
-                for attr in layer.attribute_set.filter(attribute__in=mapping.keys()):
-                    attr.field = str(
-                        AttributeType.objects.get(
-                            layer_type=layer.layer_type, 
-                            name=mapping[attr.attribute]['mapping']
-                        ).id
-                    )
-                    attr.magnitude = mapping[attr.attribute]['magnitude']
-                    attr.save()
-
-                layer.update_attributes()
-                layer.metadata_edited = True
-                layer.save()
-                
-                # set metadata
-
-                class LayerMetadataForm(BaseDynamicEntityForm):
-
-                    def __init__(self, data=None, *args, **kwargs):
-                        super(LayerMetadataForm, self).__init__(data, *args, **kwargs)
-                        meta_fields = [
-                            a.slug for a in layer.eav.get_all_attributes().filter(
-                                metadatatype__in=layer.layer_type.metadatatype_set.all()
-                            )
-                        ]
-                        for f in self.fields.keys():
-                            if f not in meta_fields:
-                                del self.fields[f] 
-                    
-                    class Meta:
-                        model = Layer
-
-                if bundle.request.POST.get('metadata'):
-                    bundle.request.POST.update(json.loads(bundle.request.POST.get('metadata')))
-                    layer_form = LayerMetadataForm(bundle.request.POST, instance=layer)
-
-                    if layer_form.is_valid():
-                        layer_form.save()
-                    else:
-                        raise BadRequest('Error metadata: %s' % json.dumps(layer_form.errors))
-
-
-        except Exception, e:
+                self._set_attributes(bundle, layer)
+                self._set_metadata(bundle, layer)
+        except Exception as e:
             logging.exception('Error trying to map fields: %s' % unicode(e))
             layer.delete()
             raise BadRequest('Error trying to map fields: %s' % unicode(e))
 
         return layer
-
-
 
 
 class MapResource(CommonModelApi):

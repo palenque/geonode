@@ -53,7 +53,7 @@ api_key = '1cbfdc7c09a678e82c7213845979730105f57589'
 
 
 # monitores
-for _id, producto, campania in monitores_serie_1[:1]:
+for _id, producto, campania in monitores_serie_1:
 
     filename = _id
     root = _id
@@ -123,7 +123,7 @@ for _id, producto, campania in monitores_serie_1[:1]:
 
 
 packages = requests.get('http://agrodatos.info/api/3/action/package_list').json()['result']
-for package in packages[6:]:
+for package in packages:
 
     result = requests.get('http://agrodatos.info/api/3/action/package_show?id=%s' % package).json()['result']
     resources = result['resources']
