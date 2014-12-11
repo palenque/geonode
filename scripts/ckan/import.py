@@ -47,7 +47,7 @@ monitores_serie_1 = [
 # username = 'tinkamako'
 # api_key = '31c72b0d06a9174a89862e13dd7c86d6d9b26fd5'
 
-geonode = 'http://protopalenque.ddns.net/'
+geonode = 'protopalenque.ddns.net'
 username = 'palenque'
 api_key = '1cbfdc7c09a678e82c7213845979730105f57589'
 
@@ -58,10 +58,8 @@ def import_monitors():
         filename = _id
         root = _id
 
-        if os.path.exists(root):
-            continue
-        
-        os.mkdir(root)
+        if not os.path.exists(root):
+            os.mkdir(root)
         path = os.path.join(root, filename)
 
         url = 'http://agrodatos.info/monitores/serie-1/%s.zip' % _id
@@ -140,10 +138,8 @@ def import_layers():
             filename = os.path.basename(resource['url'])
             root = resource['id']
             
-            if os.path.exists(root):
-                continue
-            
-            os.mkdir(root)
+            if not os.path.exists(root):
+                os.mkdir(root)
             path = os.path.join(root, filename)
             print 'descargando', resource['url'], '...'
             urllib.URLopener().retrieve(resource['url'], path)
@@ -176,8 +172,8 @@ def import_layers():
 
                 url = 'http://%s/api/layers/?username=%s&api_key=%s' % (geonode, username, api_key)
                 print 'cargando', resource['name'], '...'
-                
-                r = requests.post(
+                try:                   
+                    r = requests.post(
                     url, 
                     files=files,
                     data={
@@ -188,13 +184,18 @@ def import_layers():
                         'abstract': resource['description'],
                         'permissions': '{"users":{},"groups":{}}'             
                     }
-                )
+                    )
+                    print
+                    print resource['name'], r.ok, '' if r.ok else r.content
+                    print '.'*80
 
-                print
-                print resource['name'], r.ok, '' if r.ok else r.content
-                print '.'*80
-
+                except Exception as e:
+		    print e
+                finally:
+                   import shutil
+                   shutil.rmtree(root)
+          
 
 if __name__ == '__main__':
-    import_monitors()
+    #import_monitors()
     import_layers()
