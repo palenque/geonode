@@ -174,7 +174,7 @@ GEONODE_APPS = (
     'geonode.people',
     'geonode.base',
     'geonode.layers',
-    #'geonode.monitors',
+    'geonode.tabular',
     'geonode.maps',
     'geonode.proxy',
     'geonode.security',

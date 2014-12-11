@@ -4,7 +4,7 @@ from .api import TagResource, TopicCategoryResource, ProfileResource, \
     GroupResource, AppResource, LayerTypeResource
 from .resourcebase_api import LayerResource, MapResource, DocumentResource, \
     ResourceBaseResource, FeaturedResourceBaseResource, LinkResource, \
-    InternalLinkResource
+    InternalLinkResource, TabularResource
     
 #from .monitor_api import MonitorResource
 
@@ -14,6 +14,7 @@ api.register(LayerResource())
 #api.register(MonitorResource())
 api.register(MapResource())
 api.register(DocumentResource())
+api.register(TabularResource())
 api.register(ProfileResource())
 api.register(ResourceBaseResource())
 api.register(TagResource())

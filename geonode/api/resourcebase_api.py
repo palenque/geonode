@@ -34,6 +34,7 @@ from geonode.layers.views import layer_upload
 
 from geonode.maps.models import Map
 from geonode.documents.models import Document
+from geonode.tabular.models import Tabular
 from geonode.base.models import ResourceBase, TopicCategory, Link, InternalLink
 from .authorization import GeoNodeAuthorization, InternalLinkAuthorization
 
@@ -458,8 +459,8 @@ class CommonModelApi(ModelResource):
             'thumbnail_url',
             'detail_url',
             'rating',
-            'metadata_edited',
-            'layer_type'
+            # 'metadata_edited',
+            # 'layer_type'
         ]
 
         if isinstance(
@@ -474,7 +475,7 @@ class CommonModelApi(ModelResource):
 
             for obj,realobj in zip(objects, data['objects']):
                 
-                if obj['layer_type'] is not None:
+                if obj.has_key('layer_type'):
                    obj['layer_type'] = LayerType.objects.get(id=obj['layer_type']).name
                 
                 if obj['category'] is not None: 
@@ -818,6 +819,22 @@ class DocumentResource(CommonModelApi):
             }
         queryset = Document.objects.distinct().order_by('-date')
         resource_name = 'documents'
+
+class TabularResource(CommonModelApi):
+
+    """Maps API"""
+
+    class Meta(CommonMetaApi):
+        filtering = {
+            'title': ALL,
+            'keywords': ALL_WITH_RELATIONS,
+            'category': ALL_WITH_RELATIONS,
+            'owner': ALL_WITH_RELATIONS,
+            'date': ALL,
+            'doc_type': ALL,
+            }
+        queryset = Tabular.objects.distinct().order_by('-date')
+        resource_name = 'tabular'
 
 
 class InternalLinkResource(ModelResource):
