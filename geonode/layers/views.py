@@ -245,11 +245,13 @@ def layer_detail(request, layername, template='layers/layer_detail.html'):
     metadata = layer.link_set.metadata().filter(
         name__in=settings.DOWNLOAD_FORMATS_METADATA)
 
+    meta_attributes = layer.eav.get_values()
     context_dict = {
         "resource": layer,
         "permissions_json": _perms_info_json(layer),
         "documents": get_related_documents(layer),
         "metadata": metadata,
+        "meta_attributes": meta_attributes,
     }
 
     context_dict["viewer"] = json.dumps(
