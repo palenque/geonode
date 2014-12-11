@@ -179,9 +179,9 @@ def import_layers():
                     data={
                         'charset':'UTF-8',
                         'keywords': tags,
-                        'purpose': purpose,
+                        'abstract': purpose,
                         'layer_title': resource['name'],
-                        'abstract': resource['description'],
+                        # 'purpose': resource['description'],
                         'permissions': '{"users":{},"groups":{}}'             
                     }
                     )

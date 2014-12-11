@@ -459,6 +459,7 @@ class CommonModelApi(ModelResource):
             'thumbnail_url',
             'detail_url',
             'rating',
+            
             # 'metadata_edited',
             # 'layer_type'
         ]
@@ -471,12 +472,17 @@ class CommonModelApi(ModelResource):
 
 
             # TODO: Improve
-            objects = list(data['objects'].values(*VALUES))
+            if self.Meta.resource_name in ['tabular', 'documents']:
+                objects = list(data['objects'].values(*VALUES))
+            else:
+                values = VALUES + ['metadata_edited', 'layer_type']
+                objects = list(data['objects'].values(*values))
+
 
             for obj,realobj in zip(objects, data['objects']):
                 
-                if obj.has_key('layer_type'):
-                   obj['layer_type'] = LayerType.objects.get(id=obj['layer_type']).name
+                if obj.get('layer_type'):
+                    obj['layer_type'] = LayerType.objects.get(id=obj['layer_type']).name
                 
                 if obj['category'] is not None: 
                     obj['category_description'] = TopicCategory.objects.get(id=obj['category']).gn_description
