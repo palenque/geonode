@@ -771,7 +771,7 @@ def unshare(instance, **kwargs):
             continue 
 
         if (instance.tag.name in app.keyword_list()
-            and manager.has_perm('view_resourcebase', resource)
+            and alter_ego.has_perm('view_resourcebase', resource)
         ):
             remove_perm('view_resourcebase', alter_ego, resource)
 
