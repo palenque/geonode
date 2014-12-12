@@ -74,6 +74,7 @@ class LayerType(models.Model):
         help_text=_('show category in metadata')
     )
     calculated_title = models.CharField(max_length=255, blank=True, null=True)
+    calculated_abstract = models.CharField(max_length = 1024, blank=True, null=True)
     default_style = models.ForeignKey('Style', null=True, blank=True)
 
     def update_attributes(self, layer):

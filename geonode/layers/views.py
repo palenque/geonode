@@ -465,6 +465,11 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
                 try:
                     cleaned_data['title'] =  self.instance.layer_type.calculated_title % self.cleaned_data
                 except: pass
+
+            if self.instance.layer_type.calculated_abstract:
+                try:
+                    cleaned_data['abstract'] =  self.instance.layer_type.calculated_abstract % self.cleaned_data
+                except: pass                
             return cleaned_data
 
     if request.method == "POST":
