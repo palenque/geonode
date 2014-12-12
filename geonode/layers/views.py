@@ -57,6 +57,9 @@ from geonode.security.views import _perms_info_json
 from geonode.security.models import ADMIN_PERMISSIONS
 from geonode.documents.models import get_related_documents
 
+from geonode.geoserver.helpers import set_styles
+from geonode.geoserver.signals import gs_catalog
+
 
 logger = logging.getLogger("geonode.layers.views")
 
@@ -407,6 +410,20 @@ def layer_default_metadata(request, layername, template='layers/layer_metadata.h
     }))
 
 
+def set_default_style(layer, style):
+
+    # Save to GeoServer
+    cat = gs_catalog
+    gs_layer = cat.get_layer(layer.name)
+    gs_layer.default_style = style.name
+    styles = [style.name]
+    gs_layer.styles = styles
+    cat.save(gs_layer)
+
+    # Save to Django
+    layer = set_styles(layer, cat)
+
+
 def layer_custom_metadata(request, layername, template='layers/layer_custom_metadata.html'):
 
     from eav.forms import BaseDynamicEntityForm
@@ -475,6 +492,10 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
     ):
 
         the_layer = layer_form.save()
+
+        if the_layer.layer_type.default_style is not None:
+            set_default_style(the_layer, the_layer.layer_type.default_style)
+            the_layer.save()
 
         if not layer.metadata_edited:
             try:
