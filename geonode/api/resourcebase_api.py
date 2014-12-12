@@ -487,6 +487,9 @@ class CommonModelApi(ModelResource):
                 if obj['category'] is not None: 
                     obj['category_description'] = TopicCategory.objects.get(id=obj['category']).gn_description
 
+                if obj['creator'] is not None: 
+                    obj['creator_username'] = Profile.objects.get(id=obj['creator'])
+
                 if realobj.is_public():
                     obj['permission_class'] = "public"
                 elif request.user == realobj.owner:
