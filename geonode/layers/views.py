@@ -43,7 +43,7 @@ from guardian.shortcuts import assign_perm
 from geonode.services.models import Service
 from geonode.layers.forms import LayerForm, LayerUploadForm, NewLayerUploadForm, LayerAttributeForm
 from geonode.base.forms import CategoryForm
-from geonode.layers.models import Layer, Attribute, LayerType
+from geonode.layers.models import Layer, Attribute, LayerType, Style
 from geonode.base.enumerations import CHARSETS
 from geonode.base.models import TopicCategory
 
@@ -441,6 +441,14 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
         
         class Meta:
             model = Layer
+
+        def clean(self):
+            cleaned_data = super(LayerMetadataForm, self).clean()
+            if self.instance.layer_type.calculated_title:
+                try:
+                    cleaned_data['title'] =  self.instance.layer_type.calculated_title % self.cleaned_data
+                except: pass
+            return cleaned_data
 
     if request.method == "POST":
         layer_form = LayerMetadataForm(request.POST, instance=layer, prefix="resource")

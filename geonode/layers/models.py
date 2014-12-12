@@ -73,6 +73,7 @@ class LayerType(models.Model):
         blank=True, default=True,
         help_text=_('show category in metadata')
     )
+    calculated_title = models.CharField(max_length=255, blank=True, null=True)
 
     def update_attributes(self, layer):
         'Updates table fields and attributes to mach layer type attributes.'
