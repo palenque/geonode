@@ -699,6 +699,10 @@ LEAFLET_CONFIG = {
         # Find tiles at:
         # http://leaflet-extras.github.io/leaflet-providers/preview/
 
+        ('Google Maps',
+         'http://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+         'Map tiles by <a href="http://maps.google.com">Google Maps</a>'),
+
         # Stamen toner lite.
         ('Watercolor',
          'http://{s}.tile.stamen.com/watercolor/{z}/{x}/{y}.png',
