@@ -17,7 +17,7 @@ from geonode.tabular.models import Tabular
 from geonode.maps.models import Map
 from geonode.layers.models import Layer
 from geonode.base.models import Region
-
+from geonode.base.enumerations import CHARSETS
 
 class DocumentForm(TranslationModelForm):
     date = forms.DateTimeField(widget=forms.SplitDateTimeWidget)
@@ -198,6 +198,9 @@ class DocumentCreateForm(TranslationModelForm):
     """
     The document upload form.
     """
+    quote = forms.CharField(required=False)
+    delimiter = forms.CharField(required=False)
+    charset = forms.ChoiceField(choices=CHARSETS, required=False)
     permissions = forms.CharField(
         widget=HiddenInput(
             attrs={
@@ -214,7 +217,9 @@ class DocumentCreateForm(TranslationModelForm):
 
     class Meta:
         model = Tabular
-        fields = ['title', 'doc_file', 'doc_url']
+        fields = [
+            'title', 'doc_file', 'doc_url', 'quote', 'delimiter', 'charset',
+        ]
         widgets = {
             'name': HiddenInput(attrs={'cols': 80, 'rows': 20}),
         }
