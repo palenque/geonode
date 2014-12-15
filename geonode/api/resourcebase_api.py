@@ -459,6 +459,12 @@ class CommonModelApi(ModelResource):
             'thumbnail_url',
             'detail_url',
             'rating',
+            'concave_hull',
+
+            'bbox_x0',
+            'bbox_y0',
+            'bbox_x1',
+            'bbox_y1',
             
             # 'metadata_edited',
             # 'layer_type'

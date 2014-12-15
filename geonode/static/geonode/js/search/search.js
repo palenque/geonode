@@ -148,8 +148,56 @@
 
 
     //Get data from apis and make them available to the page
-    function query_api(data){
+    function query_api(data,dontFit){
+      var mapExtent = data.extent;
       $http.get(Configs.url, {params: data || {}}).success(function(data){
+        if(!dontFit && module.map) {
+          var mmap = module.map;
+
+          /* overlay the hulls of the layers */
+          var bounds = null;
+          var geojson = [];
+          for(var i in data.objects) {
+            var obj = data.objects[i];
+            var hull = obj.concave_hull;
+            if(hull) {
+              geojson.push(JSON.parse(hull));
+            }
+
+            if(!bounds) {
+              bounds = L.latLngBounds(
+                L.latLng(obj.bbox_y0,obj.bbox_x0),
+                L.latLng(obj.bbox_y1,obj.bbox_x1));
+            } else {
+              bounds.extend(L.latLng(obj.bbox_y0,obj.bbox_x0));
+              bounds.extend(L.latLng(obj.bbox_y1,obj.bbox_x1));
+            }
+          }
+          
+          // var myLines = [{
+          //     "type": "LineString",
+          //     "coordinates": [[-73.533, -58.583],[-53.367, -21.783]] 
+          // }];
+          var myStyle = {
+              "color": "#ff7800",
+              "weight": 5,
+              "opacity": 0.65
+          };
+
+          L.geoJson(geojson, {
+              style: myStyle
+          }).addTo(mmap);
+
+          if(mapExtent) {
+            var p=mapExtent.split(",");
+            bounds = L.latLngBounds(
+              L.latLng(p[1],p[0]),
+              L.latLng(p[3],p[2])
+            );
+          }
+          mmap.fitBounds(bounds);
+        }
+
         $scope.results = data.objects;
         $scope.total_counts = data.meta.total_count;
         $scope.$root.query_data = data;
@@ -381,6 +429,12 @@
       angular.extend($scope, {
         layers: {
           baselayers: {
+            googleTerrain: {         
+              name: 'Google Terrain',
+              type: 'xyz',
+              url: 'http://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+            }
+            /*
             stamen: {
               name: 'Toner Lite',
               type: 'xyz',
@@ -391,25 +445,30 @@
                 continuousWorld: true
               }
             }
+            */
           }
         },
         map_center: {
-          lat: 5.6,
-          lng: 3.9,
-          zoom: 1
+          lat: -37, //5.6,
+          lng: -66, //3.9,
+          zoom: 3
         },
         defaults: {
-          zoomControl: false
+          zoomControl: true
         }
       });
 
       var leafletData = $injector.get('leafletData'),
           map = leafletData.getMap();
 
+      map.then(function(map) {
+        module.map = map;
+      });
+
       map.then(function(map){
         map.on('moveend', function(){
           $scope.query['extent'] = map.getBounds().toBBoxString();
-          query_api($scope.query);
+          query_api($scope.query,true);
         });
       });
     }

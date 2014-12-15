@@ -371,6 +371,8 @@ class Layer(ResourceBase):
     layer_type = models.ForeignKey(LayerType, null=True, blank=True)
     metadata_edited = models.BooleanField(blank=True, default=False)
 
+    concave_hull = models.TextField(null=True, blank=True)
+
     default_style = models.ForeignKey(
         Style,
         related_name='layer_default_style',
@@ -513,6 +515,15 @@ class Layer(ResourceBase):
     @property
     def class_name(self):
         return self.__class__.__name__
+
+    def update_concave_hull(self):
+
+        cursor = connections['datastore'].cursor()
+        cursor.execute(
+            '''SELECT st_asgeojson(st_concavehull(st_collect(the_geom),0.99)) 
+               FROM %s;''' % self.name)
+        self.concave_hull = cursor.fetchone()[0]
+        self.save()
 
 
 class Layer_Styles(models.Model):

@@ -512,6 +512,10 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
         # the_layer.save()
         # XXX
 
+        # XXX
+        the_layer.update_concave_hull()
+        # XXX
+
         if not layer.metadata_edited:
             try:
 

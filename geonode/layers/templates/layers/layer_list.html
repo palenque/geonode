@@ -13,17 +13,20 @@
     <a href="{% url "layer_upload" %}" class="btn btn-primary pull-right">{% trans "Upload Layers" %}</a>
     <h2 class="page-title">{% trans "Explore Layers" %}</h2>
   </div>
-  {% with include_type_filterxxx='true' %}
   {% with facet_type='layers' %}
   {% with header='Type' %}
   {% with filter='type__in' %}
+  {% with include_filters=',text,layertype,categories,keywords,date,' %}
   {% with custom_sort_filter='layers/_layer_filters.html' %}
+  {% with custom_content_header='layers/_layer_content_header.html' %}
   {% include "search/_search_content.html" %}
   {% endwith %}
   {% endwith %}
   {% endwith %}
   {% endwith %}
   {% endwith %}
+  {% endwith %}
+
 {% endblock %}
 
 {% block extra_script %}
