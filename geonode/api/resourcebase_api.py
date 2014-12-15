@@ -506,8 +506,8 @@ class CommonModelApi(ModelResource):
             data['objects'] = objects
                 
         # XXX FEO!!
-        if 'permission_class' in request.GET:
-            data['objects'] = filter(lambda obj: obj['permission_class'] == request.GET['permission_class'], data['objects'])
+        # if 'permission_class' in request.GET:
+        #     data['objects'] = filter(lambda obj: obj['permission_class'] == request.GET['permission_class'], data['objects'])
 
         desired_format = self.determine_format(request)
         serialized = self.serialize(request, data, desired_format)

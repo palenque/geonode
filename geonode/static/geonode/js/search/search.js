@@ -144,6 +144,7 @@
     $scope.query = $location.search();
     $scope.query.limit = $scope.query.limit || CLIENT_RESULTS_LIMIT;
     $scope.query.offset = $scope.query.offset || 0;
+    $scope.query.permission_class = $scope.query.permission_class || 'owned';
     $scope.page = Math.round(($scope.query.offset / $scope.query.limit) + 1);
 
 
@@ -151,26 +152,86 @@
     function query_api(data,dontFit){
       var mapExtent = data.extent;
       $http.get(Configs.url, {params: data || {}}).success(function(data){
+
         if(!dontFit && module.map) {
           var mmap = module.map;
 
           /* overlay the hulls of the layers */
           var bounds = null;
           var geojson = [];
-          for(var i in data.objects) {
-            var obj = data.objects[i];
-            var hull = obj.concave_hull;
-            if(hull) {
-              geojson.push(JSON.parse(hull));
-            }
 
-            if(!bounds) {
-              bounds = L.latLngBounds(
-                L.latLng(obj.bbox_y0,obj.bbox_x0),
-                L.latLng(obj.bbox_y1,obj.bbox_x1));
+          $("#public_layers").html("");
+
+          for(var i in data.objects) {
+
+            var obj = data.objects[i];
+            if(obj.permission_class == 'public') {
+
+              var layer_elem = 
+                $("<a>")
+                  .text(obj.title)
+                  .attr("href","javascript:void(0);")
+                  .data("id",obj.id)
+                  .click(function(ev) {
+                    var obj_id = $(this).data("id");
+
+                    if($(this).hasClass("active")) {
+                      mmap.removeLayer(module.layers[obj_id]);
+                      $(this).removeClass("active");
+
+                    } else {
+
+                      $http.get(Configs.url+obj_id).success(function(obj_data) {
+                        var wms_endpoint = null;
+                        for(var j in obj_data.links) {
+                          if(obj_data.links[j].link_type == "OGC:WMS") 
+                            wms_endpoint = obj_data.links[j].url;
+                        }
+                        if(wms_endpoint) {
+                          if(!module.layers) module.layers = {};
+                          module.layers[obj_id] = 
+                            L.tileLayer.wms(wms_endpoint, {
+                                layers: obj_data.typename,
+                                format: 'image/png',
+                                transparent: true
+                            });
+                            module.layers[obj_id].addTo(mmap);
+                        }
+                      });   
+
+                      $(this).addClass("active");
+                    }
+                  });
+              $("#public_layers").append(
+                $("<li>").append(layer_elem));
+                  
+            
+
+            /*
+      <li ng-repeat="category in categories">
+        <a data-value="{{ category.identifier }}" data-filter="category__identifier__in" 
+         ng-click="multiple_choice_listener($event)" class="{{category.active}}">{{ category.gn_description }}
+          <span class="badge pull-right">{{ category.count }}</span>
+        </a>
+      </li>
+      */
+
+
             } else {
-              bounds.extend(L.latLng(obj.bbox_y0,obj.bbox_x0));
-              bounds.extend(L.latLng(obj.bbox_y1,obj.bbox_x1));
+
+              var hull = obj.concave_hull;
+              if(hull) {
+                geojson.push(JSON.parse(hull));
+              }
+
+              if(!bounds) {
+                bounds = L.latLngBounds(
+                  L.latLng(obj.bbox_y0,obj.bbox_x0),
+                  L.latLng(obj.bbox_y1,obj.bbox_x1));
+              } else {
+                bounds.extend(L.latLng(obj.bbox_y0,obj.bbox_x0));
+                bounds.extend(L.latLng(obj.bbox_y1,obj.bbox_x1));
+              }
             }
           }
           

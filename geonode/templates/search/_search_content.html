@@ -40,6 +40,9 @@
           {% if ',extent,' in include_filters %}
             {% include "search/_extent_filter.html" %}
           {% endif %}
+
+          {% include "search/_overlay_layer_filter.html" %}
+
         </div>
       </div>
       
