@@ -447,6 +447,9 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
 
         def __init__(self, data=None, *args, **kwargs):
             super(LayerMetadataForm, self).__init__(data, *args, **kwargs)
+            readonly_meta_fields = [x.attribute.slug for x in
+                layer.layer_type.metadatatype_set.filter(
+                    is_precalculated=True)]                
             meta_fields = [
                 a.slug for a in layer.eav.get_all_attributes().filter(
                     metadatatype__in=layer.layer_type.metadatatype_set.all()
@@ -455,6 +458,8 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
             for f in self.fields.keys():
                 if f not in meta_fields:
                     del self.fields[f] 
+                if f in readonly_meta_fields:
+                    self.fields[f].widget.attrs['readonly'] = True
         
         class Meta:
             model = Layer
@@ -501,6 +506,11 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
         if the_layer.layer_type.default_style is not None:
             set_default_style(the_layer, the_layer.layer_type.default_style)
             the_layer.save()
+
+        # XXX
+        # the_layer.layer_type._precalculate_metadata_fields(the_layer)        
+        # the_layer.save()
+        # XXX
 
         if not layer.metadata_edited:
             try:

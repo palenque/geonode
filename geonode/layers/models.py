@@ -88,6 +88,7 @@ class LayerType(models.Model):
             self._rename_fields(layer)
             self._normalize_units(layer)
             self._precalculate_fields(layer)
+            self._precalculate_metadata_fields(layer)
 
     def _validate_required_attributes(self, layer):
 
@@ -128,7 +129,6 @@ class LayerType(models.Model):
             attr.magnitude = attr_type.magnitude
             attr.save()
 
-
     def _precalculate_fields(self, layer):
         'Precalculates fields.'
 
@@ -149,6 +149,16 @@ class LayerType(models.Model):
                     ) + \
                     'Please check field types, associations and values.'
                 )
+
+    def _precalculate_metadata_fields(self, layer):
+        cursor = connections['datastore'].cursor()
+
+        for attr in self.metadatatype_set.filter(is_precalculated=True):
+            cursor.execute(
+                '''SELECT %s FROM %s''' 
+                    % (attr.sql_expression,layer.name)
+            )      
+            setattr(layer.eav,attr.attribute.slug, cursor.fetchone()[0])
 
     def _rename_fields(self, layer):
         'Renames fiels in the layer table.'
@@ -267,6 +277,14 @@ class MetadataType(models.Model):
     attribute = models.ForeignKey(
         EAVAttribute, blank=False, null=False
     )
+
+    is_precalculated = models.BooleanField(
+        blank=True, default=False,
+        help_text=_('defines if this will be a precalculated with the sql field')
+    )
+
+    sql_expression = models.CharField(max_length=255, blank=True, null=True)
+    sql_magnitude = models.CharField(max_length=255, blank=True, null=True)
 
 
 class AttributeType(models.Model):
