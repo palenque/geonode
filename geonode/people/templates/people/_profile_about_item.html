@@ -4,12 +4,22 @@
 
 <section class="last">
   {% with 40 as avatar_size %}
-    <div class="avatar span1 pull-left"><a href="{% url "profile_detail" profile.username %}">{% avatar profile avatar_size %}</a></div>
+    <div class="avatar span1 pull-left">
+      {% if profile.profile == 'application' %}
+        <a href="{% url "app_detail" profile.username %}">
+          {% avatar profile avatar_size %}
+        </a>      
+      {% else %}
+        <a href="{% url "profile_detail" profile.username %}">
+          {% avatar profile avatar_size %}
+        </a>
+      {% endif %}
+    </div>
   {% endwith %}
   <div>
     <h3>
     <a href="{{ profile.get_absolute_url }}">{{ profile.username }}</a>
-      {{ username }}
+      <div style="font-size:50%">{{profile.profile}}</div>
     </h3>
     <div class="details">
       <div class="meta">
