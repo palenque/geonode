@@ -459,6 +459,12 @@ class CommonModelApi(ModelResource):
             'thumbnail_url',
             'detail_url',
             'rating',
+            'concave_hull',
+
+            'bbox_x0',
+            'bbox_y0',
+            'bbox_x1',
+            'bbox_y1',
             
             # 'metadata_edited',
             # 'layer_type'
@@ -487,6 +493,9 @@ class CommonModelApi(ModelResource):
                 if obj['category'] is not None: 
                     obj['category_description'] = TopicCategory.objects.get(id=obj['category']).gn_description
 
+                if obj['creator'] is not None: 
+                    obj['creator_username'] = Profile.objects.get(id=obj['creator'])
+
                 if realobj.is_public():
                     obj['permission_class'] = "public"
                 elif request.user == realobj.owner:
@@ -497,8 +506,8 @@ class CommonModelApi(ModelResource):
             data['objects'] = objects
                 
         # XXX FEO!!
-        if 'permission_class' in request.GET:
-            data['objects'] = filter(lambda obj: obj['permission_class'] == request.GET['permission_class'], data['objects'])
+        # if 'permission_class' in request.GET:
+        #     data['objects'] = filter(lambda obj: obj['permission_class'] == request.GET['permission_class'], data['objects'])
 
         desired_format = self.determine_format(request)
         serialized = self.serialize(request, data, desired_format)

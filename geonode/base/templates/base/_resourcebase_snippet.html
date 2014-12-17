@@ -1,6 +1,6 @@
 {% verbatim %}
   <article ng-repeat="item in results">
-  	<div class="row items-list" ng-if="filterd_permission_class == null || item.permission_class == filterd_permission_class">
+  	<div class="row items-list" ng-if="query.permission_class == null || item.permission_class == query.permission_class">
   	  <div class="col-md-4">
   	    <a href="{{ item.detail_url }}"><img class="thumb" ng-src="{{ item.thumbnail_url }}" /></a>
   	  </div>
@@ -11,7 +11,7 @@
         <p class="actions">
           <a ng-if="item.detail_url.indexOf('/layers/') > -1" 
             href="{% endverbatim %}{% url "new_map" %}?layer={% verbatim %}{{ item.detail_url.substring(8) }}">
-            <i class="fa fa-map-marker"></i>Create a Map</a> |
+            <i class="fa fa-user"></i>{{ item.creator_username }}</a> |
           <a href="{{ item.detail_url }}#info"><i class="fa fa-calendar-o"></i>{{ item.date|date:'d MMM y' }}</a> |
           <a href="{{ item.detail_url }}"><i class="fa fa-eye"></i>{{ item.popular_count }}</a> |
           <a href="{{ item.detail_url }}#share"><i class="fa fa-share"></i>{{ item.share_count }}</a> |

@@ -73,6 +73,9 @@ class LayerType(models.Model):
         blank=True, default=True,
         help_text=_('show category in metadata')
     )
+    calculated_title = models.CharField(max_length=255, blank=True, null=True)
+    calculated_abstract = models.CharField(max_length = 1024, blank=True, null=True)
+    default_style = models.ForeignKey('Style', null=True, blank=True)
 
     def update_attributes(self, layer):
         'Updates table fields and attributes to mach layer type attributes.'
@@ -85,6 +88,7 @@ class LayerType(models.Model):
             self._rename_fields(layer)
             self._normalize_units(layer)
             self._precalculate_fields(layer)
+            self._precalculate_metadata_fields(layer)
 
     def _validate_required_attributes(self, layer):
 
@@ -125,7 +129,6 @@ class LayerType(models.Model):
             attr.magnitude = attr_type.magnitude
             attr.save()
 
-
     def _precalculate_fields(self, layer):
         'Precalculates fields.'
 
@@ -146,6 +149,16 @@ class LayerType(models.Model):
                     ) + \
                     'Please check field types, associations and values.'
                 )
+
+    def _precalculate_metadata_fields(self, layer):
+        cursor = connections['datastore'].cursor()
+
+        for attr in self.metadatatype_set.filter(is_precalculated=True):
+            cursor.execute(
+                '''SELECT %s FROM %s''' 
+                    % (attr.sql_expression,layer.name)
+            )      
+            setattr(layer.eav,attr.attribute.slug, cursor.fetchone()[0])
 
     def _rename_fields(self, layer):
         'Renames fiels in the layer table.'
@@ -265,6 +278,14 @@ class MetadataType(models.Model):
         EAVAttribute, blank=False, null=False
     )
 
+    is_precalculated = models.BooleanField(
+        blank=True, default=False,
+        help_text=_('defines if this will be a precalculated with the sql field')
+    )
+
+    sql_expression = models.CharField(max_length=255, blank=True, null=True)
+    sql_magnitude = models.CharField(max_length=255, blank=True, null=True)
+
 
 class AttributeType(models.Model):
     'Attributes related to a layer type'
@@ -349,6 +370,8 @@ class Layer(ResourceBase):
     typename = models.CharField(max_length=128, null=True, blank=True)
     layer_type = models.ForeignKey(LayerType, null=True, blank=True)
     metadata_edited = models.BooleanField(blank=True, default=False)
+
+    concave_hull = models.TextField(null=True, blank=True)
 
     default_style = models.ForeignKey(
         Style,
@@ -492,6 +515,15 @@ class Layer(ResourceBase):
     @property
     def class_name(self):
         return self.__class__.__name__
+
+    def update_concave_hull(self):
+
+        cursor = connections['datastore'].cursor()
+        cursor.execute(
+            '''SELECT st_asgeojson(st_concavehull(st_collect(the_geom),0.99)) 
+               FROM %s;''' % self.name)
+        self.concave_hull = cursor.fetchone()[0]
+        self.save()
 
 
 class Layer_Styles(models.Model):

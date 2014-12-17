@@ -30,6 +30,10 @@ class Tabular(ResourceBase):
     A document is any kind of information that can be attached to a map such as pdf, images, videos, xls...
     """
 
+    delimiter = models.CharField(max_length=128, blank=True, null=True)
+    quote = models.CharField(max_length=128, blank=True, null=True)
+    charset = models.CharField(max_length=128, blank=True, null=True)
+
     # Relation to the resource model
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
     object_id = models.PositiveIntegerField(blank=True, null=True)

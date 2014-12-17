@@ -43,7 +43,7 @@ from guardian.shortcuts import assign_perm
 from geonode.services.models import Service
 from geonode.layers.forms import LayerForm, LayerUploadForm, NewLayerUploadForm, LayerAttributeForm
 from geonode.base.forms import CategoryForm
-from geonode.layers.models import Layer, Attribute, LayerType
+from geonode.layers.models import Layer, Attribute, LayerType, Style
 from geonode.base.enumerations import CHARSETS
 from geonode.base.models import TopicCategory
 
@@ -56,6 +56,9 @@ from geonode.people.forms import ProfileForm, PocForm
 from geonode.security.views import _perms_info_json
 from geonode.security.models import ADMIN_PERMISSIONS
 from geonode.documents.models import get_related_documents
+
+from geonode.geoserver.helpers import set_styles
+from geonode.geoserver.signals import gs_catalog
 
 
 logger = logging.getLogger("geonode.layers.views")
@@ -407,6 +410,20 @@ def layer_default_metadata(request, layername, template='layers/layer_metadata.h
     }))
 
 
+def set_default_style(layer, style):
+
+    # Save to GeoServer
+    cat = gs_catalog
+    gs_layer = cat.get_layer(layer.name)
+    gs_layer.default_style = style.name
+    styles = [style.name]
+    gs_layer.styles = styles
+    cat.save(gs_layer)
+
+    # Save to Django
+    layer = set_styles(layer, cat)
+
+
 def layer_custom_metadata(request, layername, template='layers/layer_custom_metadata.html'):
 
     from eav.forms import BaseDynamicEntityForm
@@ -430,6 +447,9 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
 
         def __init__(self, data=None, *args, **kwargs):
             super(LayerMetadataForm, self).__init__(data, *args, **kwargs)
+            readonly_meta_fields = [x.attribute.slug for x in
+                layer.layer_type.metadatatype_set.filter(
+                    is_precalculated=True)]                
             meta_fields = [
                 a.slug for a in layer.eav.get_all_attributes().filter(
                     metadatatype__in=layer.layer_type.metadatatype_set.all()
@@ -438,9 +458,24 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
             for f in self.fields.keys():
                 if f not in meta_fields:
                     del self.fields[f] 
+                if f in readonly_meta_fields:
+                    self.fields[f].widget.attrs['readonly'] = True
         
         class Meta:
             model = Layer
+
+        def clean(self):
+            cleaned_data = super(LayerMetadataForm, self).clean()
+            if self.instance.layer_type.calculated_title:
+                try:
+                    cleaned_data['title'] =  self.instance.layer_type.calculated_title % self.cleaned_data
+                except: pass
+
+            if self.instance.layer_type.calculated_abstract:
+                try:
+                    cleaned_data['abstract'] =  self.instance.layer_type.calculated_abstract % self.cleaned_data
+                except: pass                
+            return cleaned_data
 
     if request.method == "POST":
         layer_form = LayerMetadataForm(request.POST, instance=layer, prefix="resource")
@@ -467,6 +502,19 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
     ):
 
         the_layer = layer_form.save()
+
+        if the_layer.layer_type.default_style is not None:
+            set_default_style(the_layer, the_layer.layer_type.default_style)
+            the_layer.save()
+
+        # XXX
+        # the_layer.layer_type._precalculate_metadata_fields(the_layer)        
+        # the_layer.save()
+        # XXX
+
+        # XXX
+        the_layer.update_concave_hull()
+        # XXX
 
         if not layer.metadata_edited:
             try:
