@@ -459,7 +459,7 @@ class CommonModelApi(ModelResource):
             'thumbnail_url',
             'detail_url',
             'rating',
-            'concave_hull',
+            # 'concave_hull',
 
             'bbox_x0',
             'bbox_y0',
@@ -481,7 +481,7 @@ class CommonModelApi(ModelResource):
             if self.Meta.resource_name in ['tabular', 'documents']:
                 objects = list(data['objects'].values(*VALUES))
             else:
-                values = VALUES + ['metadata_edited', 'layer_type']
+                values = VALUES + ['metadata_edited', 'layer_type', 'concave_hull']
                 objects = list(data['objects'].values(*values))
 
 
