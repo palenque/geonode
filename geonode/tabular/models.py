@@ -2,6 +2,7 @@ import logging
 import os
 import uuid
 import subprocess
+from datetime import datetime
 
 from django.db import models
 from django.db.models import signals
@@ -19,9 +20,172 @@ from geonode.base.models import resourcebase_post_save, resourcebase_pre_save
 from geonode.maps.signals import map_changed_signal
 from geonode.maps.models import Map
 
+import eav
+from eav.models import Attribute as EAVAttribute
+
 IMGTYPES = ['jpg', 'jpeg', 'tif', 'tiff', 'png', 'gif']
 
 logger = logging.getLogger(__name__)
+
+
+class TabularType(models.Model):
+    'Layer type'
+
+    name = models.CharField(_('name'), max_length=255, unique=True)
+    label = models.CharField(max_length=255, blank=True, null=True)
+    description = models.CharField(
+        _('description'), max_length=255, blank=True, null=True
+    )
+
+
+    def __unicode__(self):
+        return self.label or self.name
+
+class MetadataType(models.Model):
+
+    tabular_type = models.ForeignKey(
+        TabularType, blank=False, null=False, unique=False,
+    )
+
+    attribute = models.ForeignKey(
+        EAVAttribute, blank=False, null=False,
+        related_name='tabular_metadata_type_attribute',
+    )
+
+
+class Attribute(models.Model):
+
+    """
+        Auxiliary model for storing Tabular attributes.
+
+       This helps reduce the need for runtime lookups
+       to other servers, and lets users customize attribute titles,
+       sort order, and visibility.
+    """
+    
+    tabular = models.ForeignKey(
+        'Tabular',
+        blank=False,
+        null=False,
+        unique=False,
+        related_name='tabular_attribute_set')
+    attribute = models.CharField(
+        _('attribute name'),
+        help_text=_('name of attribute as stored in shapefile/spatial database'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False)
+    description = models.CharField(
+        _('attribute description'),
+        help_text=_('description of attribute to be used in metadata'),
+        max_length=255,
+        blank=True,
+        null=True)
+    attribute_label = models.CharField(
+        _('attribute label'),
+        help_text=_('title of attribute as displayed in GeoNode'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False)
+    visible = models.BooleanField(
+        _('visible?'),
+        help_text=_('specifies if the attribute should be displayed in identify results'),
+        default=True)
+    display_order = models.IntegerField(
+        _('display order'),
+        help_text=_('specifies the order in which attribute should be displayed in identify results'),
+        default=1)
+    magnitude = models.CharField(
+        _('magnitude'),
+        #choices=MAGNITUDES,
+        help_text=_('unit'),
+        max_length=255,
+        blank=True,
+        null=True,
+        unique=False)
+    attribute_type = models.CharField(
+        _('attribute type'),
+        help_text=_('the data type of the attribute (integer, string, geometry, etc)'),
+        max_length=50,
+        blank=False,
+        null=False,
+        default='xsd:string',
+        unique=False)
+
+
+    # statistical derivations
+    count = models.IntegerField(
+        _('count'),
+        help_text=_('count value for this field'),
+        default=1)
+    min = models.CharField(
+        _('min'),
+        help_text=_('minimum value for this field'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False,
+        default='NA')
+    max = models.CharField(
+        _('max'),
+        help_text=_('maximum value for this field'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False,
+        default='NA')
+    average = models.CharField(
+        _('average'),
+        help_text=_('average value for this field'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False,
+        default='NA')
+    median = models.CharField(
+        _('median'),
+        help_text=_('median value for this field'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False,
+        default='NA')
+    stddev = models.CharField(
+        _('standard deviation'),
+        help_text=_('standard deviation for this field'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False,
+        default='NA')
+    sum = models.CharField(
+        _('sum'),
+        help_text=_('sum value for this field'),
+        max_length=255,
+        blank=False,
+        null=True,
+        unique=False,
+        default='NA')
+    unique_values = models.TextField(
+        _('unique values for this field'),
+        null=True,
+        blank=True,
+        default='NA')
+    last_stats_updated = models.DateTimeField(
+        _('last modified'),
+        default=datetime.now,
+        help_text=_('date when attribute statistics were last updated'))  # passing the method itself, not
+
+
+    def __unicode__(self):
+        if self.attribute_label:
+            return self.attribute_label
+        return self.attribute
+
+    def unique_values_as_list(self):
+        return self.unique_values.split(',')
 
 
 class Tabular(ResourceBase):
@@ -30,6 +194,7 @@ class Tabular(ResourceBase):
     A document is any kind of information that can be attached to a map such as pdf, images, videos, xls...
     """
 
+    tabular_type = models.ForeignKey(TabularType, null=True, blank=True)
     delimiter = models.CharField(max_length=128, blank=True, null=True)
     quote = models.CharField(max_length=128, blank=True, null=True)
     charset = models.CharField(max_length=128, blank=True, null=True)
@@ -211,9 +376,40 @@ def create_table(sender, instance, created, **kwargs):
     if not created:
         return
 
+    from csvkit import table
+    from csvkit.utilities.csvsql import CSVSQL
+
     # TODO: mejorar manejo de errores: validar si existe la tabla, nombre de tabla
     # separador, quote, errores de importacion, etc.
-    table_name = instance.title.lower().replace(' ', '_').replace('.', '')
+    
+    table_name = 'tabular_%d' % instance.id
+    
+    csv_table = table.Table.from_csv(
+        file(instance.doc_file.path),
+        name=table_name,
+        snifflimit=None,
+        blanks_as_nulls=True,
+        infer_types=True,
+        no_header_row=False,
+    )
+
+    # save attributes
+    for i, header in enumerate(csv_table.headers()):
+        Attribute(
+            tabular=instance,
+            attribute=header,
+            attribute_label=header,
+            display_order=i+1,
+            attribute_type=str(csv_table[i].type)
+        ).save()
+
+    # Out[3]: Namespace(blanks=False, connection_string=None, db_schema=None, delimiter=None, dialect=None, doublequote=False, encoding='utf-8', escapechar=None, input_paths=['-'], insert=False, maxfieldsize=None, no_constraints=False, no_create=False, no_header_row=False, no_inference=False, query=None, quotechar=None, quoting=None, skipinitialspace=False, snifflimit=None, table_names=None, tabs=False, verbose=False, zero_based=False)
+
+    # csvsql = CSVSQL()
+    # csvsql.args.blanks = True
+    # csvsql.args.insert = True
+    # csvsql.main()
+
     subprocess.call([
         'csvsql', 
         '--db', 
@@ -237,3 +433,12 @@ signals.post_save.connect(create_table, sender=Tabular)
 signals.pre_save.connect(resourcebase_pre_save, sender=Tabular)
 signals.post_save.connect(resourcebase_post_save, sender=Tabular)
 map_changed_signal.connect(update_documents_extent)
+
+
+from eav.registry import EavConfig
+class EavConfigClass(EavConfig):
+    manager_attr = 'eav_objects'
+    object_type = 'tabular_type'
+    attribute_relation='tabular_metadata_type_attribute'
+
+eav.register(Tabular, EavConfigClass)

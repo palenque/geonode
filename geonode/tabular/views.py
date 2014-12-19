@@ -21,6 +21,8 @@ from geonode.tabular.models import Tabular
 from geonode.tabular.forms import DocumentForm, DocumentCreateForm, DocumentReplaceForm
 from geonode.tabular.models import IMGTYPES
 
+from eav.forms import BaseDynamicEntityForm
+
 ALLOWED_DOC_TYPES = settings.ALLOWED_DOCUMENT_TYPES
 
 _PERMISSION_MSG_DELETE = _("You are not permitted to delete this document")
@@ -125,11 +127,139 @@ class DocumentUpdateView(UpdateView):
                 )))
 
 
+def document_custom_metadata(request, docid, template='tabular/document_custom_metadata.html'):
+
+    # form con metadata del tipo de capa
+    document = Tabular.objects.get(id=docid)
+
+    class TabularMetadataForm(BaseDynamicEntityForm):
+
+        class Meta:
+            model = Tabular
+
+        def __init__(self, data=None, *args, **kwargs):
+
+            super(TabularMetadataForm, self).__init__(data, *args, **kwargs)
+
+            # readonly_meta_fields = [x.attribute.slug for x in
+            #     layer.layer_type.metadatatype_set.filter(
+            #         is_precalculated=True)]                
+            meta_fields = [
+                a.slug for a in document.eav.get_all_attributes().filter(
+                    tabular_metadata_type_attribute__in=document.tabular_type.metadatatype_set.all()
+                    # metadata_type__in=document.tabular_type.metadatatype_set.all()
+                    
+                )
+            ]
+            # import pdb;pdb.set_trace()
+            for f in self.fields.keys():
+                if f not in meta_fields:
+                    del self.fields[f] 
+                # if f in readonly_meta_fields:
+                #     self.fields[f].widget.attrs['readonly'] = True
+
+    # poc = document.poc
+    # metadata_author = document.metadata_author
+    # topic_category = document.category
+
+    if request.method == "POST":
+        document_form = TabularMetadataForm(
+            request.POST,
+            instance=document,
+            prefix="resource")
+        # category_form = CategoryForm(
+        #     request.POST,
+        #     prefix="category_choice_field",
+        #     initial=int(
+        #         request.POST["category_choice_field"]) if "category_choice_field" in request.POST else None)
+    else:
+        document_form = TabularMetadataForm(instance=document, prefix="resource")
+        # category_form = CategoryForm(
+        #     prefix="category_choice_field",
+        #     initial=topic_category.id if topic_category else None)
+
+    if request.method == "POST" and document_form.is_valid(): # and category_form.is_valid():
+        
+        # new_poc = document_form.cleaned_data['poc']
+        # new_author = document_form.cleaned_data['metadata_author']
+        # new_keywords = document_form.cleaned_data['keywords']
+        # new_category = TopicCategory.objects.get(
+        #     id=category_form.cleaned_data['category_choice_field'])
+
+        # if new_poc is None:
+        #     if poc.user is None:
+        #         poc_form = ProfileForm(
+        #             request.POST,
+        #             prefix="poc",
+        #             instance=poc)
+        #     else:
+        #         poc_form = ProfileForm(request.POST, prefix="poc")
+        #     if poc_form.has_changed and poc_form.is_valid():
+        #         new_poc = poc_form.save()
+
+        # if new_author is None:
+        #     if metadata_author is None:
+        #         author_form = ProfileForm(request.POST, prefix="author",
+        #                                   instance=metadata_author)
+        #     else:
+        #         author_form = ProfileForm(request.POST, prefix="author")
+        #     if author_form.has_changed and author_form.is_valid():
+        #         new_author = author_form.save()
+
+        # if new_poc is not None and new_author is not None:
+        #     the_document = document_form.save()
+        #     the_document.poc = new_poc
+        #     the_document.metadata_author = new_author
+            
+        #     the_document.keywords.add(*new_keywords)
+            
+        #     the_document.category = new_category
+            # the_document.save()
+            document_form.save()
+            return HttpResponseRedirect(
+                reverse(
+                    'tabular_detail',
+                    args=(
+                        document.id,
+                    )))
+
+    # if poc is None:
+    #     poc_form = ProfileForm(request.POST, prefix="poc")
+    # else:
+    #     if poc is None:
+    #         poc_form = ProfileForm(instance=poc, prefix="poc")
+    #     else:
+    #         document_form.fields['poc'].initial = poc.id
+    #         poc_form = ProfileForm(prefix="poc")
+    #         poc_form.hidden = True
+
+    # if metadata_author is None:
+    #     author_form = ProfileForm(request.POST, prefix="author")
+    # else:
+    #     if metadata_author is None:
+    #         author_form = ProfileForm(
+    #             instance=metadata_author,
+    #             prefix="author")
+    #     else:
+    #         document_form.fields[
+    #             'metadata_author'].initial = metadata_author.id
+    #         author_form = ProfileForm(prefix="author")
+    #         author_form.hidden = True
+
+    return render_to_response(template, RequestContext(request, {
+        "document": document,
+        "document_form": document_form,
+        # "poc_form": poc_form,
+        # "author_form": author_form,
+        # "category_form": category_form,
+    }))
+
 @login_required
-def document_metadata(
+def document_default_metadata(
         request,
         docid,
-        template='tabular/document_metadata.html'):
+        template='tabular/document_default_metadata.html'):
+
     document = Tabular.objects.get(id=docid)
 
     poc = document.poc
@@ -226,6 +356,18 @@ def document_metadata(
         "author_form": author_form,
         "category_form": category_form,
     }))
+
+
+@login_required
+def document_metadata(request, docid, template='tabular/document_metadata.html'):
+
+    document = Tabular.objects.get(id=docid)
+
+    if document.tabular_type:
+        return document_custom_metadata(request, docid)
+    else:
+        return document_default_metadata(request, docid)
+
 
 
 def document_search_page(request):

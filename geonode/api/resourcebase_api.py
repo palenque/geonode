@@ -851,6 +851,50 @@ class TabularResource(CommonModelApi):
         queryset = Tabular.objects.distinct().order_by('-date')
         resource_name = 'tabular'
 
+    def prepend_urls(self):
+        urls = [
+            url(
+                r"^(?P<resource_name>%s)/(?P<resource_id>\d+)/sql%s$" % (
+                    self._meta.resource_name, trailing_slash()
+                ),
+                self.wrap_view('sql'), 
+                name="api_tabular_sql"
+            )
+        ]
+
+        return urls
+
+    def sql(self, request, resource_id, **kwargs):
+        '''query the table.
+
+        curl 
+        --dump-header -  
+        -H "Content-Type: application/json" 
+        -X  PUT 
+        --data '{"new_owner_id": 25, "app_id": 14}' 
+        'http://localhost:8000/api/base/79/transfer_owner/?username=foo&api_key=c003062347b82a8cdd4014e9f8edb5c2aef63c7a'
+        '''
+
+        self.method_check(request, allowed=['get'])
+        self.is_authenticated(request)
+        self.throttle_check(request)
+
+        from django.db import connections
+        cursor = connections['datastore'].cursor()
+
+        # FIXME: hacer seguro
+        cursor.execute(
+            'select * from tabular_%s where %s;' % (
+                resource_id, request.GET['q']
+            ) 
+        )
+
+        to_be_serialized = self.alter_list_data_to_serialize(
+            request,
+            cursor.fetchall()
+        )
+        return self.create_response(request, to_be_serialized)
+
 
 class InternalLinkResource(ModelResource):
     class Meta:

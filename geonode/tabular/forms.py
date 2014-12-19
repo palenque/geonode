@@ -192,15 +192,20 @@ class DocumentReplaceForm(forms.ModelForm):
 
         return doc_file
 
+from django import forms
+from geonode.tabular.models import TabularType
 
 class DocumentCreateForm(TranslationModelForm):
 
     """
     The document upload form.
     """
+
     quote = forms.CharField(required=False)
     delimiter = forms.CharField(required=False)
     charset = forms.ChoiceField(choices=CHARSETS, required=False)
+
+
     permissions = forms.CharField(
         widget=HiddenInput(
             attrs={
@@ -218,7 +223,8 @@ class DocumentCreateForm(TranslationModelForm):
     class Meta:
         model = Tabular
         fields = [
-            'title', 'doc_file', 'doc_url', 'quote', 'delimiter', 'charset',
+            'title', 'doc_file', 'doc_url', 'quote', 
+            'delimiter', 'charset', 'tabular_type',
         ]
         widgets = {
             'name': HiddenInput(attrs={'cols': 80, 'rows': 20}),

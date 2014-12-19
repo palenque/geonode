@@ -275,7 +275,8 @@ class MetadataType(models.Model):
     )
 
     attribute = models.ForeignKey(
-        EAVAttribute, blank=False, null=False
+        EAVAttribute, blank=False, null=False,
+        related_name='layer_metadata_type_attribute',
     )
 
     is_precalculated = models.BooleanField(
@@ -853,5 +854,7 @@ signals.post_delete.connect(post_delete_layer, sender=Layer)
 from eav.registry import EavConfig
 class EavConfigClass(EavConfig):
     manager_attr = 'eav_objects'
+    object_type = 'layer_type'
+    attribute_relation='layer_metadata_type_attribute'
 
 eav.register(Layer, EavConfigClass)

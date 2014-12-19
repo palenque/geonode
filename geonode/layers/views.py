@@ -452,7 +452,7 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
                     is_precalculated=True)]                
             meta_fields = [
                 a.slug for a in layer.eav.get_all_attributes().filter(
-                    metadatatype__in=layer.layer_type.metadatatype_set.all()
+                    layer_metadata_type_attribute__in=layer.layer_type.metadatatype_set.all()
                 )
             ]
             for f in self.fields.keys():

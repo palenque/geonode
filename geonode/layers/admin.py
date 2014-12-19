@@ -38,7 +38,7 @@ class AttributeInline(admin.TabularInline):
 class LayerAdminForm(BaseDynamicEntityForm):
     model = Layer
 
-# class LayerAdmin(MediaTranslationAdmin):
+
 class LayerAdmin(BaseEntityAdmin):
     list_display = (
         'id',
@@ -58,7 +58,6 @@ class LayerAdmin(BaseEntityAdmin):
     readonly_fields = ('uuid', 'typename', 'workspace')
     inlines = [AttributeInline]
     form = LayerAdminForm
-    # form = autocomplete_light.modelform_factory(Layer)
 
 
 class AttributeAdmin(admin.ModelAdmin):
@@ -106,19 +105,7 @@ class LayerTypeAdmin(admin.ModelAdmin):
     list_display = (
         'id',
         'name',
-        # 'service_type',
-        # 'title',
-        # 'date',
-        # 'category'
     )
-    # list_display_links = ('id',)
-    # list_editable = ('title', 'category')
-    # list_filter = ('owner', 'category', 'layer_type',
-    #                'restriction_code_type__identifier', 'date', 'date_type')
-    # search_fields = ('typename', 'title', 'abstract', 'purpose',)
-    # filter_horizontal = ('contacts',)
-    # date_hierarchy = 'date'
-    # readonly_fields = ('uuid', 'typename', 'workspace')
     inlines = [MetadataTypeInline, AttributeTypeInline]
     form = autocomplete_light.modelform_factory(LayerType)
 
@@ -132,13 +119,8 @@ class AttributeTypeAdmin(admin.ModelAdmin):
         'name',
         'attribute_type',
         'magnitude',
-        # 'attribute_type',
-        # 'display_order',
-        # 'field',
-        # 'magnitude',
     )
     list_filter = ('layer_type', 'attribute_type',)
-    # search_fields = ('attribute', 'attribute_label',)
 
 admin.site.register(LayerType, LayerTypeAdmin)
 admin.site.register(AttributeType, AttributeTypeAdmin)
