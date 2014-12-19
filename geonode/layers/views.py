@@ -518,18 +518,16 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
 
         if not layer.metadata_edited:
             try:
-
                 with transaction.atomic(using='default'):
                     attribute_form.save()
                     layer.update_attributes()
 
                 the_layer.metadata_edited = True
                 the_layer.save()
-
-                return HttpResponseRedirect(reverse('layer_detail', args=(layer.service_typename,)))
-
             except Exception as e:
                 layer_form._errors[NON_FIELD_ERRORS] = layer_form.error_class([unicode(e)])
+
+        return HttpResponseRedirect(reverse('layer_detail', args=(layer.service_typename,)))
 
     new_attribute_form = layer_attribute_set(
         instance=layer,

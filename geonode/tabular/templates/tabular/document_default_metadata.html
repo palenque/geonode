@@ -1,6 +1,8 @@
 {% extends "tabular/document_base.html" %}
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load bootstrap %}
+{% load bootstrap3 %}
 
 {% block title %}{{ document.typename }} — {{ block.super }}{% endblock %}
 
@@ -35,16 +37,16 @@
     {% endif %}
     {% csrf_token %}
     <div class="form-controls">
-      {{ document_form|as_bootstrap }}
+      {% bootstrap_form document_form layout='horizontal' %}
     </div>
     <fieldset class="form-controls modal-forms modal hide fade" id="poc_form" >
       <h2>{% trans "Point of Contact" %}</h2>
-      {{ poc_form|as_bootstrap }}
+      {% bootstrap_form poc_form layout='horizontal' %}
       <button type='button' class="modal-cloose-btn btn btn-primary">Done</button>
     </fieldset>
     <fieldset class="form-controls modal-forms modal hide fade" id="metadata_form">
       <h2>{% trans "Metadata Provider" %}</h2>
-        {{ author_form|as_bootstrap }}
+        {% bootstrap_form author_form layout='horizontal' %}
       <button type='button' class="modal-cloose-btn btn btn-primary">Done</button>
     </fieldset>
        <fieldset id="category_form">

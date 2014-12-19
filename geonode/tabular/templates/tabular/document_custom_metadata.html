@@ -9,6 +9,9 @@
 {% block head %}
   {% include "geonode/ext_header.html" %}
   {{ block.super }}
+<style>
+.form-group{width:95%;} 
+</style>
 {% endblock %}
 
 {% block body_class %}data{% endblock %}
@@ -20,6 +23,8 @@
         Editing details for {{ document_title }}
       {% endblocktrans %}
     </legend>
+    
+    {% comment %}
     {% if document_form.errors or category_form.errors %}
         <div style="background-color: pink">{% blocktrans %}Error updating metadata.  Please check the following fields: {% endblocktrans %}
             <ul>
@@ -35,9 +40,13 @@
             </ul>
         </div>
     {% endif %}
+    {% endcomment %}
+
+    {% bootstrap_form_errors document_form  %}
+
     {% csrf_token %}
     <div class="form-controls">
-      {{ document_form|as_bootstrap }}
+      {% bootstrap_form document_form layout='horizontal' %}
     </div>
 
     {% comment %}
