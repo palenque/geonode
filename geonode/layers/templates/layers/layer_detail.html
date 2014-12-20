@@ -64,7 +64,6 @@
               </thead>
               <tbody>
                 {% for attribute in resource.attribute_set.all %}
-                  {% if attribute.visible %}
                   <tr>
                     <td>{{ attribute }}</td>
                     {% if resource.layer_type and not resource.layer_type.is_default %}
@@ -88,7 +87,6 @@
                     <td>{{ attribute.stddev|floatformat:"2" }}</td>
                     {% endcomment %}
                   </tr>
-                  {% endif %}
                 {% endfor %}
               </tbody>
             </table>

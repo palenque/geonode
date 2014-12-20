@@ -478,30 +478,22 @@ class CommonModelApi(ModelResource):
 
 
             # TODO: Improve
-            if self.Meta.resource_name in ['tabular', 'documents']:
-                objects = list(data['objects'].values(*VALUES))
-            else:
-                values = VALUES + ['metadata_edited', 'layer_type', 'concave_hull']
-                objects = list(data['objects'].values(*values))
+            objects = list(data['objects'].values(*VALUES))
+            for objdata,obj in zip(objects, data['objects']):
+                if not isinstance(obj,Document) and not isinstance(obj,Tabular):
+                    for attr in ['metadata_edited', 'layer_type', 'concave_hull']:
+                        objdata[attr] = getattr(obj, attr)
 
+                    objdata['layer_type'] = obj.layer_type.name
+                    objdata['category_description'] = obj.category.gn_description if obj.category is not None else ''
+                    objdata['creator_username'] = obj.creator.username
 
-            for obj,realobj in zip(objects, data['objects']):
-                
-                if obj.get('layer_type'):
-                    obj['layer_type'] = LayerType.objects.get(id=obj['layer_type']).name
-                
-                if obj['category'] is not None: 
-                    obj['category_description'] = TopicCategory.objects.get(id=obj['category']).gn_description
-
-                if obj['creator'] is not None: 
-                    obj['creator_username'] = Profile.objects.get(id=obj['creator'])
-
-                if realobj.is_public():
-                    obj['permission_class'] = "public"
-                elif request.user == realobj.owner:
-                    obj['permission_class'] = "owned"
-                else:
-                    obj['permission_class'] = "shared"
+                    if obj.is_public():
+                        objdata['permission_class'] = "public"
+                    elif request.user == obj.owner:
+                        objdata['permission_class'] = "owned"
+                    else:
+                        objdata['permission_class'] = "shared"
 
             data['objects'] = objects
                 

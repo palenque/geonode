@@ -48,19 +48,19 @@
     });
     $("#resource").select2({
         minimumInputLength: 1,
-        placeholder: 'Select layer, map or empty',
+        placeholder: 'Select layer',
         width: 'element',
         ajax: {
           url: '{% url 'api_dispatch_list' api_name='api' resource_name='base' %}',
           data: function(term,page){
             return {
-              type: 'layer,map',
+              //type: 'layer,map',
               q: term.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '')
             }
           },
           results: function(data) {
             return {
-              results: $.map(data.results,function(object){
+              results: $.map(data.objects,function(object){
                 return {id: object.id, text: object.title, type: object._type};
               })
             }
