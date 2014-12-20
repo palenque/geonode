@@ -58,6 +58,8 @@ class BaseDynamicEntityForm(ModelForm):
     def __init__(self, data=None, *args, **kwargs):
         super(BaseDynamicEntityForm, self).__init__(data, *args, **kwargs)
         config_cls = self.instance._eav_config_cls
+        self.object_type = config_cls.object_type
+        self.attribute_relation = config_cls.attribute_relation
         self.entity = getattr(self.instance, config_cls.eav_attr)
         self._build_dynamic_fields()
 
@@ -65,9 +67,8 @@ class BaseDynamicEntityForm(ModelForm):
         # reset form fields
         self.fields = deepcopy(self.base_fields)
 
-        # TODO: hacer generico?
         attributes = self.entity.get_all_attributes().filter(
-            metadatatype__in=self.instance.layer_type.metadatatype_set.all()
+            **{self.attribute_relation + '__in': getattr(self.instance, self.object_type).metadatatype_set.all()}
         )
 
         for attribute in attributes:

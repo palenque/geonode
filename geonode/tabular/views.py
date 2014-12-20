@@ -21,6 +21,8 @@ from geonode.tabular.models import Tabular
 from geonode.tabular.forms import DocumentForm, DocumentCreateForm, DocumentReplaceForm
 from geonode.tabular.models import IMGTYPES
 
+from eav.forms import BaseDynamicEntityForm
+
 ALLOWED_DOC_TYPES = settings.ALLOWED_DOCUMENT_TYPES
 
 _PERMISSION_MSG_DELETE = _("You are not permitted to delete this document")
@@ -125,11 +127,56 @@ class DocumentUpdateView(UpdateView):
                 )))
 
 
+def document_custom_metadata(request, docid, template='tabular/document_custom_metadata.html'):
+
+    # form con metadata del tipo de capa
+    document = Tabular.objects.get(id=docid)
+
+    class TabularMetadataForm(BaseDynamicEntityForm):
+
+        class Meta:
+            model = Tabular
+
+        def __init__(self, data=None, *args, **kwargs):
+
+            super(TabularMetadataForm, self).__init__(data, *args, **kwargs)
+
+            meta_fields = [
+                a.slug for a in document.eav.get_all_attributes().filter(
+                    tabular_metadata_type_attribute__in=document.tabular_type.metadatatype_set.all()
+                )
+            ]
+            for f in self.fields.keys():
+                if f not in meta_fields:
+                    del self.fields[f] 
+
+    if request.method == "POST":
+        document_form = TabularMetadataForm(
+            request.POST,
+            instance=document,
+            prefix="resource")
+    else:
+        document_form = TabularMetadataForm(instance=document, prefix="resource")
+    if request.method == "POST" and document_form.is_valid(): 
+        document_form.save()
+        return HttpResponseRedirect(
+            reverse(
+                'tabular_detail',
+                args=(
+                    document.id,
+                )))
+
+    return render_to_response(template, RequestContext(request, {
+        "document": document,
+        "document_form": document_form,
+    }))
+
 @login_required
-def document_metadata(
+def document_default_metadata(
         request,
         docid,
-        template='tabular/document_metadata.html'):
+        template='tabular/document_default_metadata.html'):
+
     document = Tabular.objects.get(id=docid)
 
     poc = document.poc
@@ -226,6 +273,18 @@ def document_metadata(
         "author_form": author_form,
         "category_form": category_form,
     }))
+
+
+@login_required
+def document_metadata(request, docid, template='tabular/document_metadata.html'):
+
+    document = Tabular.objects.get(id=docid)
+
+    if document.tabular_type:
+        return document_custom_metadata(request, docid)
+    else:
+        return document_default_metadata(request, docid)
+
 
 
 def document_search_page(request):

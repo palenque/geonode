@@ -1,6 +1,15 @@
 {% extends "layers/layer_base.html" %}
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load bootstrap %}
+{% load bootstrap3 %}
+
+{% block extra_head %}
+{{ block.super }}
+<style>
+.form-group{width:95%;} 
+</style>
+{% endblock %}
 
 {% block title %}{{ layer.typename }} — {{ block.super }}{% endblock %}
 
@@ -46,7 +55,7 @@
     <br/>
     {% csrf_token %}
     <div class="form-controls">
-      {{ layer_form|as_bootstrap }}
+      {% bootstrap_form layer_form layout='horizontal' %}
     </div>
 
     <fieldset id="category_form" {% if not layer.layer_type.show_category %}style="display:none;"{% endif %}>
@@ -69,23 +78,30 @@
 
     <header>{% trans "Attributes" %}</header>
     {{ attribute_form.management_form }}
-    <table cellpadding="5" cellspacing="5" width="100%"><tr><th style="text-align: left;">{% trans "Attribute" %}</th><th style="text-align: left;">{% trans "Label" %}</th><th style="text-align: left;">{% trans "Description" %}</th><th style="text-align: left;">{% trans "Display Order" %}</th></tr>
+    <table class="table table-hover  " >
+        <tr>
+            <th >{% trans "Attribute" %}</th>
+            <th >{% trans "Label" %}</th>
+            <th >{% trans "Description" %}</th>
+            <th >{% trans "Display Order" %}</th>
+        </tr>
+        <tbody>
         {% for form in attribute_form.forms %}
         {% if form.attribute  %}
-        <tr><td><div style="display:none">{{form.id}}</div>{{form.attribute}}</td><td> {{form.attribute_label}}</td><td> {{form.description}}</td><td> {{form.display_order}}</td></tr>
+        <tr><td><div style="display:none">{{form.id}}</div> {% bootstrap_field form.attribute layout='inline' %} </td><td>{% bootstrap_field form.attribute_label layout='inline' %} </td><td>{% bootstrap_field form.description layout='inline' %} </td><td>{% bootstrap_field form.display_order layout='inline' %}</td></tr>
         {% endif %}
         {% endfor %}
+        </tbody>
     </table>
-
 
     <fieldset class="form-controls modal-forms modal hide fade" id="poc_form" >
       <h2>{% trans "Point of Contact" %}</h2>
-      {{ poc_form|as_bootstrap }}
+      {% bootstrap_form poc_form layout='horizontal' %}
       <button type='button' class="modal-cloose-btn btn btn-primary">Done</button>
     </fieldset>
     <fieldset class="form-controls modal-forms modal hide fade" id="metadata_form">
       <h2>{% trans "Metadata Provider" %}</h2>
-        {{ author_form|as_bootstrap }}
+        {% bootstrap_form author_form layout='horizontal' %}
       <button type='button' class="modal-cloose-btn btn btn-primary">Done</button>
     </fieldset>
     <div class="form-actions">

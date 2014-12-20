@@ -452,7 +452,7 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
                     is_precalculated=True)]                
             meta_fields = [
                 a.slug for a in layer.eav.get_all_attributes().filter(
-                    metadatatype__in=layer.layer_type.metadatatype_set.all()
+                    layer_metadata_type_attribute__in=layer.layer_type.metadatatype_set.all()
                 )
             ]
             for f in self.fields.keys():
@@ -518,18 +518,16 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
 
         if not layer.metadata_edited:
             try:
-
                 with transaction.atomic(using='default'):
                     attribute_form.save()
                     layer.update_attributes()
 
                 the_layer.metadata_edited = True
                 the_layer.save()
-
-                return HttpResponseRedirect(reverse('layer_detail', args=(layer.service_typename,)))
-
             except Exception as e:
                 layer_form._errors[NON_FIELD_ERRORS] = layer_form.error_class([unicode(e)])
+
+        return HttpResponseRedirect(reverse('layer_detail', args=(layer.service_typename,)))
 
     new_attribute_form = layer_attribute_set(
         instance=layer,

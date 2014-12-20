@@ -1,12 +1,17 @@
 {% extends "tabular/document_base.html" %}
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load bootstrap %}
+{% load bootstrap3 %}
 
 {% block title %}{{ document.typename }} — {{ block.super }}{% endblock %}
 
 {% block head %}
   {% include "geonode/ext_header.html" %}
   {{ block.super }}
+<style>
+.form-group{width:95%;} 
+</style>
 {% endblock %}
 
 {% block body_class %}data{% endblock %}
@@ -18,6 +23,8 @@
         Editing details for {{ document_title }}
       {% endblocktrans %}
     </legend>
+    
+    {% comment %}
     {% if document_form.errors or category_form.errors %}
         <div style="background-color: pink">{% blocktrans %}Error updating metadata.  Please check the following fields: {% endblocktrans %}
             <ul>
@@ -33,10 +40,16 @@
             </ul>
         </div>
     {% endif %}
+    {% endcomment %}
+
+    {% bootstrap_form_errors document_form  %}
+
     {% csrf_token %}
     <div class="form-controls">
-      {{ document_form|as_bootstrap }}
+      {% bootstrap_form document_form layout='horizontal' %}
     </div>
+
+    {% comment %}
     <fieldset class="form-controls modal-forms modal hide fade" id="poc_form" >
       <h2>{% trans "Point of Contact" %}</h2>
       {{ poc_form|as_bootstrap }}
@@ -47,6 +60,7 @@
         {{ author_form|as_bootstrap }}
       <button type='button' class="modal-cloose-btn btn btn-primary">Done</button>
     </fieldset>
+
        <fieldset id="category_form">
             <label class="control-label required-field">{% trans "Category" %}</label><br/>
             {% autoescape off %}
@@ -64,6 +78,8 @@
                 </div>
             {% endautoescape %}
         </fieldset>
+    {% endcomment %}        
+
     <div class="form-actions">
       <input type="submit" class="btn btn-primary" value="{% trans "Update" %}"/>
     </div>
