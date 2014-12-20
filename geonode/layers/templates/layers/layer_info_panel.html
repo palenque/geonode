@@ -5,60 +5,58 @@
     {% for attr in meta_attributes %}
         <dt>{{attr.attribute.name}}</dt>
         <dd>{{attr.value}}</dd>
-    {% endfor %}
+    {% empty %}
+        {% if resource.title %}
+        <dt>{% trans "Title" %}</dt>
+        <dd>{{ resource.title|truncatechars:80 }}</dd>
+        {% endif %}
 
-{% comment %}
-    {% if resource.title %}
-    <dt>{% trans "Title" %}</dt>
-    <dd>{{ resource.title|truncatechars:80 }}</dd>
-    {% endif %}
+        {% if LICENSES_ENABLED and LICENSES_DETAIL == 'above' and resource.license %}
+        <dt>{% trans "License" %}</dt>
+        <dd>{{ resource.license.name_long }} <a href="#license-more-above" data-toggle="collapse" data-target=".license-more-above"><i class="fa fa-info-circle"></i></a></dd>
+        {% endif %}
+        <dd class="license-more-above collapse">
+          {% for bullet in resource.license.description_bullets %}
+            {{ bullet }}<br/><br/>
+          {% endfor %}
+          {% if resource.license.url %}
+            + For more info see <a href="{{ resource.license.url }}">{{ resource.license.url }}</a>.
+          {% endif %}
+        </dd>
 
-    {% if LICENSES_ENABLED and LICENSES_DETAIL == 'above' and resource.license %}
-    <dt>{% trans "License" %}</dt>
-    <dd>{{ resource.license.name_long }} <a href="#license-more-above" data-toggle="collapse" data-target=".license-more-above"><i class="fa fa-info-circle"></i></a></dd>
-    {% endif %}
-    <dd class="license-more-above collapse">
-      {% for bullet in resource.license.description_bullets %}
-        {{ bullet }}<br/><br/>
-      {% endfor %}
-      {% if resource.license.url %}
-        + For more info see <a href="{{ resource.license.url }}">{{ resource.license.url }}</a>.
-      {% endif %}
-    </dd>
+        {% if resource.abstract %}
+        <dt>{% trans "Abstract" %}</dt>
+        <dd>{{ resource.abstract|escape|urlize|linebreaks|safe|truncatechars:500 }}</dd>
+        {% endif %}
+        
+        {% if resource.date %}
+        <dt>{% trans resource.date_type|title %} {% trans "Date" %}</dt>
+        <dd>{{ resource.date }}</dd>
+        {% endif %}
 
-    {% if resource.abstract %}
-    <dt>{% trans "Abstract" %}</dt>
-    <dd>{{ resource.abstract|escape|urlize|linebreaks|safe|truncatechars:500 }}</dd>
-    {% endif %}
-    
-    {% if resource.date %}
-    <dt>{% trans resource.date_type|title %} {% trans "Date" %}</dt>
-    <dd>{{ resource.date }}</dd>
-    {% endif %}
+        {% if resource.display_type %}
+        <dt>{% trans "Type" %}</dt>
+        <dd>{{ resource.display_type }}</dd>
+        {% endif %}
 
-    {% if resource.display_type %}
-    <dt>{% trans "Type" %}</dt>
-    <dd>{{ resource.display_type }}</dd>
-    {% endif %}
+        {% if resource.keyword_list %}
+        <dt>{% trans "Keywords" %}</dt>
+        <dd>{% for keyword in resource.keyword_list %}
+            {{ keyword }}
+            {% endfor %}</dd>
+        {% endif %}
+              
+        {% if resource.category %}
+        <dt>{% trans "Category" %}</dt>
+        <dd>{{ resource.category }}</dd>
+        {% endif %}
+      
+        {% if resource.regions.all %}
+        <dt>{% trans "Regions" %}</dt>
+        <dd>{{ resource.regions.all|join:", " }}</dd>
+        {% endif %}
 
-    {% if resource.keyword_list %}
-    <dt>{% trans "Keywords" %}</dt>
-    <dd>{% for keyword in resource.keyword_list %}
-        {{ keyword }}
-        {% endfor %}</dd>
-    {% endif %}
-          
-    {% if resource.category %}
-    <dt>{% trans "Category" %}</dt>
-    <dd>{{ resource.category }}</dd>
-    {% endif %}
-  
-    {% if resource.regions.all %}
-    <dt>{% trans "Regions" %}</dt>
-    <dd>{{ resource.regions.all|join:", " }}</dd>
-    {% endif %}
-
-{% endcomment %}  
+    {% endfor %}  
 
     {% if resource.owner %}
     <dt>{% trans "Owner" %}</dt>
