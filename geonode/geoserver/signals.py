@@ -49,6 +49,10 @@ def geoserver_pre_save(instance, sender, **kwargs):
         * Metadata Links,
         * Point of Contact name and url
     """
+    # XXX
+    if instance.metadata_edited: return
+    # XXX
+
     base_file = instance.get_base_file()
 
     # There is no need to process it if there is not file.
@@ -137,6 +141,10 @@ def geoserver_post_save(instance, sender, **kwargs):
        The way keywords are implemented requires the layer
        to be saved to the database before accessing them.
     """
+
+    # XXX
+    if instance.metadata_edited: return
+    # XXX    
 
     if instance.storeType == "remoteStore":
         # Save layer attributes
