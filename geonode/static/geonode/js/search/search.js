@@ -160,7 +160,8 @@
           var bounds = null;
           var geojson = [];
 
-          $("#public_layers").html("");
+          $(".cat").hide();
+          $(".cat ul").html("");
 
           for(var i in data.objects) {
 
@@ -202,10 +203,10 @@
                       $(this).addClass("active");
                     }
                   });
-              $("#public_layers").append(
+
+              $("#cat-"+obj.category+" ul").append(
                 $("<li>").append(layer_elem));
-                  
-            
+              $("#cat-"+obj.category).show();
 
             /*
       <li ng-repeat="category in categories">

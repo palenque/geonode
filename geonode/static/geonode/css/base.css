@@ -179,6 +179,11 @@ body.apps li#nav_apps a {
 .profile-details {
   margin-left: -140px;
 }
+
+nav.filter li h4 a {
+  border-bottom: none;
+}
+
 nav.filter h4 {
   background: #555555;
   font-size: 14px;

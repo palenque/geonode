@@ -37,6 +37,7 @@ from django.template.defaultfilters import slugify
 from django.forms.models import inlineformset_factory
 from django.db.models import F
 from django.forms.forms import NON_FIELD_ERRORS
+from django.views.generic import TemplateView
 
 from guardian.shortcuts import assign_perm
 
@@ -660,3 +661,8 @@ def layer_remove(request, layername, template='layers/layer_remove.html'):
             mimetype="text/plain",
             status=401
         )
+
+class LayerListView(TemplateView):
+    def get_context_data(self, **kwargs):
+        return {'categories': TopicCategory.objects.all()}
+
