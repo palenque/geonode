@@ -22,6 +22,7 @@ from geonode.maps.models import Map
 
 import eav
 from eav.models import Attribute as EAVAttribute
+from csvkit import table
 
 IMGTYPES = ['jpg', 'jpeg', 'tif', 'tiff', 'png', 'gif']
 
@@ -195,8 +196,15 @@ class Tabular(ResourceBase):
     """
 
     tabular_type = models.ForeignKey(TabularType, null=True, blank=True)
-    delimiter = models.CharField(max_length=128, blank=True, null=True)
-    quote = models.CharField(max_length=128, blank=True, null=True)
+
+    # csvkit options    
+    has_header = models.BooleanField(default=True) 
+    tabs = models.BooleanField(default=False) 
+    delimiter = models.CharField(max_length=10, blank=True, null=True)
+    quotechar = models.CharField(max_length=10, blank=True, null=True)
+    quoting = models.CharField(max_length=10, blank=True, null=True)
+    doblequote = models.CharField(max_length=10, blank=True, null=True)
+    escapechar = models.CharField(max_length=10, blank=True, null=True)
     charset = models.CharField(max_length=128, blank=True, null=True)
 
     # Relation to the resource model
@@ -373,44 +381,19 @@ def update_documents_extent(sender, **kwargs):
 
 
 def create_table(sender, instance, created, **kwargs):
+    
     if not created:
         return
 
-    from csvkit import table
-    from csvkit.utilities.csvsql import CSVSQL
-
-    # TODO: mejorar manejo de errores: validar si existe la tabla, nombre de tabla
-    # separador, quote, errores de importacion, etc.
-    
     table_name = 'tabular_%d' % instance.id
-    
-    csv_table = table.Table.from_csv(
-        file(instance.doc_file.path),
+
+    kwargs = dict(
         name=table_name,
-        snifflimit=None,
-        blanks_as_nulls=True,
-        infer_types=True,
-        no_header_row=False,
+        no_header_row=not(instance.has_header),
+        delimiter=instance.delimiter.encode('utf8') if instance.delimiter else None       
     )
 
-    # save attributes
-    for i, header in enumerate(csv_table.headers()):
-        Attribute(
-            tabular=instance,
-            attribute=header,
-            attribute_label=header,
-            display_order=i+1,
-            attribute_type=str(csv_table[i].type)
-        ).save()
-
-    # Out[3]: Namespace(blanks=False, connection_string=None, db_schema=None, delimiter=None, dialect=None, doublequote=False, encoding='utf-8', escapechar=None, input_paths=['-'], insert=False, maxfieldsize=None, no_constraints=False, no_create=False, no_header_row=False, no_inference=False, query=None, quotechar=None, quoting=None, skipinitialspace=False, snifflimit=None, table_names=None, tabs=False, verbose=False, zero_based=False)
-
-    # csvsql = CSVSQL()
-    # csvsql.args.blanks = True
-    # csvsql.args.insert = True
-    # csvsql.main()
-
-    subprocess.call([
+    args = [
         'csvsql', 
         '--db', 
         'postgresql://%s:%s@%s:%s/%s' % (
@@ -423,8 +406,33 @@ def create_table(sender, instance, created, **kwargs):
         '--table',
         table_name,
         '--insert', 
-        instance.doc_file.path
-    ])
+        instance.doc_file.path,
+    ]
+
+    if instance.quotechar:
+        kwargs['quoting'] = True
+        kwargs['quotechar'] = instance.quotechar.encode('utf8')
+        args.append('-q')
+        args.append(instance.quote.encode('utf8'))
+
+    if instance.delimiter:
+        kwargs['delimiter'] = '\t' if instance.delimiter == '\\t' else instance.delimiter.encode('utf8')
+        args.append('-d')
+        args.append('\t' if instance.delimiter == '\\t' else instance.delimiter.encode('utf8'))
+
+    csv_table = table.Table.from_csv(file(instance.doc_file.path), **kwargs)
+
+    # save attributes
+    for i, header in enumerate(csv_table.headers()):
+        Attribute(
+            tabular=instance,
+            attribute=header,
+            attribute_label=header,
+            display_order=i+1,
+            attribute_type=str(csv_table[i].type)
+        ).save()
+
+    subprocess.call(args)
 
 
 signals.pre_save.connect(pre_save_document, sender=Tabular)
