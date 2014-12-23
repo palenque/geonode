@@ -166,21 +166,21 @@ class LayerType(models.Model):
         cursor = connections['datastore'].cursor()
 
         # borra campos y atributos no completados
-        for attr in layer.attribute_set.exclude(attribute='the_geom'):
-            if not attr.field:
-                try:
-                    cursor.execute(
-                        'ALTER TABLE %s DROP COLUMN "%s";' % (
-                            layer.name, attr.attribute
-                        )
-                    )
-                except Exception as e:
-                    logging.exception('Error droping field "%s".' % attr.attribute)
-                    raise Exception(
-                        'Error droping field "%s". ' % attr.attribute + \
-                        'Please check field associations.'
-                    )
-                attr.delete()
+        # for attr in layer.attribute_set.exclude(attribute='the_geom'):
+        #     if not attr.field:
+        #         try:
+        #             cursor.execute(
+        #                 'ALTER TABLE %s DROP COLUMN "%s";' % (
+        #                     layer.name, attr.attribute
+        #                 )
+        #             )
+        #         except Exception as e:
+        #             logging.exception('Error droping field "%s".' % attr.attribute)
+        #             raise Exception(
+        #                 'Error droping field "%s". ' % attr.attribute + \
+        #                 'Please check field associations.'
+        #             )
+        #         attr.delete()
 
         # renombra demas atributos y campos
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
