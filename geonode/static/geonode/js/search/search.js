@@ -153,7 +153,7 @@
       var mapExtent = data.extent;
       $http.get(Configs.url, {params: data || {}}).success(function(data){
 
-        if(!dontFit && module.map) {
+        if(module.map) {
           var mmap = module.map;
 
           /* overlay the hulls of the layers */
@@ -208,16 +208,6 @@
                 $("<li>").append(layer_elem));
               $("#cat-"+obj.category).show();
 
-            /*
-      <li ng-repeat="category in categories">
-        <a data-value="{{ category.identifier }}" data-filter="category__identifier__in" 
-         ng-click="multiple_choice_listener($event)" class="{{category.active}}">{{ category.gn_description }}
-          <span class="badge pull-right">{{ category.count }}</span>
-        </a>
-      </li>
-      */
-
-
             } else {
 
               var hull = obj.concave_hull;
@@ -236,10 +226,6 @@
             }
           }
           
-          // var myLines = [{
-          //     "type": "LineString",
-          //     "coordinates": [[-73.533, -58.583],[-53.367, -21.783]] 
-          // }];
           var myStyle = {
               "color": "#ff7800",
               "weight": 5,
@@ -257,7 +243,9 @@
               L.latLng(p[3],p[2])
             );
           }
-          mmap.fitBounds(bounds);
+          if(!dontFit) {
+            mmap.fitBounds(bounds);
+          }
         }
 
         $scope.results = data.objects;
