@@ -201,10 +201,7 @@ class DocumentCreateForm(TranslationModelForm):
     The document upload form.
     """
 
-    quote = forms.CharField(required=False)
-    delimiter = forms.CharField(required=False)
     charset = forms.ChoiceField(choices=CHARSETS, required=False)
-
 
     permissions = forms.CharField(
         widget=HiddenInput(
@@ -223,7 +220,7 @@ class DocumentCreateForm(TranslationModelForm):
     class Meta:
         model = Tabular
         fields = [
-            'title', 'doc_file', 'doc_url', 'quote', 
+            'title', 'doc_file', 'doc_url', 'has_header', 'quotechar', 
             'delimiter', 'charset', 'tabular_type',
         ]
         widgets = {
@@ -258,15 +255,15 @@ class DocumentCreateForm(TranslationModelForm):
 
         return cleaned_data
 
-    def clean_doc_file(self):
-        """
-        Ensures the doc_file is valid.
-        """
-        doc_file = self.cleaned_data.get('doc_file')
+    # def clean_doc_file(self):
+    #     """
+    #     Ensures the doc_file is valid.
+    #     """
+    #     doc_file = self.cleaned_data.get('doc_file')
 
-        if doc_file and not os.path.splitext(
-                doc_file.name)[1].lower()[
-                1:] in settings.ALLOWED_DOCUMENT_TYPES:
-            raise forms.ValidationError(_("This file type is not allowed"))
+    #     if doc_file and not os.path.splitext(
+    #             doc_file.name)[1].lower()[
+    #             1:] in settings.ALLOWED_DOCUMENT_TYPES:
+    #         raise forms.ValidationError(_("This file type is not allowed"))
 
-        return doc_file
+    #     return doc_file
