@@ -1,4 +1,5 @@
 import logging
+import tempfile
 import os
 import uuid
 import subprocess
@@ -384,11 +385,28 @@ def update_documents_extent(sender, **kwargs):
         document.save()
 
 
+def xls_to_csv(instance):
+    pass
+
 def create_table(sender, instance, created, **kwargs):
     
     # reemplaza la tabla anterior
     if not created:
         return
+
+    path =  instance.doc_file.path
+    tmp = None
+
+    # convert xls to csv
+    if path.endswith('.xls') or path.endswith('.xlsx'):        
+        tmp = tempfile.mktemp()
+        try:
+            subprocess.call('in2csv %s > %s' % (path, tmp), shell=True)
+        except Exception as e:
+            os.remove(tmp)
+            raise Exception('Error converting xls to csv')
+
+        path = tmp
 
     table_name = 'tabular_%d' % instance.id
 
@@ -410,7 +428,7 @@ def create_table(sender, instance, created, **kwargs):
         '--table',
         table_name,
         '--insert', 
-        instance.doc_file.path,
+        path,
     ]
 
     if instance.quotechar:
@@ -424,7 +442,7 @@ def create_table(sender, instance, created, **kwargs):
         args.append('-d')
         args.append('\t' if instance.delimiter == '\\t' else instance.delimiter.encode('utf8'))
 
-    csv_table = table.Table.from_csv(file(instance.doc_file.path), **kw)
+    csv_table = table.Table.from_csv(file(path), **kw)
 
     # save attributes
     for i, header in enumerate(csv_table.headers()):
@@ -436,7 +454,14 @@ def create_table(sender, instance, created, **kwargs):
             attribute_type=str(csv_table[i].type)
         ).save()
 
-    subprocess.call(args)
+    try:
+        subprocess.call(args)
+    except Exception as e:
+        raise Exception('Error import file')
+    finally:
+        if tmp:
+            os.remove(tmp)
+
 
 
 def delete_table(sender, instance, **kwargs):
