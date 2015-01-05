@@ -3,7 +3,7 @@ import datetime as dt
 from django.db.models import Q
 from django.http import HttpResponse
 from django.conf import settings
-from django.db import transaction
+from django.db import transaction, connections
 
 from tastypie.authentication import ApiKeyAuthentication, MultiAuthentication, SessionAuthentication
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
@@ -35,6 +35,7 @@ from geonode.layers.views import layer_upload
 from geonode.maps.models import Map
 from geonode.documents.models import Document
 from geonode.tabular.models import Tabular
+from geonode.tabular.models import Attribute as TabularAttribute
 from geonode.base.models import ResourceBase, TopicCategory, Link, InternalLink
 from .authorization import GeoNodeAuthorization, InternalLinkAuthorization
 
@@ -488,12 +489,19 @@ class CommonModelApi(ModelResource):
                     objdata['category_description'] = obj.category.gn_description if obj.category is not None else ''
                     objdata['creator_username'] = obj.creator.username
 
-                    if obj.is_public():
-                        objdata['permission_class'] = "public"
-                    elif request.user == obj.owner:
-                        objdata['permission_class'] = "owned"
-                    else:
-                        objdata['permission_class'] = "shared"
+                    # if obj.is_public():
+                    #     objdata['permission_class'] = "public"
+                    # elif request.user == obj.owner:
+                    #     objdata['permission_class'] = "owned"
+                    # else:
+                    #     objdata['permission_class'] = "shared"
+
+                if obj.is_public():
+                    objdata['permission_class'] = "public"
+                elif request.user == obj.owner:
+                    objdata['permission_class'] = "owned"
+                else:
+                    objdata['permission_class'] = "shared"
 
             data['objects'] = objects
                 
@@ -827,9 +835,25 @@ class DocumentResource(CommonModelApi):
         queryset = Document.objects.distinct().order_by('-date')
         resource_name = 'documents'
 
+
+class TabularAttributeResource(ModelResource):
+
+    tabular = fields.ToOneField('geonode.api.resourcebase_api.TabularResource', 'tabular')
+
+    class Meta(CommonMetaApi):
+        resource_name = 'tabular_attributes'
+        queryset = TabularAttribute.objects.all()
+        fields = ['attribute', 'attribute_label', 'description']
+        filtering = {
+            'tabular': ALL_WITH_RELATIONS,
+        }
+
+
 class TabularResource(CommonModelApi):
 
-    """Maps API"""
+    """Tabular API"""
+
+    attributes = fields.ToManyField(TabularAttributeResource, 'tabular_attribute_set', full=True)
 
     class Meta(CommonMetaApi):
         filtering = {
@@ -871,19 +895,28 @@ class TabularResource(CommonModelApi):
         self.is_authenticated(request)
         self.throttle_check(request)
 
-        from django.db import connections
         cursor = connections['datastore'].cursor()
+
+        fields = [a.attribute for a in Tabular.objects.get(id=resource_id).tabular_attribute_set.all()]
 
         # FIXME: hacer seguro
         cursor.execute(
-            'select * from tabular_%s where %s;' % (
-                resource_id, request.GET['q']
+            'select %s from tabular_%s where %s order by id limit %s offset %s;' % (
+                ', '.join(['"%s"' % f for f in fields]),
+                resource_id, 
+                request.GET.get('q', '1=1'),
+                request.GET.get('limit', '50'),
+                request.GET.get('offset', '0')
             ) 
         )
 
+        results = []
+        for row in cursor.fetchall():
+            results.append(dict(zip(fields, row)))
+
         to_be_serialized = self.alter_list_data_to_serialize(
             request,
-            cursor.fetchall()
+            results
         )
         return self.create_response(request, to_be_serialized)
 

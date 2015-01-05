@@ -18,6 +18,8 @@ from geonode.maps.models import Map
 from geonode.layers.models import Layer
 from geonode.base.models import Region
 from geonode.base.enumerations import CHARSETS
+from geonode.tabular.models import TabularType
+
 
 class DocumentForm(TranslationModelForm):
     date = forms.DateTimeField(widget=forms.SplitDateTimeWidget)
@@ -192,8 +194,6 @@ class DocumentReplaceForm(forms.ModelForm):
 
         return doc_file
 
-from django import forms
-from geonode.tabular.models import TabularType
 
 class DocumentCreateForm(TranslationModelForm):
 

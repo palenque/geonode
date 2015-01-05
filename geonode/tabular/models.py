@@ -382,6 +382,8 @@ def update_documents_extent(sender, **kwargs):
 
 def create_table(sender, instance, created, **kwargs):
     
+    # import pdb;pdb.set_trace()
+
     if not created:
         return
 
@@ -390,7 +392,6 @@ def create_table(sender, instance, created, **kwargs):
     kwargs = dict(
         name=table_name,
         no_header_row=not(instance.has_header),
-        delimiter=instance.delimiter.encode('utf8') if instance.delimiter else None       
     )
 
     args = [
