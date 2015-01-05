@@ -119,6 +119,7 @@ class DocumentUpdateView(UpdateView):
         If the form is valid, save the associated model.
         """
         self.object = form.save()
+        self.object.replace()
         return HttpResponseRedirect(
             reverse(
                 'tabular_detail',

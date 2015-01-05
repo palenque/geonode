@@ -115,6 +115,16 @@ class DocumentForm(TranslationModelForm):
     class Meta:
         model = Tabular
         exclude = (
+            'delimiter',
+            'quotechar',
+            'quoting',
+            'doblequote',
+            'escapechar',
+            'has_header',
+            'tabs',
+            'charset',
+            'tabular_type',
+
             'uuid',
             'contacts',
             'workspace',

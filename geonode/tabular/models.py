@@ -230,6 +230,10 @@ class Tabular(ResourceBase):
     def __unicode__(self):
         return self.title
 
+    def replace(self):
+        delete_table(self, self)
+        create_table(self, self, created=True)
+
     def get_absolute_url(self):
         return reverse('tabular_detail', args=(self.id,))
 
@@ -382,14 +386,13 @@ def update_documents_extent(sender, **kwargs):
 
 def create_table(sender, instance, created, **kwargs):
     
-    # import pdb;pdb.set_trace()
-
+    # reemplaza la tabla anterior
     if not created:
         return
 
     table_name = 'tabular_%d' % instance.id
 
-    kwargs = dict(
+    kw = dict(
         name=table_name,
         no_header_row=not(instance.has_header),
     )
@@ -411,17 +414,17 @@ def create_table(sender, instance, created, **kwargs):
     ]
 
     if instance.quotechar:
-        kwargs['quoting'] = True
-        kwargs['quotechar'] = instance.quotechar.encode('utf8')
+        kw['quoting'] = True
+        kw['quotechar'] = instance.quotechar.encode('utf8')
         args.append('-q')
         args.append(instance.quote.encode('utf8'))
 
     if instance.delimiter:
-        kwargs['delimiter'] = '\t' if instance.delimiter == '\\t' else instance.delimiter.encode('utf8')
+        kw['delimiter'] = '\t' if instance.delimiter == '\\t' else instance.delimiter.encode('utf8')
         args.append('-d')
         args.append('\t' if instance.delimiter == '\\t' else instance.delimiter.encode('utf8'))
 
-    csv_table = table.Table.from_csv(file(instance.doc_file.path), **kwargs)
+    csv_table = table.Table.from_csv(file(instance.doc_file.path), **kw)
 
     # save attributes
     for i, header in enumerate(csv_table.headers()):
