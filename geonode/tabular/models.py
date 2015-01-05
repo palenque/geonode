@@ -4,7 +4,7 @@ import uuid
 import subprocess
 from datetime import datetime
 
-from django.db import models
+from django.db import models, connections
 from django.db.models import signals
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -436,6 +436,19 @@ def create_table(sender, instance, created, **kwargs):
     subprocess.call(args)
 
 
+def delete_table(sender, instance, **kwargs):
+
+    table_name = 'tabular_%d' % instance.id
+    cursor = connections['datastore'].cursor()
+
+    try:
+        cursor.execute('DROP TABLE %s;' % table_name)
+    except Exception as e:
+        logging.exception('Error deleting tabular table')
+        raise Exception('Error deleting tabular table %s' % table_name)
+
+
+signals.pre_delete.connect(delete_table, sender=Tabular)
 signals.pre_save.connect(pre_save_document, sender=Tabular)
 signals.post_save.connect(create_thumbnail, sender=Tabular)
 signals.post_save.connect(create_table, sender=Tabular)
