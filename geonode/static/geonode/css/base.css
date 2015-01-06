@@ -99,6 +99,9 @@ body.maps li#nav_maps a {
 body.documents li#nav_documents a {
   color: white;
 }
+body.tabular li#nav_tabular a {
+  color: white;
+}
 body.people li#nav_people a {
   color: white;
 }
