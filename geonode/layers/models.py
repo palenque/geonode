@@ -37,6 +37,7 @@ from geonode.people.utils import get_valid_user
 from geonode.layers.units import *
 from geonode.security.models import PermissionLevelMixin
 
+from guardian.shortcuts import assign_perm, remove_perm, get_anonymous_user, get_groups_with_perms
 import eav
 from agon_ratings.models import OverallRating
 from eav.models import Attribute as EAVAttribute
@@ -843,13 +844,59 @@ def post_save_layer_type(instance, *args, **kwargs):
     category.save()
 
 
+def share(instance, created=False, update_fields=None, **kwargs):
+    "Shares the tagged object with the app alter-ego"
+    
+    owner = instance.owner
+    resource = instance.resourcebase_ptr
+
+    for app_member in owner.appmember_set.all():
+        app = app_member.app
+        alter_ego = app.get_alter_ego()
+
+        if not alter_ego:
+            continue 
+
+        if created:
+            if instance.layer_type and instance.layer_type.name.lower() in app.keyword_list():
+                if not alter_ego.has_perm('view_resourcebase', resource):
+                    assign_perm('view_resourcebase', alter_ego, resource)      
+        else:
+            if instance.layer_type and instance.layer_type.name.lower() in app.keyword_list():
+                if not alter_ego.has_perm('view_resourcebase', resource):
+                    assign_perm('view_resourcebase', alter_ego, resource)
+            else:
+                remove_perm('view_resourcebase', alter_ego, resource)
+
+
+def unshare(instance, **kwargs):
+    "Unshares the tagged object with the app alter-ego."
+
+    owner = instance.owner
+    resource = instance.resourcebase_ptr
+
+    for app_member in owner.appmember_set.all():
+        app = app_member.app
+        alter_ego = app.get_alter_ego()
+
+        if not alter_ego:
+            continue 
+
+        if (instance.layer_type 
+            and instance.layer_type.name.lower() in app.keyword_list()
+            and alter_ego.has_perm('view_resourcebase', resource)
+        ):
+            remove_perm('view_resourcebase', alter_ego, resource)
+
+
 signals.pre_save.connect(pre_save_layer, sender=Layer)
 signals.pre_save.connect(resourcebase_pre_save, sender=Layer)
 signals.post_save.connect(resourcebase_post_save, sender=Layer)
 signals.post_save.connect(post_save_layer_type, sender=LayerType)
 signals.pre_delete.connect(pre_delete_layer, sender=Layer)
 signals.post_delete.connect(post_delete_layer, sender=Layer)
-
+signals.post_save.connect(share, sender=Layer)
+signals.post_delete.connect(unshare, sender=Layer)
 
 from eav.registry import EavConfig
 class EavConfigClass(EavConfig):

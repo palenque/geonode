@@ -21,6 +21,7 @@ from geonode.base.models import resourcebase_post_save, resourcebase_pre_save
 from geonode.maps.signals import map_changed_signal
 from geonode.maps.models import Map
 
+from guardian.shortcuts import assign_perm, remove_perm, get_anonymous_user, get_groups_with_perms
 import eav
 from eav.models import Attribute as EAVAttribute
 from csvkit import table
@@ -476,14 +477,60 @@ def delete_table(sender, instance, **kwargs):
         raise Exception('Error deleting tabular table %s' % table_name)
 
 
-signals.pre_delete.connect(delete_table, sender=Tabular)
+def share(instance, created=False, update_fields=None, **kwargs):
+    "Shares the tagged object with the app alter-ego"
+    
+    owner = instance.owner
+    resource = instance.resourcebase_ptr
+
+    for app_member in owner.appmember_set.all():
+        app = app_member.app
+        alter_ego = app.get_alter_ego()
+
+        if not alter_ego:
+            continue 
+
+        if created:
+            if instance.tabular_type and instance.tabular_type.name.lower() in app.keyword_list():
+                if not alter_ego.has_perm('view_resourcebase', resource):
+                    assign_perm('view_resourcebase', alter_ego, resource)      
+        else:
+            if instance.tabular_type and instance.tabular_type.name.lower() in app.keyword_list():
+                if not alter_ego.has_perm('view_resourcebase', resource):
+                    assign_perm('view_resourcebase', alter_ego, resource)
+            else:
+                remove_perm('view_resourcebase', alter_ego, resource)
+
+
+def unshare(instance, **kwargs):
+    "Unshares the tagged object with the app alter-ego."
+
+    owner = instance.owner
+    resource = instance.resourcebase_ptr
+
+    for app_member in owner.appmember_set.all():
+        app = app_member.app
+        alter_ego = app.get_alter_ego()
+
+        if not alter_ego:
+            continue 
+
+        if (instance.tabular_type 
+            and instance.tabular_type.name.lower() in app.keyword_list()
+            and alter_ego.has_perm('view_resourcebase', resource)
+        ):
+            remove_perm('view_resourcebase', alter_ego, resource)
+
+
+signals.post_delete.connect(delete_table, sender=Tabular)
 signals.pre_save.connect(pre_save_document, sender=Tabular)
 signals.post_save.connect(create_thumbnail, sender=Tabular)
 signals.post_save.connect(create_table, sender=Tabular)
 signals.pre_save.connect(resourcebase_pre_save, sender=Tabular)
 signals.post_save.connect(resourcebase_post_save, sender=Tabular)
 map_changed_signal.connect(update_documents_extent)
-
+signals.post_save.connect(share, sender=Tabular)
+signals.post_delete.connect(unshare, sender=Tabular)
 
 from eav.registry import EavConfig
 class EavConfigClass(EavConfig):

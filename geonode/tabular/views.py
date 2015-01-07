@@ -99,6 +99,10 @@ class DocumentUploadView(CreateView):
         self.object.owner = self.request.user
         self.object.save()
         self.object.set_permissions(form.cleaned_data['permissions'])
+        # XXX:
+        # se guarda de nuevo porque se borran los permisos
+        # y se deben dar permisos a las aplicaciones de nuevo
+        self.object.save() 
         return HttpResponseRedirect(
             reverse(
                 'tabular_detail',

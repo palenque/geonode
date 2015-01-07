@@ -64,6 +64,7 @@
           <li><a href="{{ object.detail_url }}?" {% if content_filter  == "all" %}class="selected"{% endif %}>{% trans "All contents" %}</a></li>
           <li><a href="{{ object.detail_url }}?content=layers"{% if content_filter == "layers" %} class="selected"{% endif %}>{% trans "Layers" %}</a></li>
           <li><a href="{{ object.detail_url }}?content=documents"{% if content_filter == "documents" %} class="selected"{% endif %}>{% trans "Documents" %}</a></li>
+          <li><a href="{{ object.detail_url }}?content=tabular"{% if content_filter == "tabular" %} class="selected"{% endif %}>{% trans "Imported Data" %}</a></li>
         </ul>
     </div>
 

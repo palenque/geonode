@@ -170,6 +170,10 @@ def layer_upload(request, template='upload/layer_upload.html'):
                 permissions = form.cleaned_data["permissions"]
                 if permissions is not None and len(permissions.keys()) > 0:
                     saved_layer.set_permissions(permissions)
+                    # XXX:
+                    # se guarda de nuevo porque se borran los permisos
+                    # y se deben dar permisos a las aplicaciones de nuevo                    
+                    saved_layer.save()
                 else:
                     saved_layer.remove_all_permissions()
                     for perm in ADMIN_PERMISSIONS:

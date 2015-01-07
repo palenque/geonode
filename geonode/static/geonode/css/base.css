@@ -105,6 +105,9 @@ body.tabular li#nav_tabular a {
 body.people li#nav_people a {
   color: white;
 }
+body.apps li#nav_apps a {
+  color: white;
+}
 body.groups li#nav_groups a {
   color: white;
 }
