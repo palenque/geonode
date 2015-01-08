@@ -21,6 +21,7 @@ $(function() {
             $(this).find("i").attr("class", "fa fa-chevron-left");
         }
     });
+    /*
     $("nav a.toggle-nav").click(function(e) {
         e.preventDefault();
         if ($(this).parents("h4").siblings(".nav").is(":visible")) {
@@ -31,6 +32,7 @@ $(function() {
             $(this).find("i").attr("class", "fa fa-chevron-down");
         }
     });
+    */
 });
 
 function setContentWidth() {

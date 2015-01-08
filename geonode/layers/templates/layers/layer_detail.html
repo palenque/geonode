@@ -292,6 +292,7 @@
     </li> 
     {% endcomment %}
 
+    {% comment %}
     {% if documents.count > 0 %}
     <li class="list-group-item">
       <h4>{% trans "Documents related to this layer" %}</h4>
@@ -303,7 +304,45 @@
       </ul>
     </li>
     {% endif %}
+    {% endcomment %}
 
+    <li class="list-group-item">
+      <h4>{% trans "Related resources" %}</h4>
+      {% if resource.internal_links_forward_set.count > 0 or resource.internal_links_backward_set.count > 0 or documents.count > 0 %}
+      <p>{% trans "List of resources related to this layer:" %}</p>
+      <ul class="list-unstyled">
+        {% for document in documents %}
+          <li><i class="fa fa-file-text"></i><a href="{{ document.get_absolute_url }}">{{ document.title }}</a></li>
+        {% endfor %}
+
+        {% for link in resource.internal_links_forward_set.all %}
+          <li>
+            {% if link.target.class == Layer %}
+              <i class="fa fa-map-marker"></i>
+            {% else %}
+              <i class="fa fa-table"></i>
+            {% endif %}
+            <a href="{{ link.target.detail_url }}">{{link.target.title}}</a>
+          </li>
+        {% endfor %}
+
+        {% for link in resource.internal_links_backward_set.all %}
+            <li>
+              {% if link.target.class == Layer %}
+                <i class="fa fa-map-marker"></i>
+              {% else %}
+                <i class="fa fa-table"></i>
+              {% endif %}            
+              <a href="{{ link.source.detail_url }}">{{link.source.title}}</a>
+            </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+        <p>{% trans "There is no resources related to this layer." %}</p>
+      {% endif %}
+    </li>
+
+    {% comment %}
     {% if user.is_authenticated %}
     <li class="list-group-item">
       <h4>{% trans "Styles" %}</h4>
@@ -325,6 +364,7 @@
       </ul>
     </li>
     {% endif %}
+    {% endcomment %}
 
     {% if GEONODE_SECURITY_ENABLED %}
     {% if "change_resourcebase_permissions" in resource_perms %}
@@ -336,6 +376,7 @@
     {% endif %}
     {% endif %}
 
+    {% comment %}
     <li class="list-group-item">
         {% if resource.storeType == "remoteStore" %}
             <h4>{% trans "External service layer" %}</h4>
@@ -344,6 +385,7 @@
 
         {% endif %}
     </li>
+    {% endcomment %}
 
     {% comment %}
     {% include "base/_resourcebase_contact_snippet.html" %}  
@@ -422,11 +464,13 @@
   permissions = JSON.parse('{{permissions_json|safe}}');
   users = [];
   for(var i in permissions.users) {
-    users.push(i);
+    if(permissions.users[i].indexOf("change_resourcebase_permissions")<0)
+      users.push(i);
   }
   for(var i in permissions.apps) {
     users.push(i);
   }
+
 
   SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='profiles' %}'+ '?username__in='+ users.join(',');
   </script>
@@ -434,15 +478,5 @@
   {% with include_spatial='false' %}
   {% include 'search/search_scripts.html' %}
   {% endwith %}
-
-    <script type="text/javascript">
-    /*
-      $("#permissions-btn").click(function(){
-        debugger;
-        var v = $("#view_resourcebase_users").val();
-        $("#permissions_users").html(v);
-      });    
-    */
-    </script>
 
 {% endblock extra_script %}

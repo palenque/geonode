@@ -14,14 +14,10 @@
     <h2 class="page-title">{% trans "Explore Layers" %}</h2>
   </div>
   {% with facet_type='layers' %}
-  {% with header='Type' %}
-  {% with filter='type__in' %}
-  {% with include_filters=',text,layertype,categories,keywords,date,' %}
-  {% with custom_sort_filter='layers/_layer_filters.html' %}
+  {% with custom_filters='layers/_layer_filter.html' %}
+  {% with custom_sort_filter='layers/_layer_sort.html' %}
   {% with custom_content_header='layers/_layer_content_header.html' %}
   {% include "search/_search_content.html" %}
-  {% endwith %}
-  {% endwith %}
   {% endwith %}
   {% endwith %}
   {% endwith %}

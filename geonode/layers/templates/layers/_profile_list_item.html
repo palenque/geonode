@@ -5,29 +5,45 @@
            url_app = '{% url 'app_list' %}'">
 
 <div class="row">
-  <h5>{% trans "The following users can access this layer:" %}</h5>
-    {% verbatim %}
+  <h5>Users</h5>
+
+  <p ng-if="(results|filter:{profile:'!application'}).length == 0">
+    {% trans "This resource is not shared with any user" %}
+  </p>
+
+  {% verbatim %}
+  <div class="col-md-offset-1">
     <article ng-repeat="profile in results | filter:{profile:'!application'}">
         <div class="col-md-3">
           <a href="{{url_profile}}{{profile.username}}">
-          <img ng-src="{{ profile.avatar_100 }}"/></a><br/>
+          <img width="70px" ng-src="{{ profile.avatar_100 }}"/></a><br/>
           <i class="fa fa-user"></i><span>{{ profile.username }}</span>      
         </div>
     </article>
-    {% endverbatim %}  
+  </div>
+  {% endverbatim %}
 </div> 
+
 <br/>
+
 <div class="row">
-  <h5>{% trans "The following apps can access this layer:" %}</h5>
-    {% verbatim %}
+  <h5>Applications</h5> 
+
+  <div class="col-md-offset-1" ng-if="(results|filter:{profile:'application'}).length == 0">
+    {% trans "This resource is not shared with any application" %}
+  </p>
+
+  {% verbatim %}
+  <div class="col-md-offset-1">
     <article ng-repeat="profile in results | filter:{profile:'application'} ">
         <div class="col-md-3">
           <a href="{{url_app}}{{profile.username}}">
-          <img ng-src="{{ profile.avatar_100 }}"/></a><br/>
+          <img width="70px" ng-src="{{ profile.avatar_100 }}"/></a><br/>
           <i class="fa fa-cubes"></i><span>{{ profile.username }}</span>      
         </div>
     </article>
-    {% endverbatim %}
+  </div>
+  {% endverbatim %}
 </div> 
 
 </div>

@@ -7,15 +7,17 @@
       <div class="col-md-8">
         <h4><a href="{{ item.detail_url }}">{{ item.title }}</a> <span class="owner">{{ item.owner.username }}</span></h4>
         <p>{{ item.category.gn_description }}</p>
-        <p class="abstract">{{ item.abstract|limitTo:250 }}...</p>
+        <p class="abstract">{{ item.abstract|limitTo:250 }}</p>
         <p class="actions">
-          <a ng-if="item.detail_url.indexOf('/layers/') > -1" 
-            href="{% endverbatim %}{% url "new_map" %}?layer={% verbatim %}{{ item.detail_url.substring(8) }}">
-            <i class="fa fa-user"></i>{{ item.creator_username }}</a> |
-          <a href="{{ item.detail_url }}#info"><i class="fa fa-calendar-o"></i>{{ item.date|date:'d MMM y' }}</a> |
+          <span ng-if="item.detail_url.indexOf('/layers/') > -1">
+            <i class="fa fa-user"></i>{{ item.creator_username }}</span>
+          <br/>
+          <span><i class="fa fa-calendar-o"></i>{{ item.date|date:'d MMM y' }}</span> 
+          <!--
           <a href="{{ item.detail_url }}"><i class="fa fa-eye"></i>{{ item.popular_count }}</a> |
           <a href="{{ item.detail_url }}#share"><i class="fa fa-share"></i>{{ item.share_count }}</a> |
           <a href="{{ item.detail_url }}#rate"><i class="fa fa-star"></i>{{ item.rating }}</a></p>
+          -->
       </div>
     </div>
   </article>

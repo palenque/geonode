@@ -1,0 +1,10 @@
+{% include "search/_text_filter.html" %}
+<div id="slide-pane">
+  {% include "layers/_layertype_filter.html" %}
+  <div ng-if="permission_class == 'public'">
+    {% include "search/_category_filter.html" %}
+  </div>
+  {% include "search/_keyword_filter.html" %}
+  {% include "search/_date_filter.html" %}
+  {% include "layers/_overlay_layer_filter.html" %}
+</div>

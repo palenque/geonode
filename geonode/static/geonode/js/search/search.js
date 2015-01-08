@@ -238,18 +238,16 @@
     }
 
     //Get data from apis and make them available to the page
-    function query_api(data,dontFit){
+    function query_api(data){
+
+      $scope.permission_class = data.permission_class;
 
       var not_public = data.permission_class != "public";
-      //if(owned) {
-        load_public_layers(data);
-      //} else {
-      //  clear_public_layers(data);
-      //}
 
-      //if(!$("#sort a.selected")) {
-        $("#sort a[data-value='"+data.permission_class+"']").addClass("selected");
-      //}
+      load_public_layers(data);
+
+      // select the proper type of public/private filter
+      $("#sort a[data-value='"+data.permission_class+"']").addClass("selected");
 
       var mapExtent = data.extent;
       $http.get(Configs.url, {params: data || {}}).success(function(data){
@@ -286,8 +284,10 @@
                 }
                 else if ($(this)[0].id in data.meta.facets.type) {
                     $(this).find("span").text(data.meta.facets.type[$(this)[0].id]);
+                    //$(this).show();
                 } else {
                     $(this).find("span").text("0");
+                    //$(this).hide();
                 }
             });
         }
@@ -580,7 +580,7 @@
       map.then(function(map){
         map.on('moveend', function(){
           $scope.query['extent'] = map.getBounds().toBBoxString();
-          query_api($scope.query,true);
+          query_api($scope.query);
         });
       });
     }
