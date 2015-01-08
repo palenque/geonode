@@ -34,7 +34,7 @@ from geonode.layers.views import layer_upload
 
 from geonode.maps.models import Map
 from geonode.documents.models import Document
-from geonode.tabular.models import Tabular
+from geonode.tabular.models import Tabular, TabularType
 from geonode.tabular.models import Attribute as TabularAttribute
 from geonode.base.models import ResourceBase, TopicCategory, Link, InternalLink
 from .authorization import GeoNodeAuthorization, InternalLinkAuthorization
@@ -836,6 +836,17 @@ class DocumentResource(CommonModelApi):
         resource_name = 'documents'
 
 
+class TabularTypeResource(ModelResource):
+
+    class Meta:
+        resource_name = 'tabular_types'
+        queryset = TabularType.objects.all()
+        fields = ['name', 'description', 'fill_metadata']
+        filtering = {
+            'name': ALL,
+        }
+
+
 class TabularAttributeResource(ModelResource):
 
     tabular = fields.ToOneField('geonode.api.resourcebase_api.TabularResource', 'tabular')
@@ -853,6 +864,7 @@ class TabularResource(CommonModelApi):
 
     """Tabular API"""
 
+    tabular_type = fields.ForeignKey(TabularTypeResource, 'tabular_type', full=True)
     attributes = fields.ToManyField(TabularAttributeResource, 'tabular_attribute_set', full=True)
 
     class Meta(CommonMetaApi):
@@ -863,6 +875,7 @@ class TabularResource(CommonModelApi):
             'owner': ALL_WITH_RELATIONS,
             'date': ALL,
             'doc_type': ALL,
+            'tabular_type': ALL_WITH_RELATIONS,
             }
         queryset = Tabular.objects.distinct().order_by('-date')
         resource_name = 'tabular'
