@@ -1,4 +1,8 @@
 {% load i18n %}
+
+<br>
+<h5>{% trans "Map overlays" %}</h5>
+
 <nav class="filter">
   <h4>
     <a href="#" class="toggle toggle-nav">
@@ -7,19 +11,22 @@
   </h4>
   <ul class="nav closed" id="public_layers">
     <div class="col-md-offset-1">
-    {% for cat in categories %}
-      <li id="cat-{{cat.id}}" class="cat">
+    {% verbatim %}
+      <li ng-repeat="catlayers in public_layers">
         <nav class="filter">
           <h4>
-            <a href="#" class="toggle toggle-nav">
-              <i class="fa fa-chevron-right"></i>{{cat}}
+            <a href="#" class="toggle toggle-nav" ng-click="toggle_nav($event)">
+              <i class="fa fa-chevron-right"></i>{{catlayers.category}}
             </a>
           </h4>
           <ul class="nav closed">
+            <li ng-repeat="layer in catlayers.layers">
+              <a href="#" data-id="{{layer.id}}" class="toggle toggle-nav {{layer.class}}" ng-click="toggle_map_overlay($event)">{{layer.title}}</a>
+            </li>
           </ul>
         </nav>
       </li>
-    {% endfor %}
+    {% endverbatim %}
     </div>
   </ul>
 </nav>

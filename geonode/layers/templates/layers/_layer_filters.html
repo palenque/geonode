@@ -4,21 +4,6 @@
 <ul class="nav nav-pills filter" id="sort">
   <li><a data-value="" data-filter="permission_class" ng-click="single_choice_listener($event)">{% trans "All" %}</a></li>
   <li><a data-value="public" data-filter="permission_class" ng-click="single_choice_listener($event)">{% trans "Public" %}</a></li>
-  <li><a data-value="owned" data-filter="permission_class" class="selected" ng-click="single_choice_listener($event)">{% trans "Private" %}</a></li>
+  <li><a data-value="owned" data-filter="permission_class" ng-click="single_choice_listener($event)">{% trans "Private" %}</a></li>
   <li><a data-value="shared" data-filter="permission_class" ng-click="single_choice_listener($event)">{% trans "Shared with me" %}</a></li>
-
-{% comment %}
-  <li><a href="{% url "layer_browse" %}"{% if layer_filter  == "date" %} class="selected"{% endif %}>{% trans "Most recent" %}</a></li>
-  <li><a href="{% url "layer_browse_popular" %}"{% if layer_filter == "popular_count" %} class="selected"{% endif %}>{% trans "Most popular" %}</a></li>
-  <li><a href="{% url "layer_browse_shared" %}"{% if layer_filter == "share_count" %} class="selected"{% endif %}>{% trans "Most shared" %}</a></li>
-  <li>
-    <form action="." class="form-inline">
-      <label for="">{% trans "sort by:" %}</label>
-      <select name="sort" id="layer_sort" class="col-md-1">>
-        <option value="">{% trans "Newest" %}</option>
-        <option value="">{% trans "Popularity" %}</option>
-      </select>
-    </form>
-  </li>
-{% endcomment %}
 </ul>
