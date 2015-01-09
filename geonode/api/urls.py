@@ -1,10 +1,11 @@
 from tastypie.api import Api
 
 from .api import TagResource, TopicCategoryResource, ProfileResource, \
-    GroupResource, AppResource, LayerTypeResource
+    GroupResource, AppResource, LayerTypeResource, TabularTypeResource
 from .resourcebase_api import LayerResource, MapResource, DocumentResource, \
     ResourceBaseResource, FeaturedResourceBaseResource, LinkResource, \
     InternalLinkResource, TabularResource, TabularAttributeResource
+
     
 #from .monitor_api import MonitorResource
 
@@ -15,6 +16,7 @@ api.register(LayerResource())
 api.register(MapResource())
 api.register(DocumentResource())
 api.register(TabularResource())
+api.register(TabularTypeResource())
 api.register(TabularAttributeResource())
 api.register(ProfileResource())
 api.register(ResourceBaseResource())

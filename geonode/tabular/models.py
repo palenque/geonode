@@ -234,7 +234,10 @@ class Tabular(ResourceBase):
 
     def replace(self):
         delete_table(self, self)
-        create_table(self, self, created=True)
+        insert_data(self, self, created=True)
+
+    def append(self):
+        insert_data(self, self, created=True, create_table=False)
 
     def get_absolute_url(self):
         return reverse('tabular_detail', args=(self.id,))
@@ -389,7 +392,7 @@ def update_documents_extent(sender, **kwargs):
 def xls_to_csv(instance):
     pass
 
-def create_table(sender, instance, created, **kwargs):
+def insert_data(sender, instance, created, create_table=True, **kwargs):
     
     # reemplaza la tabla anterior
     if not created:
@@ -431,6 +434,9 @@ def create_table(sender, instance, created, **kwargs):
         '--insert', 
         path,
     ]
+
+    if not create_table:
+        args.append('--no-create')
 
     if instance.quotechar:
         kw['quoting'] = True
@@ -525,7 +531,7 @@ def unshare(instance, **kwargs):
 signals.post_delete.connect(delete_table, sender=Tabular)
 signals.pre_save.connect(pre_save_document, sender=Tabular)
 signals.post_save.connect(create_thumbnail, sender=Tabular)
-signals.post_save.connect(create_table, sender=Tabular)
+signals.post_save.connect(insert_data, sender=Tabular)
 signals.pre_save.connect(resourcebase_pre_save, sender=Tabular)
 signals.post_save.connect(resourcebase_post_save, sender=Tabular)
 map_changed_signal.connect(update_documents_extent)

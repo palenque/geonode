@@ -3,7 +3,7 @@
 {% load staticfiles %}
 {% load url from future %}
 
-{% block title %} {% trans "Explore Imports" %} - {{ block.super }} {% endblock %}
+{% block title %} {% trans "Explore Imported Data" %} - {{ block.super }} {% endblock %}
 
 {% block body_class %}tabular documents-list explore{% endblock %}
 
@@ -14,9 +14,11 @@
   </div>
   {% with include_type_filter='true' %}
   {% with facet_type='tabular' %}
-  {% with header='Document Type' %}
-  {% with filter='doc_type__in' %}
+  {% with header='Imported Data Types' %}
+  {% with filter='type__in' %}
+  {% with include_filters=',tabulartype,' %}
   {% include "search/_search_content.html" %}
+  {% endwith %}
   {% endwith %}
   {% endwith %}
   {% endwith %}
@@ -26,7 +28,7 @@
 {% block extra_script %}
   <script type="text/javascript">
       {% if HAYSTACK_SEARCH %}
-          SEARCH_URL = '{% url 'api_get_search' api_name='api' resource_name='tabular'%}'?type__in=tabular
+          SEARCH_URL = '{% url 'api_get_search' api_name='api' resource_name='base' %}'?type__in=tabular
       {% else %}
           SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='tabular' %}';
       {% endif %}

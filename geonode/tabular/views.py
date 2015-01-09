@@ -132,6 +132,27 @@ class DocumentUpdateView(UpdateView):
                 )))
 
 
+class DocumentAppendView(UpdateView):
+    template_name = 'tabular/document_append.html'
+    pk_url_kwarg = 'docid'
+    form_class = DocumentReplaceForm
+    queryset = Tabular.objects.all()
+    context_object_name = 'document'
+
+    def form_valid(self, form):
+        """
+        If the form is valid, save the associated model.
+        """
+        self.object = form.save()
+        self.object.append()
+        return HttpResponseRedirect(
+            reverse(
+                'tabular_detail',
+                args=(
+                    self.object.id,
+                )))
+
+
 def document_custom_metadata(request, docid, template='tabular/document_custom_metadata.html'):
 
     # form con metadata del tipo de capa

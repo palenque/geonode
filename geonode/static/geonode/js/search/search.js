@@ -35,6 +35,17 @@
             }
         });
 
+        $http.get(TABULAR_TYPES_ENDPOINT, {params: params}).success(function(data){
+            if($location.search().hasOwnProperty('tabular_type')){
+                data.objects = module.set_initial_filters_from_query(data.objects,
+                    $location.search()['tabular_type__name__in'], 'name');
+            }
+            $rootScope.tabular_types = data.objects;
+            if (HAYSTACK_FACET_COUNTS && $rootScope.query_data) {
+                module.haystack_facets($http, $rootScope, $location);
+            }
+        });
+
         $http.get(LAYER_TYPES_ENDPOINT, {params: params}).success(function(data){
             if($location.search().hasOwnProperty('layer_type')){
                 data.objects = module.set_initial_filters_from_query(data.objects,
@@ -73,6 +84,18 @@
           }
       }
 
+      if ("tabular_types" in $rootScope) {
+          $rootScope.tabular_type_counts = data.meta.facets.tabular_type;
+          for (var id in $rootScope.tabular_types) {
+              var tabular_type = $rootScope.tabular_types[id];
+              if (tabular_type.identifier in $rootScope.tabular_types) {
+                  tabular_type.count = $rootScope.tabular_types[tabular_type.identifier]
+              } else {
+                  tabular_type.count = 0;
+              }
+          }
+      }
+
       if ("layer_types" in $rootScope) {
           $rootScope.later_type_counts = data.meta.facets.layer_type;
           for (var id in $rootScope.layer_types) {
@@ -107,6 +130,10 @@
     * and set active class if needed
     */
     if ($('#categories').length > 0 || $('#layer_types').length > 0){
+       module.load_categories($http, $rootScope, $location);
+    }
+
+    if ($('#tabular_types').length > 0){
        module.load_categories($http, $rootScope, $location);
     }
 

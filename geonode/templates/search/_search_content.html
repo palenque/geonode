@@ -22,6 +22,9 @@
             {% include "search/_text_filter.html" %}
           {% endif %}
         <div id="slide-pane">
+          {% if ',tabulartype,' in include_filters %}
+            {% include "search/_tabulartype_filter.html" %}
+          {% endif %}          
           {% if ',type,' in include_filters %}
             {% include "search/_type_filters.html" %}
           {% endif %}
@@ -40,7 +43,6 @@
           {% if ',extent,' in include_filters %}
             {% include "search/_extent_filter.html" %}
           {% endif %}
-
         </div>
         {% endif %}
       </div>
