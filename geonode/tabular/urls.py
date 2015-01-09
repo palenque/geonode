@@ -22,7 +22,7 @@ from django.conf.urls import patterns, url
 from django.contrib.auth.decorators import login_required
 from django.views.generic import TemplateView
 
-from .views import DocumentUploadView, DocumentUpdateView
+from .views import DocumentUploadView, DocumentUpdateView, DocumentAppendView
 
 js_info_dict = {
     'packages': ('geonode.tabular',),
@@ -41,6 +41,9 @@ urlpatterns = patterns('geonode.tabular.views',
                        url(r'^(?P<docid>\d+)/replace$',
                            login_required(DocumentUpdateView.as_view()),
                            name="tabular_replace"),
+                       url(r'^(?P<docid>\d+)/append$',
+                           login_required(DocumentAppendView.as_view()),
+                           name="tabular_append"),                       
                        url(r'^(?P<docid>\d+)/remove$',
                            'document_remove',
                            name="tabular_remove"),
