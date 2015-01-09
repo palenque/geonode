@@ -10,19 +10,26 @@
 {% block body_outer %}
 <div class="row">
   <div class="col-md-12">
-    <h2 class="page-title">{{ object.title|default:object.slug }}</h2>
+    <h2 class="page-title">
+      {% if object.logo %}
+        <img width="40px" src="{{ object.logo.url }}" alt="{{ object.title }}"/>
+      {% endif %}
+      {{ object.title|default:object.slug }}
+      <a target="_blank" href="{{ object.email }}">
+        <i class="fa fa-external-link"></i>
+      </a>
+    </h2>
+    <br/>
   </div>
   <div class="col-md-8">
     <div class="row">
-      <div class="col-md-3">
-      {% if object.logo %}
-        <img src="{{ object.logo.url }}" alt="{{ object.title }}" class="group-logo" />
-      {% else %}
-        <p>{% trans "This app has not created a logo." %}</p>
-      {% endif %}
-      </div>
       <div class="col-md-9">
-        <p>{{ object.description }}</p>
+        {% if object.thumbnail %}
+          <img src="{{ object.thumbnail.url }}" alt="{{ object.title }}"/>
+        {% endif %}
+        <p>{{ description|safe }}</p>
+
+        {% comment %}
         <dl class="dl-horizontal profile-details">
           <dt><i class="fa fa-eye"></i></dt>
           <dd>
@@ -41,6 +48,7 @@
           </dd>
           {% endif %}
         </dl>
+        {% endcomment %}
       </div>
     </div>
 
@@ -91,7 +99,6 @@
 
       {% if not is_manager and not is_member %}
       <li class="list-group-item">
-        <h4>{% trans "Permissions" %}</h4>
         <p>
           {% blocktrans with object.get_access_display as access %}
             This app is public<strong>{{ access }}</strong>.
@@ -99,6 +106,7 @@
           {% comment %}
           {% if object.access == "public" %}
           {% endcomment %}
+            <br/>
             {% trans "Anyone may link this app." %}
             <a class="btn btn-default btn-md btn-block" href="{% url "app_member_link" object.slug request.user.username %}">{% trans "Link this app" %}</a>
             {% comment %}
@@ -117,6 +125,18 @@
         </p>
       </li>
       {% endif %}
+
+      <li class="list-group-item">
+        <h4>{% trans "Permissions" %}</h4>
+        {% trans "This app needs access to the following resources:" %}
+        <ul>
+          {% for keyword in object.keyword_list %}
+            <li>{{keyword}}</li>
+          {% endfor %}
+        </ul>
+      </li>
+
+
       <li class="list-group-item">
         <h4>{% trans "Developer" %}</h4>
         {% for manager in object.get_managers %}

@@ -1,20 +1,40 @@
 {% verbatim %}
 <article ng-repeat="app in results">
-  <div class="row">
-  <div ng-if="app.logo != ''" class="col-md-3">
-    <a href="{{ app.detail_url }}" ><img ng-src="{{ app.logo }}" alt="{{ app.title }}" class="group-logo" /></a>
+  <div class="row panel">
+  <div ng-if="app.thumbnail != ''" class="col-md-3">
+    <a href="{{ app.detail_url }}" ><img ng-src="{{ app.thumbnail }}" alt="{{ app.title }}" class="group-logo" /></a>
   </div>
   <div class="col-md-9">
     <h5>
-      <i class="fa fa-cubes"></i> <a href="{{ app.detail_url }}">{{ app.title }}</a>
+      <img src="{{ app.logo }}" width="20px" ng-if="app.logo"/>
+      <i ng-if="!app.logo" class="fa fa-cubes"></i> <a href="{{ app.detail_url }}">{{ app.title }}</a>
       <a href="{{ app.email }}" ng-if="app.email != ''" target="_blank"><i class="fa fa-external-link"></i></a>
     </h5>
-    <p>{{ app.description}}</p>
+    <p ng-if="app.short_description.length > 0">{{ app.short_description }}</p>
+    <p ng-if="app.short_description.length == 0">{{ app.description }}</p>
     <ul class="list-inline">
       <li>
-          <strong>{{ app.member_count }}</strong>
-          <ng-pluralize count="app.member_count" when="{'1': 'User', 'other': 'Users'}"></ng-pluralize>
+        <div>
+          <img ng-if="app.rating >= 1" src="/static/lib/img/star-on.png"/>
+          <img ng-if="app.rating <  1" src="/static/lib/img/star-off.png"/>
+
+          <img ng-if="app.rating >= 2" src="/static/lib/img/star-on.png"/>
+          <img ng-if="app.rating <  2" src="/static/lib/img/star-off.png"/>
+
+          <img ng-if="app.rating >= 3" src="/static/lib/img/star-on.png"/>
+          <img ng-if="app.rating <  3" src="/static/lib/img/star-off.png"/>
+
+          <img ng-if="app.rating >= 4" src="/static/lib/img/star-on.png"/>
+          <img ng-if="app.rating <  4" src="/static/lib/img/star-off.png"/>
+
+          <img ng-if="app.rating >= 5" src="/static/lib/img/star-on.png"/>
+          <img ng-if="app.rating <  5" src="/static/lib/img/star-off.png"/>
+        </div>
       </li>
+      <li>
+          <i class="fa fa-user"></i>{{ app.member_count }}
+          <ng-pluralize count="app.member_count" when="{'1': 'User', 'other': 'Users'}"></ng-pluralize>
+      </li>      
     </ul>
   </div>
   </div>

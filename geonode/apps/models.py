@@ -24,8 +24,8 @@ class App(models.Model):
     #                      'Only invited users can join.<br>'
     #                      'Private: Registered users cannot see any details about the group, including membership.  '
     #                      'Only invited users can join.')
-    email_help_text = _('Email used to contact one or all app members, '
-                        'such as a mailing list, shared email, or exchange group.')
+    #email_help_text = _('Email used to contact one or all app members, '
+    #                    'such as a mailing list, shared email, or exchange group.')
 
     email_help_text = _('Public url for the application.')
 
@@ -33,7 +33,14 @@ class App(models.Model):
     title = models.CharField(max_length=50)
     slug = models.SlugField(unique=True)
     logo = models.FileField(upload_to="people_group", blank=True)
-    description = models.TextField()
+    description = models.TextField()    # markdown
+    short_description = models.TextField(blank=True, null=True)
+    thumbnail = models.FileField(upload_to="people_group", null=True, blank=True)
+
+    # TODO: improve
+    rating = models.IntegerField(null=True, blank=True)
+
+
     email = models.URLField(
         _('email'),
         null=True,

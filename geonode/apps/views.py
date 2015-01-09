@@ -1,4 +1,5 @@
 import json
+import markdown
 
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
@@ -141,6 +142,7 @@ class AppDetailView(ListView):
         context['layers'] = self.app.resources(resource_type='layer')
         context['is_member'] = self.app.user_is_member(self.request.user)
         context['is_manager'] = self.app.user_is_role(self.request.user, "manager")
+        context['description'] = markdown.markdown(self.app.description)
         
         context['profile'] = profile
         context['sortby_field'] = sortby_field
