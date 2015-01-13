@@ -270,23 +270,26 @@
       $scope.permission_class = data.permission_class;
 
       var not_public = data.permission_class != "public";
-
-      load_public_layers(data);
+      var url = $scope.url || Configs.url;
+      if(url.indexOf("layers") >= 0) 
+        load_public_layers(data);
 
       // select the proper type of public/private filter
       $("#sort a[data-value='"+data.permission_class+"']").addClass("selected");
 
       var mapExtent = data.extent;
-      $http.get(Configs.url, {params: data || {}}).success(function(data){
+      $http.get(url, {params: data || {}}).success(function(data){
 
         if(not_public) {
           draw_hulls(data.objects);
 
+          /*
           if(!mapExtent) {
             focus_map_on_objects(data.objects);
           } else {
             focus_map_on_extent(mapExtent);
           }
+          */
         }
 
         $scope.results = data.objects;
@@ -468,15 +471,49 @@
       query_api($scope.query);
     }
 
+    $scope.toggle_shared = function($event) {
+      var element = $($event.target);
+      var share = element.data('share');
+      var resource_id = element.data('resource-id');
+      var url = element.data('url');
+
+      $.ajax({
+          type: "POST",
+          url: url,
+          dataType: 'json',
+          data: {
+            resource_id: resource_id,
+            shared: share
+          },
+          success: function(data){
+             if(data.status != 'error'){
+              var par = element.parent().parent();
+                if(share) {
+                  par.find(".shared").removeClass("ng-hide");
+                  par.find(".notshared").addClass("ng-hide");
+                } else {
+                  par.find(".shared").addClass("ng-hide");
+                  par.find(".notshared").removeClass("ng-hide");
+                }
+             }
+          }
+      });
+    }
+
     $scope.single_choice_listener = function($event){
       var element = $($event.target);
       var query_entry = [];
       var data_filter = element.attr('data-filter');
       var value = element.attr('data-value');
+      var url = element.attr('data-url');
 
       // If the query object has the record then grab it 
       if ($scope.query.hasOwnProperty(data_filter)){
         query_entry = $scope.query[data_filter];
+      }
+
+      if(url) {
+        $scope.url = url;
       }
 
       if(!element.hasClass('selected')){
@@ -602,6 +639,8 @@
 
       map.then(function(map) {
         module.map = map;
+        if($scope.query.extent)
+          focus_map_on_extent($scope.query.extent);
       });
 
       map.then(function(map){

@@ -83,6 +83,7 @@ class CommonMetaApi:
                  'owner': ALL_WITH_RELATIONS,
                  'creator': ALL_WITH_RELATIONS,
                  'date': ALL,
+                 'csw_type': ALL,
                  }
     ordering = ['date', 'title', 'popular_count']
     max_limit = None
@@ -501,6 +502,14 @@ class CommonModelApi(ModelResource):
         # XXX FEO!!
         if 'permission_class' in request.GET:
             data['objects'] = filter(lambda obj: obj['permission_class'] == request.GET['permission_class'], data['objects'])
+
+        if 'layer_type' in request.GET:
+            data['objects'] = filter(lambda obj: obj['layer_type'] == request.GET['layer_type'], data['objects'])            
+
+        if 'layer_type__in' in request.GET:
+            data['objects'] = filter(lambda obj: obj['layer_type'] in request.GET['layer_type__in'].split(','), data['objects'])
+
+        data['meta']['total_count'] = len(data['objects'])
 
         desired_format = self.determine_format(request)
         serialized = self.serialize(request, data, desired_format)

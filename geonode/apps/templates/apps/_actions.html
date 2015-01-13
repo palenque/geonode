@@ -1,0 +1,12 @@
+{% load i18n %}
+<ul class="nav nav-tabs">
+  <li class="active"><a href="#info" data-toggle="tab"><i class="fa fa-info-circle"></i>{% trans "Info" %}</a></li>
+  <li><a href="#resources" data-toggle="tab"><i class="fa fa-bars"></i>{% trans "Resources" %}</a></li>
+  {% if is_manager %}
+  <li><a href="#users" data-toggle="tab"><i class="fa fa-user"></i>{% trans "Users" %}</a></li>  
+  {% endif %}
+  {% comment %}
+  <li><a href="#rate" data-toggle="tab"><i class="fa fa-star"></i>{% trans "Ratings" %}</a></li>
+  <li><a href="#comments" data-toggle="tab"><i class="fa fa-comment-o"></i> {% trans "Comments" %}</a></li>
+  {% endcomment %}
+</ul>

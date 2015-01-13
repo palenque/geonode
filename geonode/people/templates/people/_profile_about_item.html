@@ -18,8 +18,10 @@
   {% endwith %}
   <div>
     <h3>
-    <a href="{{ profile.get_absolute_url }}">{{ profile.username }}</a>
-      <div style="font-size:50%">{{profile.profile}}</div>
+    <a href="{{ profile.get_absolute_url }}">{{profile.full_name}}</a>
+      {% if not no_user_profile %}
+        <div style="font-size:50%">{{profile.profile}}</div>
+      {% endif %}
     </h3>
     <div class="details">
       <div class="meta">

@@ -21,63 +21,69 @@
     </h2>
     <br/>
   </div>
+
   <div class="col-md-8">
     <div class="row">
       <div class="col-md-9">
         {% if object.thumbnail %}
           <img src="{{ object.thumbnail.url }}" alt="{{ object.title }}"/>
         {% endif %}
-        <p>{{ description|safe }}</p>
-
-        {% comment %}
-        <dl class="dl-horizontal profile-details">
-          <dt><i class="fa fa-eye"></i></dt>
-          <dd>
-          {% if object.keyword_list %}
-            {% for keyword in object.keyword_list %}
-              {{ keyword }}
-            {% endfor %}
-          {% else %}
-          <br>
-          {% endif %}
-          </dd>
-          {% if object.email %}
-          <dt><i class="fa fa-external-link"></i></dt>
-          <dd>
-            <a target="_blank" href="{{ object.email }}">{{ object.email }}</a>
-          </dd>
-          {% endif %}
-        </dl>
-        {% endcomment %}
       </div>
     </div>
+
+    <div class="layer-actions">
+      {% include "apps/_actions.html" %}
+    </div>
+
+    <div class="tab-content">
+
+    <article class="description tab-pane active" id="info">
+      <p>{{ description|safe }}</p>
+    </article>
+
+    {% if is_member %}
+
+    <article id="resources" class="tab-pane">
+      <ul class="nav nav-pills filter" id="sort">
+        <li><a data-value="" data-filter="csw_type" ng-click="single_choice_listener($event)">{% trans "All contents" %}</a></li>
+        <li><a data-value="dataset" data-filter="csw_type" 
+          data-url="{% url 'api_dispatch_list' api_name='api' resource_name='base' %}?app={{ object.slug}}"
+          ng-click="single_choice_listener($event)">{% trans "Layers" %}</a></li>
+        <li><a data-value="document" data-filter="csw_type" 
+          data-url="{% url 'api_dispatch_list' api_name='api' resource_name='base' %}?app={{ object.slug}}"
+        ng-click="single_choice_listener($event)">{% trans "Documents" %}</a></li>
+        <li><a data-value="tabular" data-filter="csw_type" 
+          data-url="{% url 'api_dispatch_list' api_name='api' resource_name='base' %}?app={{ object.slug}}"
+          ng-click="single_choice_listener($event)">{% trans "Tabular" %}</a></li>
+      </ul>
+
+      <div class="col-md-12">
+        <div class="tab-content span12 paginate paginate-auto">
+          <div class="tab-pane active list paginate-contents" id="all">
+            {% include "apps/_app_resources.html" %}
+            {% include 'search/_pagination.html' %}
+          </div>
+        </div>
+      </div>
+    </article>
+
+    {% endif %}
 
     {% if is_manager %}
-    <div class="row">
+    <article id="users" class="tab-pane">
       <div class="col-md-12">
-        <h3>{% trans "Users" %}</h3>
-        {% include 'search/_pagination.html' %}
-         <div class="tab-content paginate paginate-auto" id="search-content">
-        {% include 'apps/_profile_list_item.html' %}
-        </div> 
+        <div class="tab-content span12">
+          <div class="tab-pane active list">
+            {% include "apps/_app_profiles.html" %}
+          </div>
+        </div>
       </div>
-    </div>
-    {% endif %}
-    
-    {% if not is_manager and is_member %}
-
-    <div class="col-md-12">
-      <h3>{% trans "Resources shared with this app" %}</h3>
-        <ul class="nav nav-pills filter" id="sort">
-          <li><a href="{{ object.detail_url }}?" {% if content_filter  == "all" %}class="selected"{% endif %}>{% trans "All contents" %}</a></li>
-          <li><a href="{{ object.detail_url }}?content=layers"{% if content_filter == "layers" %} class="selected"{% endif %}>{% trans "Layers" %}</a></li>
-          <li><a href="{{ object.detail_url }}?content=documents"{% if content_filter == "documents" %} class="selected"{% endif %}>{% trans "Documents" %}</a></li>
-          <li><a href="{{ object.detail_url }}?content=tabular"{% if content_filter == "tabular" %} class="selected"{% endif %}>{% trans "Imported Data" %}</a></li>
-        </ul>
-    </div>
+    </article>
 
     {% endif %}
 
+
+    </div>
   </div>
 
 
@@ -107,8 +113,9 @@
           {% if object.access == "public" %}
           {% endcomment %}
             <br/>
-            {% trans "Anyone may link this app." %}
-            <a class="btn btn-default btn-md btn-block" href="{% url "app_member_link" object.slug request.user.username %}">{% trans "Link this app" %}</a>
+            {% trans "Anyone may use this app." %}
+            <br/>
+            <a class="btn btn-default btn-md btn-block" href="{% url "app_member_link" object.slug request.user.username %}">{% trans "Link this app" %}</a>            
             {% comment %}
             <form class="uniForm" method="POST" action="{% url "app_join" object.slug %}">
               {% csrf_token %}
@@ -125,7 +132,7 @@
         </p>
       </li>
       {% endif %}
-
+      
       <li class="list-group-item">
         <h4>{% trans "Permissions" %}</h4>
         {% trans "This app needs access to the following resources:" %}
@@ -136,6 +143,12 @@
         </ul>
       </li>
 
+      {% if is_manager %}
+      <li class="list-group-item">
+        <h4>API Key</h4>
+        <small>{{object.get_alter_ego.api_key.key}}</small>
+      </li>
+      {% endif %}
 
       <li class="list-group-item">
         <h4>{% trans "Developer" %}</h4>
@@ -148,118 +161,16 @@
     </ul>
   </div>
 
-    {% if not is_manager and is_member %}  
-    <!--resources-->
-    <div class="col-md-12">
-        <div class="tab-content span12 paginate paginate-auto">
-          {% if object_list|length > 0 %}
-          <div class="tab-pane active list paginate-contents" id="all">
-              {% autopaginate object_list 5 %}
-                {% for obj in object_list %}
-                  {% include "apps/_layer_resource.html" %}
-                {% comment %}
-                <article>
-                  <div class="content">
-                    <div class="item-header">
-                    <img class="thumb" src="{{ obj.thumbnail_url}}" />
-
-                    {% if obj.class_name = 'Map' %}
-                    <h3><i class="fa fa-map-marker"></i>
-                    {% endif %}
-                    
-                    {% if obj.class_name = 'Layer' %}
-                    <h3><i class="fa fa-square-o rotate-45"></i>
-                    {% endif %}
-                    
-                    {% if obj.class_name = 'Document' %}
-                    <h3><i class="fa fa-file-text-alt"></i>
-                    {% endif %}
-                    <a href="{{ obj.detail_url }}">{{ obj.title }}</a>
-                    </h3>
-
-                  </div>
-                  <div class="details">
-                    <div class="meta">
-                      <p class="resources-abstract">{{ obj.abstract }}</p>
-                      <p class="resources-shared">{% trans "Shared" %} <input data-resource-id="{{ obj.id }}" {% if obj.id in permissions %}checked="checked"{%endif%} class="resource-app-shared" type="checkbox"/></p>
-                      <!-- <p class="sharing-date">{% trans "Shared on" %} {{ obj.date|date:"d b Y" }}</p> -->
-                    </div>
-                  </div>
-                </article>
-                {% endcomment %}
-                {% endfor %}
-            </div>
-              {% paginate %}
-          </div>
-          {% else %}
-          </div>
-          <article>
-            <p>{% trans "No contents found." %}</p>
-          </article>
-        {% endif %}
-        </div>
-      </div>
     </div>
-    {% endif %}
-    <!--end resources-->
-
 
 </div>
 
 {% endblock %}
+
 {% block extra_script %}
-  <script>
-      $(function(){
-          $('input.resource-app-shared').change(function(e){
-              el = $(this)
-              $.ajax({
-                  type: "POST",
-                  url: '{% url 'app_resource_share' app_id=object.id %}',
-                  dataType: 'json',
-                  data: {
-                    resource_id: $(this).data('resource-id'), 
-                    shared: $(this).is(':checked')
-                  },
-                  success: function(data){
-                     if(data.status == 'error'){
-                         el.prop("checked", false); 
-                     }
-                  }
-              })
-          })
-      });
-
-      $(function(){
-        $("a.share-resource").click(function(e) {
-          el = $(this);
-          var share = $(this).data('share');
-          $.ajax({
-              type: "POST",
-              url: '{% url 'app_resource_share' app_id=object.id %}',
-              dataType: 'json',
-              data: {
-                resource_id: $(this).data('resource-id'), 
-                shared: share
-              },
-              success: function(data){
-                 if(data.status != 'error'){
-                  var par = el.parent().parent();
-                    if(share) {
-                      par.find(".shared").show();
-                      par.find(".notshared").hide();
-                    } else {
-                      par.find(".shared").hide();
-                      par.find(".notshared").show();
-                    }
-                 }
-              }
-          });
-        });
-      });
-
-  </script>
   <script type="text/javascript">
-  SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='profiles' %}'+ '?app='+ '{{ object.slug }}';
+  SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='base' %}'+ '?app='+ '{{ object.slug }}';
+
   </script>
 
   {% with include_spatial='false' %}

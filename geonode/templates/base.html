@@ -68,6 +68,8 @@
             </li>            
             {% endblock %}
           </ul>
+
+          {% comment %}
           <form class="col-md-3" id="search" action="{% url "search" %}">
             <div class="input-group">
               {% if HAYSTACK_SEARCH %}
@@ -80,6 +82,8 @@
               </span>
             </div>
           </form>
+          {% endcomment %}
+
           <ul class="nav navbar-nav navbar-right">
             {% if not user.is_authenticated and REGISTRATION_OPEN %}
                 <li><a href="{% url "account_signup" %}">{% trans "Register" %}</a></li>
@@ -177,11 +181,14 @@
       <div class="container">
         <div class="row">
           <div class="col-md-8">
-            {% trans "Powered by" %} <a href="http://geonode.org">{% trans "GeoNode" %}</a> <em>{% trans "version" %} {{ VERSION }}</em> |
-            <a href="{% url "developer" %}">{% trans "Developers" %}</a> |
-            <a href="{% url "about" %}">{% trans "About" %}</a>
+            {% if request.user %}
+              <h4>{% trans "My applications" %}</h4>              
+              <div id="apps_container">
+                <div id="my_applications" class="col-md-16"></div>
+              </div>
+            {% endif %}
           </div>
-          <div class="col-md-4 pull-right">
+          <div class=" pull-right">
             <label>{% trans "Language" %}</label>
             {% if csrf_token != "NOTPROVIDED" %}
             {% get_current_language as LANGUAGE %}
@@ -240,6 +247,51 @@
     </script>
     <script type="text/javascript" src="{% url "django.views.i18n.javascript_catalog" %}"></script>
     <script type="text/javascript" src="{% url "lang" %}"></script>
+
+    {% if request.user %}
+    <script type="text/javascript">
+      $(document).ready(function() {
+        $.get("/api/apps",{member: '{{request.user}}'})
+          .success(function(data) {
+            if(data.objects.length == 0) {
+              var msg = $("<p>")
+                .addClass("col-md-offset-1")
+                .html("Qué esperás para empezar a usar aplicaciones?<br/>Consultá las aplicaciones disponibles en la sección <b>apps</b>");
+              $("#my_applications").append(msg);
+            }
+            else {
+              for(i in data.objects) {
+                var obj = data.objects[i];
+                var article = $("<article>")
+                  .addClass("col-md-4")
+                  .append($("<a>")
+                    .addClass("thumbnail")
+                    .attr("href",obj.email)
+                    .attr("target","_blank")                  
+                    .append($("<img>")
+                      .attr("src",obj.logo)
+                      .attr("width","80px")
+                      .css("height","80px"))
+                    .append($("<div>")
+                      .addClass("caption")
+                      .text(obj.title)));
+                $("#my_applications").append(article);
+              }
+            }
+          });
+        });
+/*
+              <article>
+                <div class="col-md-3">
+                  <a href="{{url_profile}}{{profile.username}}">
+                  <img width="70px" ng-src="{{ profile.avatar_100 }}"/></a><br/>
+                  <i class="fa fa-user"></i><span>{{ profile.username }}</span>      
+                </div>
+              </article>
+*/
+    </script>
+
+    {% endif %}
 
   </body>
 </html>

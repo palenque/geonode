@@ -151,15 +151,20 @@ class AppResource(ModelResource):
     detail_url = fields.CharField()
     member_count = fields.IntegerField()
     manager_count = fields.IntegerField()
-
+    developer = fields.CharField()
+    
     def dehydrate_member_count(self, bundle):
-        return bundle.obj.member_queryset().count()
+        return bundle.obj.member_queryset().filter(role='member').count()
 
     def dehydrate_manager_count(self, bundle):
         return bundle.obj.get_managers().count()
 
     def dehydrate_detail_url(self, bundle):
         return reverse('app_detail', args=[bundle.obj.slug])
+
+    def dehydrate_developer(self, bundle):
+        return bundle.obj.get_managers()[0].full_name
+    
 
     def build_filters(self, filters={}):
         """adds filtering by group functionality"""
@@ -245,7 +250,7 @@ class ProfileResource(ModelResource):
         if app is not None:
             semi_filtered = semi_filtered.filter(
                 appmember__app__slug=app,
-                # appmember__role='member'
+                appmember__role='member'
             )
         
         return semi_filtered

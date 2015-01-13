@@ -87,6 +87,13 @@ class Profile(AbstractUser):
         'commonly used word(s) or formalised word(s) or phrase(s) used to describe the subject \
             (space or comma-separated'))
 
+    @property
+    def full_name(self):
+        if self.first_name or self.last_name:
+            return "%s %s" % (self.first_name, self.last_name)
+        else:
+            return self.username
+
     def get_absolute_url(self):
         return reverse('profile_detail', args=[self.username, ])
 
