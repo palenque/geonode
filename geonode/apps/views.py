@@ -106,16 +106,6 @@ class AppDetailView(ListView):
                 if (content == 'layers'):
                     content_filter = 'layers'
                     user_objects = user_objects.instance_of(Layer)
-                # if (content == 'monitors'):
-                #     content_filter = 'monitors'
-                #     # TODO: mejorar query
-                #     layer_objects = Layer.objects.filter(
-                #         layer_type__name='monitor',
-                #         owner=self.request.user
-                #     )
-                #     user_objects = ResourceBase.objects.filter(
-                #         id__in=[o.id for o in layer_objects]
-                #     )
                 if (content == 'maps'):
                     content_filter = 'maps'
                     user_objects = user_objects.instance_of(Map)
@@ -233,16 +223,6 @@ def member_detail(request, app_id, username):
             if (content == 'maps'):
                 content_filter = 'maps'
                 user_objects = user_objects.instance_of(Map)
-            # if (content == 'monitors'):
-            #     content_filter = 'monitors'
-            #     # TODO: mejorar query
-            #     layer_objects = Layer.objects.filter(
-            #         layer_type__name='monitor',
-            #         owner=request.user
-            #     )                
-            #     user_objects = ResourceBase.objects.filter(
-            #         id__in=[o.id for o in layer_objects]
-            #     )                
             if (content == 'documents'):
                 content_filter = 'documents'
                 user_objects = user_objects.instance_of(Document)
