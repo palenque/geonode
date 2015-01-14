@@ -22,7 +22,8 @@
     }
 
   // Load categories and keywords
-  module.load_categories = function ($http, $rootScope, $location){
+  module.load_filter = function (filter, $http, $rootScope, $location){
+      if(filter == 'categories') {
         var params = typeof FILTER_TYPE == 'undefined' ? {} : {'type': FILTER_TYPE};
         $http.get(CATEGORIES_ENDPOINT, {params: params}).success(function(data){
             if($location.search().hasOwnProperty('category__identifier__in')){
@@ -34,6 +35,9 @@
                 module.haystack_facets($http, $rootScope, $location);
             }
         });
+      }
+
+      else if(filter == 'tabular_types') {
 
         $http.get(TABULAR_TYPES_ENDPOINT, {params: params}).success(function(data){
             if($location.search().hasOwnProperty('tabular_type')){
@@ -45,6 +49,9 @@
                 module.haystack_facets($http, $rootScope, $location);
             }
         });
+      }
+
+      else if(filter == 'layer_types') {
 
         $http.get(LAYER_TYPES_ENDPOINT, {params: params}).success(function(data){
             if($location.search().hasOwnProperty('layer_type')){
@@ -56,6 +63,9 @@
                 module.haystack_facets($http, $rootScope, $location);
             }
         });
+      } 
+
+      else if(filter == 'keywords') {
 
         $http.get(KEYWORDS_ENDPOINT, {params: params}).success(function(data){
             if($location.search().hasOwnProperty('keywords__slug__in')){
@@ -67,6 +77,24 @@
                 module.haystack_facets($http, $rootScope, $location);
             }
         });
+      }
+
+      else if(filter == 'creators') {
+        var CREATORS_ENDPOINT = ($location.search().permission_class == 'public') ? 
+          PUBLIC_CREATORS_ENDPOINT : PRIVATE_CREATORS_ENDPOINT;
+
+        $http.get(CREATORS_ENDPOINT, {params: params}).success(function(data){
+          if($location.search().hasOwnProperty('creator__username__in')){
+              data.objects = module.set_initial_filters_from_query(data.objects,
+                  $location.search()['creator_u_username__in'], 'username');
+          }
+          $rootScope.creators = data.objects;
+          if (HAYSTACK_FACET_COUNTS && $rootScope.query_data) {
+              module.haystack_facets($http, $rootScope, $location);
+          }
+        });
+      }
+
     }
 
   // Update facet counts for categories and keywords
@@ -129,13 +157,11 @@
     * Load categories and keywords if the filter is available in the page
     * and set active class if needed
     */
-    if ($('#categories').length > 0 || $('#layer_types').length > 0){
-       module.load_categories($http, $rootScope, $location);
-    }
-
-    if ($('#tabular_types').length > 0){
-       module.load_categories($http, $rootScope, $location);
-    }
+    ['categories','layer_types','tabular_types','keywords']
+      .forEach(function(filter){
+        if ($('#'+filter).length > 0)
+          module.load_filter(filter, $http, $rootScope, $location);
+      });
 
     // Activate the type filters if in the url
     if($location.search().hasOwnProperty('type__in')){
@@ -168,7 +194,7 @@
     $scope.query.limit = $scope.query.limit || CLIENT_RESULTS_LIMIT;
     $scope.query.offset = $scope.query.offset || 0;
     if($location.url() == "/layers/")
-      $scope.query.permission_class = $scope.query.permission_class || "owned";
+    $scope.query.permission_class = $scope.query.permission_class || "owned";
     $scope.page = Math.round(($scope.query.offset / $scope.query.limit) + 1);
 
     // Load public layers
@@ -374,6 +400,10 @@
           $location.search($scope.query);
         }, true);
     }
+
+    $scope.$watch('query.permission_class',function(){
+      module.load_filter('creators', $http, $scope, $location);
+    }, true);
 
     $scope.toggle_nav = function($event){    
       var e = $event;

@@ -19,7 +19,7 @@ from taggit.models import Tag
 
 from tastypie import fields
 from tastypie.resources import ModelResource
-from tastypie.constants import ALL
+from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.utils import trailing_slash
 
 FILTER_TYPES = {
@@ -217,17 +217,18 @@ class ProfileResource(ModelResource):
     documents_count = fields.IntegerField(default=0)
     current_user = fields.BooleanField(default=False)
     activity_stream_url = fields.CharField(null=True)
+    full_name = fields.CharField(null=True)
 
     def build_filters(self, filters={}):
         """adds filtering by group functionality"""
-
+        
         orm_filters = super(ProfileResource, self).build_filters(filters)
 
-        if 'group' in filters:
-            orm_filters['group'] = filters['group']
+        for flt in ['group','app']:
+            if flt in filters:
+                orm_filters[flt] = filters[flt]
 
-        if 'app' in filters:
-            orm_filters['app'] = filters['app']
+        orm_filters['created_resource'] = dict(filter(lambda (k,v):k.startswith('created_resource'),filters.items()))
 
         return orm_filters
 
@@ -236,6 +237,7 @@ class ProfileResource(ModelResource):
 
         group = applicable_filters.pop('group', None)
         app = applicable_filters.pop('app', None)
+        created_resource = applicable_filters.pop('created_resource', {})
 
         semi_filtered = super(
             ProfileResource,
@@ -250,9 +252,11 @@ class ProfileResource(ModelResource):
         if app is not None:
             semi_filtered = semi_filtered.filter(
                 appmember__app__slug=app,
-                appmember__role='member'
-            )
-        
+                appmember__role='member')
+
+        if len(created_resource) > 0:
+            semi_filtered = semi_filtered.filter(**created_resource).distinct()
+
         return semi_filtered
 
     def dehydrate_email(self, bundle):
@@ -260,6 +264,9 @@ class ProfileResource(ModelResource):
         if bundle.request.user.is_authenticated():
             email = bundle.obj.email
         return email
+
+    def dehydrate_full_name(self, bundle):
+        return bundle.obj.full_name
 
     def dehydrate_layers_count(self, bundle):
         return bundle.obj.resourcebase_set.instance_of(Layer).distinct().count()
@@ -308,6 +315,7 @@ class ProfileResource(ModelResource):
 
         filtering = {
             'username': ALL,
+            'profile': ALL
         }
 
 class LayerTypeResource(TypeFilteredResource):
