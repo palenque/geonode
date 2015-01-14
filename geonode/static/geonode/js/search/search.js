@@ -80,7 +80,7 @@
       }
 
       else if(filter == 'creators') {
-        var CREATORS_ENDPOINT = ($location.search().permission_class == 'public') ? 
+        var CREATORS_ENDPOINT = ($location.search().is_public == '1') ? 
           PUBLIC_CREATORS_ENDPOINT : PRIVATE_CREATORS_ENDPOINT;
 
         $http.get(CREATORS_ENDPOINT, {params: params}).success(function(data){
@@ -163,6 +163,10 @@
           module.load_filter(filter, $http, $rootScope, $location);
       });
 
+    // activate the proper public/private filter
+    $("#sort a[data-value='"+$location.search().is_public+"'").addClass('selected');
+
+
     // Activate the type filters if in the url
     if($location.search().hasOwnProperty('type__in')){
       var types = $location.search()['type__in'];
@@ -194,7 +198,7 @@
     $scope.query.limit = $scope.query.limit || CLIENT_RESULTS_LIMIT;
     $scope.query.offset = $scope.query.offset || 0;
     if($location.url() == "/layers/")
-    $scope.query.permission_class = $scope.query.permission_class || "owned";
+    $scope.query.is_public = $scope.query.is_public || "0";
     $scope.page = Math.round(($scope.query.offset / $scope.query.limit) + 1);
 
     // Load public layers
@@ -202,7 +206,7 @@
       if(!module.layers) module.layers = [];
 
       var params = $.extend({}, data);
-      params.permission_class = "public";
+      params.is_public = "1";
       $http.get("/api/layers", {params: params}).success(function(data){
         var bycat = {};
         for(var i in data.objects) {
@@ -265,6 +269,11 @@
       module.map.fitBounds(bounds);
     }
 
+    function clear_hulls(objects) {
+      if(module.hulls_layer) 
+        module.map.removeLayer(module.hulls_layer);
+    }
+
     function draw_hulls(objects) {
       if(!module.map) return;
 
@@ -293,29 +302,33 @@
     //Get data from apis and make them available to the page
     function query_api(data){
 
-      $scope.permission_class = data.permission_class;
+      $scope.is_public = data.is_public == "1";
 
-      var not_public = data.permission_class != "public";
       var url = $scope.url || Configs.url;
-      if(url.indexOf("layers") >= 0) 
+      if(module.map) 
         load_public_layers(data);
 
       // select the proper type of public/private filter
-      $("#sort a[data-value='"+data.permission_class+"']").addClass("selected");
+      // XXX
+      //$("#sort a[data-value='"+data.permission_class+"']").addClass("selected");
 
       var mapExtent = data.extent;
       $http.get(url, {params: data || {}}).success(function(data){
 
-        if(not_public) {
-          draw_hulls(data.objects);
+        if(module.map) {
 
-          /*
-          if(!mapExtent) {
-            focus_map_on_objects(data.objects);
-          } else {
-            focus_map_on_extent(mapExtent);
-          }
-          */
+          if(!$scope.is_public)
+            draw_hulls(data.objects);
+          else 
+            clear_hulls();
+
+            /*
+            if(!mapExtent) {
+              focus_map_on_objects(data.objects);
+            } else {
+              focus_map_on_extent(mapExtent);
+            }
+            */
         }
 
         $scope.results = data.objects;
@@ -401,7 +414,7 @@
         }, true);
     }
 
-    $scope.$watch('query.permission_class',function(){
+    $scope.$watch('query.is_public',function(){
       module.load_filter('creators', $http, $scope, $location);
     }, true);
 
@@ -621,6 +634,10 @@
         delete $scope.query['date__range'];
         delete $scope.query['date__gte'];
       }else{
+        if (!$scope.query['date__range'] 
+              && !$scope.query['date__gte']
+              && !$scope.query['date__lte']) return;
+
         delete $scope.query['date__range'];
         delete $scope.query['date__gte'];
         delete $scope.query['date__lte'];

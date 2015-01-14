@@ -12,6 +12,13 @@
     <a href="{% url "document_upload" %}" class="btn btn-primary pull-right">{% trans "Upload Documents" %}</a>
     <h2 class="page-title">{% trans "Explore Documents" %}</h2>
   </div>
+
+  {% with custom_filters='documents/_document_filter.html' %}
+  {% include "search/_search_content.html" %}
+  {% endwith %}
+
+
+{% comment %}  
   {% with include_type_filter='true' %}
   {% with facet_type='documents' %}
   {% with header='Document Type' %}
@@ -21,6 +28,8 @@
   {% endwith %}
   {% endwith %}
   {% endwith %}
+{% endcomment %}
+
 {% endblock %}
 
 {% block extra_script %}

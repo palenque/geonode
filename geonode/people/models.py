@@ -144,7 +144,7 @@ def profile_post_save(instance, sender, **kwargs):
     """Make sure the user belongs by default to the anonymous group.
     This will make sure that anonymous permissions will be granted to the new users."""
     from django.contrib.auth.models import Group
-    anon_group, created = Group.objects.get_or_create(name='anonymous')
+    anon_group, c = Group.objects.get_or_create(name='anonymous')
     instance.groups.add(anon_group)
     # keep in sync Profile email address with Account email address
     if instance.email not in [u'', '', None] and not kwargs.get('raw', False):
