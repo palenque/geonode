@@ -164,7 +164,9 @@
       });
 
     // activate the proper public/private filter
-    $("#sort a[data-value='"+$location.search().is_public+"'").addClass('selected');
+    var is_public = $location.search.is_public;
+    if(!is_public) is_public = "";
+    $("#sort a[data-value='"+is_public+"']").addClass('selected');
 
 
     // Activate the type filters if in the url

@@ -112,16 +112,18 @@ class CommonModelApi(ModelResource):
 
 
     def apply_post_query_filters(self, objects, bundle):
-        for name,vals in bundle.request.post_query_filters.items():
-            objects = filter(self.Meta.post_query_filtering[name](vals), objects)
+        if hasattr(self.Meta, 'post_query_filtering'):
+            for name,vals in bundle.request.post_query_filters.items():
+                objects = filter(self.Meta.post_query_filtering[name](vals), objects)
         return objects
 
     def build_filters(self, filters={}):
         orm_filters = {}
         
-        for flt in self.Meta.post_query_filtering:
-            if flt in filters:
-                orm_filters[flt] = filters.pop(flt)
+        if hasattr(self.Meta, 'post_query_filtering'):
+            for flt in self.Meta.post_query_filtering:
+                if flt in filters:
+                    orm_filters[flt] = filters.pop(flt)
 
         orm_filters.update(super(CommonModelApi, self).build_filters(filters))
 
@@ -140,9 +142,10 @@ class CommonModelApi(ModelResource):
 
     def apply_filters(self, request, applicable_filters):
         request.post_query_filters = {}
-        for flt in self.Meta.post_query_filtering:
-            if flt in applicable_filters:
-                request.post_query_filters[flt] = applicable_filters.pop(flt)
+        if hasattr(self.Meta, 'post_query_filtering'):
+            for flt in self.Meta.post_query_filtering:
+                if flt in applicable_filters:
+                    request.post_query_filters[flt] = applicable_filters.pop(flt)
 
         types = applicable_filters.pop('type', None)
         extent = applicable_filters.pop('extent', None)
@@ -872,9 +875,14 @@ class DocumentResource(CommonModelApi):
             'owner': ALL_WITH_RELATIONS,
             'date': ALL,
             'doc_type': ALL,
+            'creator': ALL_WITH_RELATIONS
             }
         queryset = Document.objects.distinct().order_by('-date')
         resource_name = 'documents'
+
+        post_query_filtering = {
+            'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
+        }        
 
 class TabularTypeResource(ModelResource):
 
