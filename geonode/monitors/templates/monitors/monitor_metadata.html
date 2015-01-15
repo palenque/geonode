@@ -1,6 +1,7 @@
 {% extends "layers/layer_base.html" %}
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load bootstrap3 %}
 
 {% block title %}{{ layer.typename }} — {{ block.super }}{% endblock %}
 
@@ -56,7 +57,7 @@
     <legend>{% trans "Metadata" %}</legend>
 
     <div class="form-controls">
-      {{ layer_form|as_bootstrap }}
+      {% bootstrap_form layer_form  %}
     </div>
 
 <!--         <fieldset id="category_form">

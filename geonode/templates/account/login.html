@@ -3,6 +3,7 @@
 {% load url from future %}
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load bootstrap3 %}
 
 {% block head_title %}{% trans "Log in" %}{% endblock %}
 
@@ -14,7 +15,7 @@
     <form method="POST" action="{% url "account_login" %}" autocapitalize="off" class="form-horizontal"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
       <div class="col-md-8">
         {% csrf_token %}
-        {{ form|as_bootstrap }}
+        {% bootstrap_form form  %}
         {% if redirect_field_value %}
           <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
         {% endif %}

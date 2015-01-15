@@ -32,7 +32,7 @@
 
     {% csrf_token %}
     <div class="form-controls">
-      {% bootstrap_form layer_form layout='horizontal' %}
+      {% bootstrap_form layer_form  %}
     </div>
 
     {% comment %}
@@ -93,6 +93,7 @@
     <fieldset class="form-controls modal-forms modal hide fade" id="metadata_form">
       <h2>{% trans "Metadata Provider" %}</h2>
         {{ author_form|as_bootstrap }}
+        <!-- { bootstrap_form author_form layout='horizontal' } -->
       <button type='button' class="modal-cloose-btn btn btn-primary">Done</button>
     </fieldset>
     <div class="form-actions">

@@ -55,7 +55,7 @@
     <br/>
     {% csrf_token %}
     <div class="form-controls">
-      {% bootstrap_form layer_form layout='horizontal' %}
+      {% bootstrap_form layer_form  %}
     </div>
 
     <fieldset id="category_form" {% if not layer.layer_type.show_category %}style="display:none;"{% endif %}>
@@ -96,12 +96,12 @@
 
     <fieldset class="form-controls modal-forms modal hide fade" id="poc_form" >
       <h2>{% trans "Point of Contact" %}</h2>
-      {% bootstrap_form poc_form layout='horizontal' %}
+      {% bootstrap_form poc_form  %}
       <button type='button' class="modal-cloose-btn btn btn-primary">Done</button>
     </fieldset>
     <fieldset class="form-controls modal-forms modal hide fade" id="metadata_form">
       <h2>{% trans "Metadata Provider" %}</h2>
-        {% bootstrap_form author_form layout='horizontal' %}
+        {% bootstrap_form author_form  %}
       <button type='button' class="modal-cloose-btn btn btn-primary">Done</button>
     </fieldset>
     <div class="form-actions">
