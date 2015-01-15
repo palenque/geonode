@@ -912,7 +912,7 @@ class TabularResource(CommonModelApi):
 
     """Tabular API"""
 
-    tabular_type = fields.ForeignKey(TabularTypeResource, 'tabular_type', full=True)
+    tabular_type = fields.ForeignKey(TabularTypeResource, 'tabular_type', full=True, null=True)
     attributes = fields.ToManyField(TabularAttributeResource, 'tabular_attribute_set', full=True)
 
     class Meta(CommonMetaApi):
@@ -923,10 +923,15 @@ class TabularResource(CommonModelApi):
             'owner': ALL_WITH_RELATIONS,
             'date': ALL,
             'doc_type': ALL,
+            'creator': ALL_WITH_RELATIONS,
             'tabular_type': ALL_WITH_RELATIONS,
             }
         queryset = Tabular.objects.distinct().order_by('-date')
         resource_name = 'tabular'
+
+        post_query_filtering = {
+            'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
+        }
 
     def prepend_urls(self):
         urls = [

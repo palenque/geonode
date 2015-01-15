@@ -12,17 +12,11 @@
     <a href="{% url "tabular_upload" %}" class="btn btn-primary pull-right">{% trans "Upload Data" %}</a>
     <h2 class="page-title">{% trans "Explore Imported Data" %}</h2>
   </div>
-  {% with include_type_filter='true' %}
-  {% with facet_type='tabular' %}
-  {% with header='Imported Data Types' %}
-  {% with filter='type__in' %}
-  {% with include_filters=',tabulartype,' %}
+
+  {% with custom_filters='tabular/_tabular_filter.html' %}
   {% include "search/_search_content.html" %}
   {% endwith %}
-  {% endwith %}
-  {% endwith %}
-  {% endwith %}
-  {% endwith %}
+
 {% endblock %}
 
 {% block extra_script %}

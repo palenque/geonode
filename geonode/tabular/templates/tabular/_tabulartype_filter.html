@@ -1,6 +1,6 @@
 {% load i18n %}
 <nav class="filter">
-  <h4><a href="#" class="toggle toggle-nav"><i class="fa fa-chevron-right"></i>{% trans "Imported Data Type" %}</a></h4>
+  <h4><a href="#" class="toggle toggle-nav" ng-click="toggle_nav($event)"><i class="fa fa-chevron-right"></i>{% trans "Imported Data Type" %}</a></h4>
   <ul class="nav closed" id="tabular_types">
     {% verbatim %}
       <li ng-repeat="tabular_type in tabular_types">

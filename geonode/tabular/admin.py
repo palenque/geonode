@@ -24,8 +24,9 @@ class AttributeAdmin(admin.ModelAdmin):
 
 
 class TabularAdmin(MediaTranslationAdmin):
-    list_display = ('id', 'title', 'date', 'category')
+    list_display = ('id', 'title', 'date', 'category','tabular_type')
     list_display_links = ('id',)
+    list_editable = ('tabular_type',)
     list_filter = ('date', 'date_type', 'restriction_code_type', 'category')
     search_fields = ('title', 'abstract', 'purpose',)
     date_hierarchy = 'date'
