@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GeoNode\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-01-15 11:18-0300\n"
+"POT-Creation-Date: 2015-01-15 18:10-0300\n"
 "PO-Revision-Date: 2013-09-05 19:43+0000\n"
 "Last-Translator: Clarisa <clarisa.morana@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/projects/p/geonode/language/"
@@ -3712,23 +3712,23 @@ msgstr ""
 "clave de quien es responsable de recabar información y realizar "
 "investigaciones"
 
-#: people/enumerations.py:54
+#: people/enumerations.py:62
 msgid "user"
 msgstr "usuario"
 
-#: people/enumerations.py:55
+#: people/enumerations.py:63
 msgid "organization"
 msgstr "organización"
 
-#: people/enumerations.py:56
+#: people/enumerations.py:64
 msgid "developer"
 msgstr "desarrollador"
 
-#: people/enumerations.py:57
+#: people/enumerations.py:65
 msgid "administrator"
 msgstr "administrativo"
 
-#: people/enumerations.py:58
+#: people/enumerations.py:66
 msgid "application"
 msgstr "aplicación"
 
