@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GeoNode\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-01-15 10:45-0300\n"
+"POT-Creation-Date: 2015-01-15 11:18-0300\n"
 "PO-Revision-Date: 2013-09-05 19:43+0000\n"
 "Last-Translator: Clarisa <clarisa.morana@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/projects/p/geonode/language/"
@@ -198,7 +198,7 @@ msgstr "Agregar Aplicación"
 #: layers/templates/layers/layer_replace.html:94
 #: maps/templates/maps/map_detail.html:167 people/admin.py:55
 #: tabular/templates/tabular/document_detail.html:161
-#: tabular/templates/tabular/document_upload.html:33
+#: tabular/templates/tabular/document_upload.html:34
 #: templates/_permissions_form.html:9
 msgid "Permissions"
 msgstr "Permisos"
@@ -1436,6 +1436,10 @@ msgstr "Zambia"
 msgid "Zimbabwe"
 msgstr "Zimbabwe"
 
+#: base/enumerations.py:437
+msgid "None/Unknown"
+msgstr "Ninguno/Desconocido"
+
 #: base/forms.py:35 base/templates/base/resourcebase_info_panel.html:46
 #: documents/templates/documents/document_metadata.html:52
 #: layers/templates/layers/layer_info_panel.html:50
@@ -1817,12 +1821,12 @@ msgid "A space or comma-separated list of keywords"
 msgstr "Una lista de palabras clave separadas por un espacio o comas"
 
 #: documents/forms.py:174 documents/forms.py:242 tabular/forms.py:186
-#: tabular/forms.py:263
+#: tabular/forms.py:267
 msgid "Document must be a file or url."
 msgstr "El Documento debe ser un archivo o una URL."
 
 #: documents/forms.py:178 documents/forms.py:246 tabular/forms.py:190
-#: tabular/forms.py:267
+#: tabular/forms.py:271
 msgid "A document cannot have both a file and a url."
 msgstr "Un Documento no puede tener un archivos y una URL"
 
@@ -1834,7 +1838,7 @@ msgstr "Este tipo de archivos no esta permitido"
 msgid "Link to"
 msgstr "Relacionar con"
 
-#: documents/forms.py:231 tabular/forms.py:252
+#: documents/forms.py:231 tabular/forms.py:256
 msgid "Permissions must be valid JSON."
 msgstr "Los permisos deben ser un JSON válido."
 
@@ -2144,7 +2148,7 @@ msgid "Upload Document"
 msgstr "Cargar Documento"
 
 #: documents/templates/documents/document_upload.html:23
-#: tabular/templates/tabular/document_upload.html:23
+#: tabular/templates/tabular/document_upload.html:24
 msgid "Upload"
 msgstr "Cargar"
 
@@ -2961,7 +2965,7 @@ msgstr "Actualiza Estilos Disponibles"
 msgid "Upload Layer"
 msgstr "Subir Capa"
 
-#: layers/templates/upload/layer_upload.html:76
+#: layers/templates/upload/layer_upload.html:76 tabular/forms.py:241
 msgid "Charset"
 msgstr "Conjunto de Caracteres"
 
@@ -4144,91 +4148,93 @@ msgstr "Actividad reciente"
 msgid "to"
 msgstr "para"
 
+#: tabular/forms.py:238
+msgid "Has header"
+msgstr "Tiene encabezado"
+
+#: tabular/forms.py:239
+msgid "Quote Char"
+msgstr "Caracter de Cita"
+
+#: tabular/forms.py:240
+msgid "Delimiter"
+msgstr "Delimitador"
+
 #: tabular/templates/tabular/document_append.html:4
 #: tabular/templates/tabular/document_append.html:28
 #: tabular/templates/tabular/document_detail.html:132
-msgid "Append to this Data File"
-msgstr "Agregado a este Archivo de Datos"
+msgid "Append to this Table"
+msgstr "Agregaar a la Tabla"
 
 #: tabular/templates/tabular/document_append.html:16
 msgid "Append to "
 msgstr "Agregar a "
 
 #: tabular/templates/tabular/document_detail.html:68
-msgid "Rate this data file"
-msgstr "Puntuar este archivo de datos"
+msgid "Rate this table"
+msgstr "Puntuar Tabla"
 
 #: tabular/templates/tabular/document_detail.html:86
 #: tabular/templates/tabular/document_detail.html:88
 #: tabular/templates/tabular/document_detail.html:90
 #: tabular/templates/tabular/document_detail.html:101
 #: tabular/templates/tabular/document_detail.html:126
-msgid "Download Data File"
-msgstr "Bajar Archivo de Datos"
+msgid "Download Table"
+msgstr "Descargar Tabla"
 
 #: tabular/templates/tabular/document_detail.html:119
-msgid "Edit Data File"
-msgstr "Editar Archivo de Datos"
+msgid "Edit Table"
+msgstr "Editar Tabla"
 
 #: tabular/templates/tabular/document_detail.html:131
-msgid "Replace this Data File"
-msgstr "Remplazar este Archivo de Datos"
+msgid "Replace this Table"
+msgstr "Remplazar Tabla"
 
 #: tabular/templates/tabular/document_detail.html:133
-msgid "Remove this Data File"
-msgstr "Eliminar este Archivo de Datos"
+msgid "Remove this Table"
+msgstr "Eliminar Tabla"
 
 #: tabular/templates/tabular/document_detail.html:145
-msgid "Resource using this data file"
-msgstr "Recurso utilizando este archivo de datos"
+msgid "Resource using this table"
+msgstr "Recurso utilizando este tabla"
 
 #: tabular/templates/tabular/document_detail.html:147
-msgid "List of resources using this data file:"
-msgstr "Lista de recursos utilizando este archivo de datos"
+msgid "List of resources using this table:"
+msgstr "Lista de recursos utilizando esta tabla:"
 
 #: tabular/templates/tabular/document_detail.html:151
-msgid "This data file is related to a "
-msgstr "Este archivo de datos esta relacionado con "
+msgid "This table is related to a "
+msgstr "Esta tabla esta relacionada con "
 
 #: tabular/templates/tabular/document_detail.html:154
-msgid "This data file is not related to any maps or layers"
-msgstr "Este archivo de datos no esta relacionado con ningún mapa o capa"
+msgid "This table is not related to any maps or layers"
+msgstr "Esta tabla no esta relacionado con ningún mapa o capa"
 
 #: tabular/templates/tabular/document_detail.html:162
-msgid "Click the button below to change the permissions of this data file."
+msgid "Click the button below to change the permissions of this table."
 msgstr ""
-"Haga clic en el botón de abajo para cambiar los permisos de este archivo de "
-"datos."
+"Haga clic en el botón de abajo para cambiar los permisos de esta tabla."
 
 #: tabular/templates/tabular/document_detail.html:163
-msgid "Change Data File Permissions"
-msgstr "Cambia los permisos del archivo de datos"
+msgid "Change Table Permissions"
+msgstr "Cambiar los permisos de la Tabla"
 
 #: tabular/templates/tabular/document_list.html:6
 #: tabular/templates/tabular/document_list.html:13
-msgid "Explore Imported Data"
-msgstr "Explorar los Datos Importados"
+#: tabular/templates/tabular/document_upload_base.html:11
+msgid "Explore Tables"
+msgstr "Explorar Tablas"
 
 #: tabular/templates/tabular/document_list.html:12
-msgid "Upload Data"
-msgstr "Subir Datos"
-
-#: tabular/templates/tabular/document_replace.html:4
-#: tabular/templates/tabular/document_replace.html:28
-msgid "Replace Data File"
-msgstr "Remplazar Archivo de Datos"
-
 #: tabular/templates/tabular/document_upload.html:6
+#: tabular/templates/tabular/document_upload_base.html:12
 msgid "Upload Table"
 msgstr "Subir Tabla"
 
-#: tabular/templates/tabular/document_upload_base.html:11
-msgid "Explore Data"
-msgstr "Explorar Datos"
-
-#: tabular/templates/tabular/document_upload_base.html:12
-msgid "Upload Data File"
-msgstr "Cargar Archivo de Datos"
+#: tabular/templates/tabular/document_replace.html:4
+#: tabular/templates/tabular/document_replace.html:28
+msgid "Replace Table"
+msgstr "Remplazar Tabla"
 
 #: templates/401.html:10
 msgid "Not Permitted"
@@ -5331,8 +5337,8 @@ msgid "Clear all filters"
 msgstr "Quitar todos los filtros"
 
 #: templates/search/_tabulartype_filter.html:3
-msgid "Imported Data Type"
-msgstr "Tipo de Dato Importado"
+msgid "Table Type"
+msgstr "Tipo de Tabla"
 
 #: templates/search/_text_filter.html:5
 msgid "Text"
@@ -5389,6 +5395,39 @@ msgstr "Volver a la Bandeja de Entrada"
 #: templates/user_messages/thread_detail.html:25
 msgid "Send Reply"
 msgstr "Enviar Respuesta"
+
+#~ msgid "Imported Data Type"
+#~ msgstr "Tipo de Dato Importado"
+
+#~ msgid "Download Data File"
+#~ msgstr "Bajar Archivo de Datos"
+
+#~ msgid "Edit Data File"
+#~ msgstr "Editar Archivo de Datos"
+
+#~ msgid "Replace this Data File"
+#~ msgstr "Remplazar este Archivo de Datos"
+
+#~ msgid "Remove this Data File"
+#~ msgstr "Eliminar este Archivo de Datos"
+
+#~ msgid "Change Data File Permissions"
+#~ msgstr "Cambia los permisos del archivo de datos"
+
+#~ msgid "Explore Imported Data"
+#~ msgstr "Explorar los Datos Importados"
+
+#~ msgid "Upload Data"
+#~ msgstr "Subir Datos"
+
+#~ msgid "Replace Data File"
+#~ msgstr "Remplazar Archivo de Datos"
+
+#~ msgid "Explore Data"
+#~ msgstr "Explorar Datos"
+
+#~ msgid "Upload Data File"
+#~ msgstr "Cargar Archivo de Datos"
 
 #~ msgid ""
 #~ "Some attributes could be updated. Please review association and types."

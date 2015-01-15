@@ -235,6 +235,10 @@ class DocumentCreateForm(TranslationModelForm):
         ]
         labels = {
             'tabular_type': _('Type'),
+            'has_header': _('Has header'),
+            'quotechar': _('Quote Char'),
+            'delimiter': _('Delimiter'),
+            'charset': _('Charset'),
         }
         widgets = {
             'name': HiddenInput(attrs={'cols': 80, 'rows': 20}),

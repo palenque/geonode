@@ -434,7 +434,7 @@ ALL_LANGUAGES = (
     ('zul', 'Zulu'),
 )
 
-CHARSETS = (('', 'None/Unknown'),
+CHARSETS = (('', _('None/Unknown'),),
             ('UTF-8', 'UTF-8/Unicode'),
             ('ISO-8859-1', 'Latin1/ISO-8859-1'),
             ('ISO-8859-2', 'Latin2/ISO-8859-2'),

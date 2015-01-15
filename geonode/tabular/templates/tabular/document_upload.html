@@ -19,7 +19,8 @@
 
   <form id="upload_form"  method="post" enctype="multipart/form-data" action="{% url "tabular_upload" %}">
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
-    {% bootstrap_form form  %}
+    <!-- { bootstrap_form form  } -->
+    {{ form|as_bootstrap }}
     <button type="submit" id="upload-button" class="btn btn-danger">{% trans "Upload" %}</button>
   </form>
 

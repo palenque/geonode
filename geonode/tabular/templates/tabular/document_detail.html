@@ -35,9 +35,9 @@
       </a>
     </div>
     {% elif resource.doc_file %}
-    <p><a href="{% url "tabular_download" resource.id %}" target="_blank">Download the {{ resource }} data file</a></p>
+    <p><a href="{% url "tabular_download" resource.id %}" target="_blank">Download the {{ resource }} table</a></p>
     {% elif  resource.doc_url %}
-    <p><a href="{{ resource.doc_url }}" target="_blank">Download the {{ resource }} data file.</a> <small>({% trans 'External Resource' %})</small></p>
+    <p><a href="{{ resource.doc_url }}" target="_blank">Download the {{ resource }} table.</a> <small>({% trans 'External Resource' %})</small></p>
     {%  endif %}
        
     <div class="documents-actions">
@@ -65,7 +65,7 @@
       <article id="rate" class="tab-pane">
         <!-- TODO: Move this to a reusable template snippet -->
         {% if request.user.is_authenticated %}
-        <h4>{% trans "Rate this data file" %}</h4>
+        <h4>{% trans "Rate this table" %}</h4>
         {% user_rating request.user resource "document" as user_document_rating %}
         <div id="user_rating" class="category-layer" data-score="{{user_document_rating}}"></div>
         {% endif %}
@@ -83,11 +83,11 @@
     <ul class="list-group">
       <li class="list-group-item">
         {% if resource.extension|lower in imgtypes and resource.doc_file %}
-          <a style="text-decoration:none;" target="_blank" href="{% url "tabular_download" resource.id %}"><button class="btn btn-default btn-md btn-block">{% trans "Download Data File" %}</button></a>
+          <a style="text-decoration:none;" target="_blank" href="{% url "tabular_download" resource.id %}"><button class="btn btn-default btn-md btn-block">{% trans "Download Table" %}</button></a>
         {% elif resource.doc_file %}
-          <a style="text-decoration:none;" target="_blank" href="{% url "tabular_download" resource.id %}"><button class="btn btn-default btn-md btn-block">{% trans "Download Data File" %}</button></a>
+          <a style="text-decoration:none;" target="_blank" href="{% url "tabular_download" resource.id %}"><button class="btn btn-default btn-md btn-block">{% trans "Download Table" %}</button></a>
         {% elif  resource.doc_url %}
-          <a style="text-decoration:none;" target="_blank" href="{{ resource.doc_url }}"><button class="btn btn-default btn-md btn-block">{% trans "Download Data File" %}</button></a>
+          <a style="text-decoration:none;" target="_blank" href="{{ resource.doc_url }}"><button class="btn btn-default btn-md btn-block">{% trans "Download Table" %}</button></a>
         {%  endif %}
       </li>
       <li class="list-group-item">
@@ -98,7 +98,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-              <h4 class="modal-title" id="myModalLabel">{% trans "Download Data File" %}</h4>
+              <h4 class="modal-title" id="myModalLabel">{% trans "Download Table" %}</h4>
             </div>
             <div class="modal-body">
               <ul>
@@ -116,21 +116,21 @@
       {% get_obj_perms request.user for resource.get_self_resource as "resource_perms" %}
       {% if "change_resourcebase" in resource_perms %}
       <li class="list-group-item">
-        <button class="btn btn-default btn-md btn-block" data-toggle="modal" data-target="#edit-document">{% trans "Edit Data File" %}</button>
+        <button class="btn btn-default btn-md btn-block" data-toggle="modal" data-target="#edit-document">{% trans "Edit Table" %}</button>
       </li>
       <div class="modal fade" id="edit-document" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-              <h4 class="modal-title" id="myModalLabel">{% trans "Download Data File" %}</h4>
+              <h4 class="modal-title" id="myModalLabel">{% trans "Download Table" %}</h4>
             </div>
             <div class="modal-body">
               <ul>
                 <li><a href="{% url "tabular_metadata" resource.id %}">{% trans "Edit Metadata" %}</a></li>
-                <li><a href="{% url "tabular_replace" resource.id %}">{% trans "Replace this Data File" %}</a></li>
-                <li><a href="{% url "tabular_append" resource.id %}">{% trans "Append to this Data File" %}</a></li>
-                <li><a href="{% url "tabular_remove" resource.id %}">{% trans "Remove this Data File" %}</a></li>
+                <li><a href="{% url "tabular_replace" resource.id %}">{% trans "Replace this Table" %}</a></li>
+                <li><a href="{% url "tabular_append" resource.id %}">{% trans "Append to this Table" %}</a></li>
+                <li><a href="{% url "tabular_remove" resource.id %}">{% trans "Remove this Table" %}</a></li>
               <ul>
             </div>
             <div class="modal-footer">
@@ -142,16 +142,16 @@
       {% endif %}
 
       <li class="list-group-item">
-        <h4>{% trans "Resource using this data file" %}</h4>
+        <h4>{% trans "Resource using this table" %}</h4>
         {% if layer.maps %}
-        <p>{% trans "List of resources using this data file:" %}</p>
+        <p>{% trans "List of resources using this table:" %}</p>
         {% endif %}
         <ul class="list-unstyled">
           {% if related.title %}
-          <p>{% trans "This data file is related to a " %} {{ resource.content_type.name }}</p>
+          <p>{% trans "This table is related to a " %} {{ resource.content_type.name }}</p>
           <a href='{{ related.get_absolute_url }}'>{{ related.title }}</a>
           {% else %}
-          <p>{% trans "This data file is not related to any maps or layers" %}</p>
+          <p>{% trans "This table is not related to any maps or layers" %}</p>
           {% endif %}
         </ul>
       </li>
@@ -159,8 +159,8 @@
       {% if "change_resourcebase_permissions" in resource_perms %}
       <li class="list-group-item">
         <h4>{% trans "Permissions" %}</h4>
-        <p>{% trans "Click the button below to change the permissions of this data file." %}</p>
-        <p><a href="#modal_perms" data-toggle="modal" class="btn btn-default btn-block" data-target="#_permissions">{% trans "Change Data File Permissions" %}</a></p>
+        <p>{% trans "Click the button below to change the permissions of this table." %}</p>
+        <p><a href="#modal_perms" data-toggle="modal" class="btn btn-default btn-block" data-target="#_permissions">{% trans "Change Table Permissions" %}</a></p>
       </li>
       {% include "_permissions_form.html" %}
       {% endif %}
