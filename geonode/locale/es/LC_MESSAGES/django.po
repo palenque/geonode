@@ -4411,7 +4411,7 @@ msgstr "¿Quién puede ver y descargar estos datos?"
 
 #: templates/_permissions.html:9
 msgid "Anyone"
-msgstr "Cualquiera"
+msgstr "Todos"
 
 #: templates/_permissions.html:14 templates/_permissions.html.py:37
 #: templates/_permissions.html:54

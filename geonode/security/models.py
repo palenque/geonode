@@ -123,6 +123,22 @@ class PermissionLevelMixin(object):
         }
         """
         self.remove_all_permissions()
+        
+        from geonode.people.enumerations import ROLE_VALUES, PROFILE
+        if (
+            hasattr(self, 'owner') and 
+            hasattr(self.owner, 'profile') and 
+            self.owner.profile == PROFILE.ORGANIZATION
+        ):
+            if 'users' not in perm_spec:
+                perm_spec['users'] = {}
+
+            if "AnonymousUser" not in perm_spec['users']:
+                perm_spec['users']['AnonymousUser'] = [u'view_resourcebase']
+
+            # perm_spec['users'] {u'apps': {}, u'users': {u'AnonymousUser': [u'view_resourcebase']}, u'groups': {}}
+            # import pdb;pdb.set_trace()
+
 
         perm_spec['users'].update(perm_spec.get('apps',{}))
 
