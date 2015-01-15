@@ -22,7 +22,8 @@
     }
 
   // Load categories and keywords
-  module.load_categories = function ($http, $rootScope, $location){
+  module.load_filter = function (filter, $http, $rootScope, $location){
+      if(filter == 'categories') {
         var params = typeof FILTER_TYPE == 'undefined' ? {} : {'type': FILTER_TYPE};
         $http.get(CATEGORIES_ENDPOINT, {params: params}).success(function(data){
             if($location.search().hasOwnProperty('category__identifier__in')){
@@ -34,6 +35,9 @@
                 module.haystack_facets($http, $rootScope, $location);
             }
         });
+      }
+
+      else if(filter == 'tabular_types') {
 
         $http.get(TABULAR_TYPES_ENDPOINT, {params: params}).success(function(data){
             if($location.search().hasOwnProperty('tabular_type')){
@@ -45,6 +49,9 @@
                 module.haystack_facets($http, $rootScope, $location);
             }
         });
+      }
+
+      else if(filter == 'layer_types') {
 
         $http.get(LAYER_TYPES_ENDPOINT, {params: params}).success(function(data){
             if($location.search().hasOwnProperty('layer_type')){
@@ -56,6 +63,9 @@
                 module.haystack_facets($http, $rootScope, $location);
             }
         });
+      } 
+
+      else if(filter == 'keywords') {
 
         $http.get(KEYWORDS_ENDPOINT, {params: params}).success(function(data){
             if($location.search().hasOwnProperty('keywords__slug__in')){
@@ -67,6 +77,24 @@
                 module.haystack_facets($http, $rootScope, $location);
             }
         });
+      }
+
+      else if(filter == 'creators') {
+        var CREATORS_ENDPOINT = ($location.search().is_public == '1') ? 
+          PUBLIC_CREATORS_ENDPOINT : PRIVATE_CREATORS_ENDPOINT;
+
+        $http.get(CREATORS_ENDPOINT, {params: params}).success(function(data){
+          if($location.search().hasOwnProperty('creator__username__in')){
+              data.objects = module.set_initial_filters_from_query(data.objects,
+                  $location.search()['creator_u_username__in'], 'username');
+          }
+          $rootScope.creators = data.objects;
+          if (HAYSTACK_FACET_COUNTS && $rootScope.query_data) {
+              module.haystack_facets($http, $rootScope, $location);
+          }
+        });
+      }
+
     }
 
   // Update facet counts for categories and keywords
@@ -129,13 +157,17 @@
     * Load categories and keywords if the filter is available in the page
     * and set active class if needed
     */
-    if ($('#categories').length > 0 || $('#layer_types').length > 0){
-       module.load_categories($http, $rootScope, $location);
-    }
+    ['categories','layer_types','tabular_types','keywords']
+      .forEach(function(filter){
+        if ($('#'+filter).length > 0)
+          module.load_filter(filter, $http, $rootScope, $location);
+      });
 
-    if ($('#tabular_types').length > 0){
-       module.load_categories($http, $rootScope, $location);
-    }
+    // activate the proper public/private filter
+    var is_public = $location.search.is_public;
+    if(!is_public) is_public = "";
+    $("#sort a[data-value='"+is_public+"']").addClass('selected');
+
 
     // Activate the type filters if in the url
     if($location.search().hasOwnProperty('type__in')){
@@ -168,7 +200,7 @@
     $scope.query.limit = $scope.query.limit || CLIENT_RESULTS_LIMIT;
     $scope.query.offset = $scope.query.offset || 0;
     if($location.url() == "/layers/")
-      $scope.query.permission_class = $scope.query.permission_class || "owned";
+    $scope.query.is_public = $scope.query.is_public || "0";
     $scope.page = Math.round(($scope.query.offset / $scope.query.limit) + 1);
 
     // Load public layers
@@ -176,7 +208,7 @@
       if(!module.layers) module.layers = [];
 
       var params = $.extend({}, data);
-      params.permission_class = "public";
+      params.is_public = "1";
       $http.get("/api/layers", {params: params}).success(function(data){
         var bycat = {};
         for(var i in data.objects) {
@@ -239,6 +271,11 @@
       module.map.fitBounds(bounds);
     }
 
+    function clear_hulls(objects) {
+      if(module.hulls_layer) 
+        module.map.removeLayer(module.hulls_layer);
+    }
+
     function draw_hulls(objects) {
       if(!module.map) return;
 
@@ -267,26 +304,33 @@
     //Get data from apis and make them available to the page
     function query_api(data){
 
-      $scope.permission_class = data.permission_class;
+      $scope.is_public = data.is_public == "1";
 
-      var not_public = data.permission_class != "public";
-
-      load_public_layers(data);
+      var url = $scope.url || Configs.url;
+      if(module.map) 
+        load_public_layers(data);
 
       // select the proper type of public/private filter
-      $("#sort a[data-value='"+data.permission_class+"']").addClass("selected");
+      // XXX
+      //$("#sort a[data-value='"+data.permission_class+"']").addClass("selected");
 
       var mapExtent = data.extent;
-      $http.get(Configs.url, {params: data || {}}).success(function(data){
+      $http.get(url, {params: data || {}}).success(function(data){
 
-        if(not_public) {
-          draw_hulls(data.objects);
+        if(module.map) {
 
-          if(!mapExtent) {
-            focus_map_on_objects(data.objects);
-          } else {
-            focus_map_on_extent(mapExtent);
-          }
+          if(!$scope.is_public)
+            draw_hulls(data.objects);
+          else 
+            clear_hulls();
+
+            /*
+            if(!mapExtent) {
+              focus_map_on_objects(data.objects);
+            } else {
+              focus_map_on_extent(mapExtent);
+            }
+            */
         }
 
         $scope.results = data.objects;
@@ -371,6 +415,10 @@
           $location.search($scope.query);
         }, true);
     }
+
+    $scope.$watch('query.is_public',function(){
+      module.load_filter('creators', $http, $scope, $location);
+    }, true);
 
     $scope.toggle_nav = function($event){    
       var e = $event;
@@ -468,15 +516,49 @@
       query_api($scope.query);
     }
 
+    $scope.toggle_shared = function($event) {
+      var element = $($event.target);
+      var share = element.data('share');
+      var resource_id = element.data('resource-id');
+      var url = element.data('url');
+
+      $.ajax({
+          type: "POST",
+          url: url,
+          dataType: 'json',
+          data: {
+            resource_id: resource_id,
+            shared: share
+          },
+          success: function(data){
+             if(data.status != 'error'){
+              var par = element.parent().parent();
+                if(share) {
+                  par.find(".shared").removeClass("ng-hide");
+                  par.find(".notshared").addClass("ng-hide");
+                } else {
+                  par.find(".shared").addClass("ng-hide");
+                  par.find(".notshared").removeClass("ng-hide");
+                }
+             }
+          }
+      });
+    }
+
     $scope.single_choice_listener = function($event){
       var element = $($event.target);
       var query_entry = [];
       var data_filter = element.attr('data-filter');
       var value = element.attr('data-value');
+      var url = element.attr('data-url');
 
       // If the query object has the record then grab it 
       if ($scope.query.hasOwnProperty(data_filter)){
         query_entry = $scope.query[data_filter];
+      }
+
+      if(url) {
+        $scope.url = url;
       }
 
       if(!element.hasClass('selected')){
@@ -554,6 +636,10 @@
         delete $scope.query['date__range'];
         delete $scope.query['date__gte'];
       }else{
+        if (!$scope.query['date__range'] 
+              && !$scope.query['date__gte']
+              && !$scope.query['date__lte']) return;
+
         delete $scope.query['date__range'];
         delete $scope.query['date__gte'];
         delete $scope.query['date__lte'];
@@ -602,6 +688,8 @@
 
       map.then(function(map) {
         module.map = map;
+        if($scope.query.extent)
+          focus_map_on_extent($scope.query.extent);
       });
 
       map.then(function(map){

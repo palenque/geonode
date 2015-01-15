@@ -1,9 +1,0 @@
-{% load i18n %}
-{% load url from future %}
-
-<ul class="nav nav-pills filter" id="sort">
-  <li><a data-value="" data-filter="permission_class" ng-click="single_choice_listener($event)">{% trans "All" %}</a></li>
-  <li><a data-value="public" data-filter="permission_class" ng-click="single_choice_listener($event)">{% trans "Public" %}</a></li>
-  <li><a data-value="owned" data-filter="permission_class" ng-click="single_choice_listener($event)">{% trans "Private" %}</a></li>
-  <li><a data-value="shared" data-filter="permission_class" ng-click="single_choice_listener($event)">{% trans "Shared with me" %}</a></li>
-</ul>

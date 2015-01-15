@@ -119,6 +119,13 @@ class App(models.Model):
                 "user",
                 flat=True))
 
+    def get_members(self):
+        return get_user_model().objects.filter(
+            id__in=self.member_queryset().filter(
+                role='member').values_list(
+                "user",
+                flat=True))
+
     def get_alter_ego(self):
         """
         Returns a queryset of the group's managers.

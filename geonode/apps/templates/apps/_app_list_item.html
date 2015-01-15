@@ -1,15 +1,17 @@
 {% verbatim %}
-<article ng-repeat="app in results">
-  <div class="row panel">
+<article ng-repeat="app in results" class="panel panel-default">
+  <div class="row panel-body">
   <div ng-if="app.thumbnail != ''" class="col-md-3">
     <a href="{{ app.detail_url }}" ><img ng-src="{{ app.thumbnail }}" alt="{{ app.title }}" class="group-logo" /></a>
   </div>
+
   <div class="col-md-9">
     <h5>
       <img src="{{ app.logo }}" width="20px" ng-if="app.logo"/>
       <i ng-if="!app.logo" class="fa fa-cubes"></i> <a href="{{ app.detail_url }}">{{ app.title }}</a>
       <a href="{{ app.email }}" ng-if="app.email != ''" target="_blank"><i class="fa fa-external-link"></i></a>
     </h5>
+
     <p ng-if="app.short_description.length > 0">{{ app.short_description }}</p>
     <p ng-if="app.short_description.length == 0">{{ app.description }}</p>
     <ul class="list-inline">

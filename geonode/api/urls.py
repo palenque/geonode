@@ -7,12 +7,9 @@ from .resourcebase_api import LayerResource, MapResource, DocumentResource, \
     InternalLinkResource, TabularResource, TabularAttributeResource
 
     
-#from .monitor_api import MonitorResource
-
 api = Api(api_name='api')
 
 api.register(LayerResource())
-#api.register(MonitorResource())
 api.register(MapResource())
 api.register(DocumentResource())
 api.register(TabularResource())

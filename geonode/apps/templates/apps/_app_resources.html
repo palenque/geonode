@@ -1,0 +1,32 @@
+<div ng-init="
+  permissions={{permissions}}; 
+  is_manager='{{is_manager}}' == 'True';
+  url='{% url 'app_resource_share' app_id=object.id %}'">
+{% verbatim %}
+  <article ng-repeat="obj in results">
+    <div class="row objs-list">
+      <div class="col-md-2">
+        <a href="{{ obj.detail_url }}"><img width="80px" class="thumb" ng-src="{{ obj.thumbnail_url }}" height="100px"/></a>
+      </div>
+      <div class="col-md-4">
+        <h5><a href="{{ obj.detail_url }}">{{ obj.title }}</a></h5>
+        <small><i class="fa fa-calendar-o"></i>{{ obj.date|date:'d/M/y' }}</small>
+        <div ng-if="is_manager"><small><i class="fa fa-user"></i>{{ obj.creator_username }}</small></div>
+      </div>
+      <div class="col-md-3"  ng-if="!is_manager">
+        <p class="actions">
+          <p class="shared" ng-show="permissions.indexOf(obj.id) >= 0">
+            <i class="fa fa-check"></i>
+            <a data-url="{{url}}" data-share="false" data-resource-id="{{obj.id}}" ng-click="toggle_shared($event)">shared</a>
+          </p>
+          
+          <p class="notshared" ng-show="permissions.indexOf(obj.id) < 0">
+            <i class="fa fa-lock"></i>
+            <a data-url="{{url}}" data-share="true" data-resource-id="{{obj.id}}" ng-click="toggle_shared($event)">private</a>
+          </p>
+        </p>      
+      </div>
+    </div>
+  </article>
+{% endverbatim %}
+</div>

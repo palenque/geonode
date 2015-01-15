@@ -1,0 +1,22 @@
+ {% load avatar_tags %}
+
+<div class="tab-content paginate paginate-auto" id="search-content"
+  ng-init="url_profile = '{% url 'profile_browse' %}profile/'; 
+           url_app = '{% url 'app_list' %}'">
+
+<div class="row">
+  {% for profile in object.get_members %}
+  <div class="col-md-offset-1">
+    <article>
+        <div class="col-md-3">
+          <a href="{% url 'profile_detail' profile %}">
+          {% avatar profile 70 %}<br/>
+          <i class="fa fa-user"></i><span>{{ profile.username }}</span>      
+        </div>
+    </article>
+  </div>
+  {% endfor %}
+
+</div> 
+
+</div>

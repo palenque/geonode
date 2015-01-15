@@ -471,8 +471,6 @@ class Layer(ResourceBase):
         return base_files.get()
 
     def get_absolute_url(self):
-        # if self.layer_type.name == 'monitor':
-        #     return reverse('monitor_detail', args=(self.service_typename,))
         return reverse('layer_detail', args=(self.service_typename,))
 
     def attribute_config(self):
@@ -621,7 +619,6 @@ class Attribute(models.Model, PermissionLevelMixin):
         default=1)
     field = models.CharField(
         _('field mapping'),
-        #choices=MONITOR_FIELDS,
         help_text=_('monitor field'),
         max_length=255,
         blank=True,
@@ -637,7 +634,6 @@ class Attribute(models.Model, PermissionLevelMixin):
 
     magnitude = models.CharField(
         _('magnitude'),
-        #choices=MAGNITUDES,
         help_text=_('unit'),
         max_length=255,
         blank=True,

@@ -21,11 +21,11 @@
     </ul>
   </div>
   <div class="col-md-12">
-    <div class="row" id="contain-slider">
-      {% include 'search/_pagination.html' %}
-      <div class="tab-content col-md-8" id="search-content">
+    <div class="col-md-8" id="contain-slider">
+      <div class="tab-content" id="search-content">
       {% include "apps/_app_list_item.html" %}
       </div>
+      {% include 'search/_pagination.html' %}      
     </div>
   </div>
 {% endblock %}

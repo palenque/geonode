@@ -47,9 +47,11 @@ class LayerAdmin(BaseEntityAdmin):
         'title',
         'date',
         'layer_type',
+        'owner',
+        'creator',
         'category')
     list_display_links = ('id',)
-    list_editable = ('title', 'category')
+    list_editable = ('title', 'category','owner','creator')
     list_filter = ('layer_type', 'owner', 'category',  
                    'restriction_code_type__identifier', 'date', 'date_type')
     search_fields = ('typename', 'title', 'abstract', 'purpose',)

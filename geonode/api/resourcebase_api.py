@@ -53,6 +53,9 @@ LAYER_SUBTYPES = {
 FILTER_TYPES.update(LAYER_SUBTYPES)
 
 
+def str2bool(v):
+  return v.lower() in ("yes", "true", "t", "1")
+
 class MultipartResource(object):
     'Allows multipart request.'
 
@@ -83,10 +86,11 @@ class CommonMetaApi:
                  'owner': ALL_WITH_RELATIONS,
                  'creator': ALL_WITH_RELATIONS,
                  'date': ALL,
+                 'csw_type': ALL,
                  }
     ordering = ['date', 'title', 'popular_count']
     max_limit = None
-
+    #paginator_class = Paginator
 
 class CommonModelApi(ModelResource):
     keywords = fields.ToManyField(TagResource, 'keywords', null=True)
@@ -97,14 +101,37 @@ class CommonModelApi(ModelResource):
         full=True)
     owner = fields.ToOneField(ProfileResource, 'owner', full=True)
     creator = fields.ToOneField(ProfileResource, 'creator', full=True, null=True)
+    permission_class = fields.CharField(null=True)
+
+    def dehydrate_permission_class(self, bundle):
+        if bundle.obj.is_public():
+            return "public"
+        else:
+            # TODO: shared missiong
+            return "owned"
+
+
+    def apply_post_query_filters(self, objects, bundle):
+        if hasattr(self.Meta, 'post_query_filtering'):
+            for name,vals in bundle.request.post_query_filters.items():
+                objects = filter(self.Meta.post_query_filtering[name](vals), objects)
+        return objects
 
     def build_filters(self, filters={}):
-        orm_filters = super(CommonModelApi, self).build_filters(filters)
+        orm_filters = {}
+        
+        if hasattr(self.Meta, 'post_query_filtering'):
+            for flt in self.Meta.post_query_filtering:
+                if flt in filters:
+                    orm_filters[flt] = filters.pop(flt)
+
+        orm_filters.update(super(CommonModelApi, self).build_filters(filters))
+
         if 'type__in' in filters and filters[
                 'type__in'] in FILTER_TYPES.keys():
             orm_filters.update({'type': filters.getlist('type__in')})
         if 'extent' in filters:
-            orm_filters.update({'extent': filters['extent']})
+            orm_filters.update({'extent': filters['extent']})            
         # Nothing returned if +'s are used instead of spaces for text search,
         # so swap them out. Must be a better way of doing this?
 
@@ -114,8 +141,15 @@ class CommonModelApi(ModelResource):
         return orm_filters
 
     def apply_filters(self, request, applicable_filters):
+        request.post_query_filters = {}
+        if hasattr(self.Meta, 'post_query_filtering'):
+            for flt in self.Meta.post_query_filtering:
+                if flt in applicable_filters:
+                    request.post_query_filters[flt] = applicable_filters.pop(flt)
+
         types = applicable_filters.pop('type', None)
         extent = applicable_filters.pop('extent', None)
+
         semi_filtered = super(
             CommonModelApi,
             self).apply_filters(
@@ -143,7 +177,9 @@ class CommonModelApi(ModelResource):
 
         if extent:
             filtered = self.filter_bbox(filtered, extent)
+
         return filtered
+
 
     def filter_bbox(self, queryset, bbox):
         """
@@ -394,120 +430,133 @@ class CommonModelApi(ModelResource):
         self.log_throttled_access(request)
         return self.create_response(request, object_list)
 
-    def get_list(self, request, **kwargs):
-        """
-        Returns a serialized list of resources.
+    def obj_get_list(self, **kwargs):
+        objects = super(CommonModelApi, self).obj_get_list(**kwargs)
+        objects = self.apply_post_query_filters(objects, kwargs['bundle'])
+        return objects
+        
+    # def get_list_xx(self, request, **kwargs):
+    #     """
+    #     Returns a serialized list of resources.
 
-        Calls ``obj_get_list`` to provide the data, then handles that result
-        set and serializes it.
+    #     Calls ``obj_get_list`` to provide the data, then handles that result
+    #     set and serializes it.
 
-        Should return a HttpResponse (200 OK).
-        """
-        # TODO: Uncached for now. Invalidation that works for everyone may be
-        # impossible.
+    #     Should return a HttpResponse (200 OK).
+    #     """
+    #     # TODO: Uncached for now. Invalidation that works for everyone may be
+    #     # impossible.
 
-        base_bundle = self.build_bundle(request=request)
-        objects = self.obj_get_list(
-            bundle=base_bundle,
-            **self.remove_api_resource_names(kwargs))
+    #     base_bundle = self.build_bundle(request=request)
+    #     objects = self.obj_get_list(
+    #         bundle=base_bundle,
+    #         **self.remove_api_resource_names(kwargs))
 
-        sorted_objects = self.apply_sorting(objects, options=request.GET)
+    #     sorted_objects = self.apply_sorting(objects, options=request.GET)
 
-        paginator = self._meta.paginator_class(
-            request.GET,
-            sorted_objects,
-            resource_uri=self.get_resource_uri(),
-            limit=self._meta.limit,
-            max_limit=self._meta.max_limit,
-            collection_name=self._meta.collection_name)
-        to_be_serialized = paginator.page()
+    #     paginator = self._meta.paginator_class(
+    #         request.GET,
+    #         sorted_objects,
+    #         resource_uri=self.get_resource_uri(),
+    #         limit=self._meta.limit,
+    #         max_limit=self._meta.max_limit,
+    #         collection_name=self._meta.collection_name)
+    #     to_be_serialized = paginator.page()
 
-        to_be_serialized = self.alter_list_data_to_serialize(
-            request,
-            to_be_serialized)
-        return self.create_response(request, to_be_serialized)
+    #     to_be_serialized = self.alter_list_data_to_serialize(
+    #         request,
+    #         to_be_serialized)
+    #     return self.create_response(request, to_be_serialized)
 
-    def create_response(
-            self,
-            request,
-            data,
-            response_class=HttpResponse,
-            **response_kwargs):
-        """
-        Extracts the common "which-format/serialize/return-response" cycle.
+    # def create_response_xxx(
+    #         self,
+    #         request,
+    #         data,
+    #         response_class=HttpResponse,
+    #         **response_kwargs):
+    #     """
+    #     Extracts the common "which-format/serialize/return-response" cycle.
 
-        Mostly a useful shortcut/hook.
-        """
-        VALUES = [
-            # fields in the db
-            'creator',
+    #     Mostly a useful shortcut/hook.
+    #     """
+    #     VALUES = [
+    #         # fields in the db
+    #         'creator',
 
-            'id',
-            'uuid',
-            'title',
-            'abstract',
-            'csw_wkt_geometry',
-            'csw_type',
-            'distribution_description',
-            'distribution_url',
-            'owner_id',
-            'share_count',
-            'popular_count',
-            'date',
-            'srid',
-            'category',
-            'supplemental_information',
-            'thumbnail_url',
-            'detail_url',
-            'rating',
-            # 'concave_hull',
+    #         'id',
+    #         'uuid',
+    #         'title',
+    #         'abstract',
+    #         'csw_wkt_geometry',
+    #         'csw_type',
+    #         'distribution_description',
+    #         'distribution_url',
+    #         'owner_id',
+    #         'share_count',
+    #         'popular_count',
+    #         'date',
+    #         'srid',
+    #         'category',
+    #         'supplemental_information',
+    #         'thumbnail_url',
+    #         'detail_url',
+    #         'rating',
+    #         # 'concave_hull',
 
-            'bbox_x0',
-            'bbox_y0',
-            'bbox_x1',
-            'bbox_y1',
+    #         'bbox_x0',
+    #         'bbox_y0',
+    #         'bbox_x1',
+    #         'bbox_y1',
             
-            # 'metadata_edited',
-            # 'layer_type'
-        ]
+    #         # 'metadata_edited',
+    #         # 'layer_type'
+    #     ]
 
-        if isinstance(
-                data,
-                dict) and 'objects' in data and not isinstance(
-                data['objects'],
-                list):
+    #     if isinstance(
+    #             data,
+    #             dict) and 'objects' in data and not isinstance(
+    #             data['objects'],
+    #             list):
 
 
-            # TODO: Improve
-            objects = list(data['objects'].values(*VALUES))
-            for objdata,obj in zip(objects, data['objects']):
-                if not isinstance(obj,Document) and not isinstance(obj,Tabular):
-                    for attr in ['metadata_edited', 'layer_type', 'concave_hull']:
-                        objdata[attr] = getattr(obj, attr)
+    #         # TODO: Improve
+    #         objects = list(data['objects'].values(*VALUES))
+    #         for objdata,obj in zip(objects, data['objects']):
+    #             if not isinstance(obj,Document) and not isinstance(obj,Tabular):
+    #                 for attr in ['metadata_edited', 'layer_type', 'concave_hull']:
+    #                     objdata[attr] = getattr(obj, attr)
 
-                    objdata['layer_type'] = obj.layer_type.name
-                    objdata['category_description'] = obj.category.gn_description if obj.category is not None else ''
-                    objdata['creator_username'] = obj.creator.username
+    #                 objdata['layer_type'] = obj.layer_type.name
+    #                 objdata['category_description'] = obj.category.gn_description if obj.category is not None else ''
+    #                 objdata['creator_username'] = obj.creator.username
 
-                if obj.is_public():
-                    objdata['permission_class'] = "public"
-                elif request.user == obj.owner:
-                    objdata['permission_class'] = "owned"
-                else:
-                    objdata['permission_class'] = "shared"
+    #             if obj.is_public():
+    #                 objdata['permission_class'] = "public"
+    #             elif request.user == obj.owner:
+    #                 objdata['permission_class'] = "owned"
+    #             else:
+    #                 objdata['permission_class'] = "shared"
 
-            data['objects'] = objects
+    #         data['objects'] = objects
                 
-        # XXX FEO!!
-        if 'permission_class' in request.GET:
-            data['objects'] = filter(lambda obj: obj['permission_class'] == request.GET['permission_class'], data['objects'])
+    #     # XXX FEO!!
+    #     if 'permission_class' in request.GET:
+    #         data['objects'] = filter(lambda obj: obj['permission_class'] == request.GET['permission_class'], data['objects'])
 
-        desired_format = self.determine_format(request)
-        serialized = self.serialize(request, data, desired_format)
-        return response_class(
-            content=serialized,
-            content_type=build_content_type(desired_format),
-            **response_kwargs)
+    #     if 'layer_type' in request.GET:
+    #         data['objects'] = filter(lambda obj: obj['layer_type'] == request.GET['layer_type'], data['objects'])            
+
+    #     if 'layer_type__in' in request.GET:
+    #         data['objects'] = filter(lambda obj: obj['layer_type'] in request.GET['layer_type__in'].split(','), data['objects'])
+
+    #     data['meta']['total_count'] = len(data['objects'])
+
+    #     desired_format = self.determine_format(request)
+    #     serialized = self.serialize(request, data, desired_format)
+    #     return response_class(
+    #         content=serialized,
+    #         content_type=build_content_type(desired_format),
+    #         **response_kwargs)
 
 
     def transfer_owner(self, request, resource_id, **kwargs):
@@ -627,6 +676,10 @@ class LayerResource(MultipartResource, CommonModelApi):
                  'layer_type': ALL_WITH_RELATIONS,
                  'date': ALL,
                  }
+
+        post_query_filtering = {
+            'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
+        }
 
     def _set_default_metadata(self, bundle, layer, update=False):
 
@@ -814,8 +867,6 @@ class MapResource(CommonModelApi):
 
 class DocumentResource(CommonModelApi):
 
-    """Maps API"""
-
     class Meta(CommonMetaApi):
         filtering = {
             'title': ALL,
@@ -824,10 +875,14 @@ class DocumentResource(CommonModelApi):
             'owner': ALL_WITH_RELATIONS,
             'date': ALL,
             'doc_type': ALL,
+            'creator': ALL_WITH_RELATIONS
             }
         queryset = Document.objects.distinct().order_by('-date')
         resource_name = 'documents'
 
+        post_query_filtering = {
+            'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
+        }        
 
 class TabularTypeResource(ModelResource):
 

@@ -1,5 +1,31 @@
 {% load i18n %}
 
+
+  <div class="tab-content paginate paginate-auto" id="search-content"
+  ng-init="url_profile = '{% url 'profile_browse' %}profile/'; 
+           url_member = '/apps/member/{{object.id}}/';
+           url_app = '{% url 'app_list' %}'">
+
+    <div ng-if="results.length == 0">
+      {% trans "This application has no users yet." %}
+    </div>
+
+  {% verbatim %}
+
+    <article ng-repeat="profile in results">
+        <div class="col-md-3">
+          <a href="{{url_member}}{{profile.username}}" >
+          <img width="70px" ng-src="{{ profile.avatar_100 }}"/></a><br/>
+          <i class="fa fa-user"></i><span>{{ profile.username }}</span>      
+        </div>
+    </article>
+  {% endverbatim %}
+
+</div>
+
+{% comment %}
+
+
 {% verbatim %}
 <article ng-repeat="profile in results">
   <div class="row">
@@ -39,3 +65,7 @@
   </div>
 </article>
 {% endverbatim %}
+
+
+{% endcomment %}
+
