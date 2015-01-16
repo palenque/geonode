@@ -77,6 +77,22 @@ class MultipartResource(object):
 
 
 class CommonMetaApi:
+    # doc
+    extra_actions = [
+        {
+            "name": "search",
+            "http_method": "GET",
+            "resource_type": "list",
+            "description": "Seach endpoint",
+            "fields": {
+                "q": {
+                    "type": "string",
+                    "required": True,
+                    "description": "Search query terms"
+                }
+            }
+        }
+    ]
     authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
     authorization = GeoNodeAuthorization()
     allowed_methods = ['get']

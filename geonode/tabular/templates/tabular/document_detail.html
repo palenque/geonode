@@ -85,9 +85,20 @@
       </a>
     </div>
     {% elif resource.doc_file %}
-    <p><a href="{% url "tabular_download" resource.id %}" target="_blank">{% trans 'Download the' %} {{ resource }} {% trans 'table' %}</a></p>
+    <p>
+      <a href="{% url "tabular_download" resource.id %}" target="_blank">
+        {% blocktrans with resource as resource_name %}
+          Download the {{ resource_name }} table
+        {% endblocktrans %}        
+      </a>
+    </p>
     {% elif  resource.doc_url %}
-    <p><a href="{{ resource.doc_url }}" target="_blank">{% trans 'Download the' %} {{ resource }} {% trans 'table' %}.</a> <small>({% trans 'External Resource' %})</small></p>
+    <p><a href="{{ resource.doc_url }}" target="_blank">
+      {% blocktrans with resource as resource_name %}
+          Download the {{ resource_name }} table
+        {% endblocktrans %}.
+      </a> <small>({% trans 'External Resource' %})</small>
+    </p>
     {%  endif %}
 
     <div class="row">
