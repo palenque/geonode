@@ -17,7 +17,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: GeoNode\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-01-15 18:10-0300\n"
+"POT-Creation-Date: 2015-01-16 01:49-0300\n"
 "PO-Revision-Date: 2013-09-05 19:43+0000\n"
 "Last-Translator: Clarisa <clarisa.morana@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/projects/p/geonode/language/"
@@ -82,7 +82,7 @@ msgstr "Usuario alternativo"
 #: documents/templates/documents/document_detail.html:45
 #: layers/templates/layers/_actions.html:3
 #: maps/templates/maps/map_detail.html:35
-#: tabular/templates/tabular/document_detail.html:45 templates/_actions.html:3
+#: tabular/templates/tabular/document_detail.html:79 templates/_actions.html:3
 msgid "Info"
 msgstr "Información"
 
@@ -190,14 +190,16 @@ msgid "Link this app"
 msgstr "Agregar Aplicación"
 
 #: apps/templates/apps/app_detail.html:140
-#: documents/templates/documents/document_detail.html:160
+#: documents/templates/documents/document_detail.html:46
+#: documents/templates/documents/document_detail.html:175
 #: documents/templates/documents/document_upload.html:33
 #: groups/templates/groups/group_detail.html:65
 #: layers/templates/layers/_actions.html:5
-#: layers/templates/layers/layer_detail.html:381
+#: layers/templates/layers/layer_detail.html:353
 #: layers/templates/layers/layer_replace.html:94
 #: maps/templates/maps/map_detail.html:167 people/admin.py:55
-#: tabular/templates/tabular/document_detail.html:161
+#: tabular/templates/tabular/document_detail.html:81
+#: tabular/templates/tabular/document_detail.html:232
 #: tabular/templates/tabular/document_upload.html:34
 #: templates/_permissions_form.html:9
 msgid "Permissions"
@@ -1763,7 +1765,7 @@ msgid "Regions"
 msgstr "Regiones"
 
 #: base/templates/base/resourcebase_info_panel.html:61
-#: layers/templates/layers/layer_detail.html:406
+#: layers/templates/layers/layer_detail.html:378
 #: layers/templates/layers/layer_info_panel.html:67
 #: templates/search/_creator_filter.html:3
 msgid "Creator"
@@ -1814,6 +1816,30 @@ msgstr "Información Adicional"
 #: layers/templates/layers/layer_info_panel.html:143
 msgid "Spatial Representation Type"
 msgstr "Tipo de Representación Espacial"
+
+#: base/templates/base/resourcebase_links_panel.html:5
+msgid "This layer is linked to the following layers:"
+msgstr "Esta capa esta relacionada con las siguientes capas:"
+
+#: base/templates/base/resourcebase_links_panel.html:9
+msgid "Link type"
+msgstr "Tipo de Enlace"
+
+#: base/templates/base/resourcebase_links_panel.html:10
+msgid "Direction"
+msgstr "Dirección"
+
+#: base/templates/base/resourcebase_links_panel.html:11
+msgid "Target"
+msgstr "Destino"
+
+#: base/templates/base/resourcebase_links_panel.html:18
+msgid "forward"
+msgstr "adelante"
+
+#: base/templates/base/resourcebase_links_panel.html:26
+msgid "backward"
+msgstr "atras"
 
 #: documents/forms.py:59 groups/models.py:42 layers/forms.py:91
 #: maps/forms.py:72 people/forms.py:82 tabular/forms.py:61
@@ -1969,108 +1995,102 @@ msgid "You do not have permission to view this document"
 msgstr "Usted no tiene permisos para acceder a este documento."
 
 #: documents/templates/documents/document_detail.html:40
-#: tabular/templates/tabular/document_detail.html:40
+#: tabular/templates/tabular/document_detail.html:45
 msgid "External Resource"
 msgstr "Recurso Externo"
 
 #: documents/templates/documents/document_detail.html:47
-#: maps/templates/maps/map_detail.html:38
-#: tabular/templates/tabular/document_detail.html:47 templates/_actions.html:5
-msgid "Share"
-msgstr "Compartido"
+#: layers/templates/layers/_actions.html:6
+#: tabular/templates/tabular/document_detail.html:82
+msgid "Links"
+msgstr "Enlaces"
 
-#: documents/templates/documents/document_detail.html:49
-#: maps/templates/maps/map_detail.html:41
-#: tabular/templates/tabular/document_detail.html:49
-msgid "Ratings"
-msgstr "Puntaje"
-
-#: documents/templates/documents/document_detail.html:50
+#: documents/templates/documents/document_detail.html:55
 #: layers/templates/layers/_actions.html:14
 #: maps/templates/maps/map_detail.html:42
-#: tabular/templates/tabular/document_detail.html:50
+#: tabular/templates/tabular/document_detail.html:90
 #: templates/_comments.html:13
 msgid "Comments"
 msgstr "Comentarios"
 
-#: documents/templates/documents/document_detail.html:68
+#: documents/templates/documents/document_detail.html:83
 msgid "Rate this document"
 msgstr "Puntua este documento"
 
-#: documents/templates/documents/document_detail.html:72
-#: layers/templates/layers/layer_detail.html:165
+#: documents/templates/documents/document_detail.html:87
+#: layers/templates/layers/layer_detail.html:137
 #: maps/templates/maps/map_detail.html:58
-#: tabular/templates/tabular/document_detail.html:72
+#: tabular/templates/tabular/document_detail.html:141
 msgid "Average Rating"
 msgstr "Puntuación Media"
 
-#: documents/templates/documents/document_detail.html:86
-#: documents/templates/documents/document_detail.html:88
-#: documents/templates/documents/document_detail.html:90
 #: documents/templates/documents/document_detail.html:101
-#: documents/templates/documents/document_detail.html:126
+#: documents/templates/documents/document_detail.html:103
+#: documents/templates/documents/document_detail.html:105
+#: documents/templates/documents/document_detail.html:116
+#: documents/templates/documents/document_detail.html:141
 msgid "Download Document"
 msgstr "Descargar Documento"
 
-#: documents/templates/documents/document_detail.html:94
-#: layers/templates/layers/layer_detail.html:205
-#: layers/templates/layers/layer_detail.html:213
-#: tabular/templates/tabular/document_detail.html:94
+#: documents/templates/documents/document_detail.html:109
+#: layers/templates/layers/layer_detail.html:177
+#: layers/templates/layers/layer_detail.html:185
+#: tabular/templates/tabular/document_detail.html:165
 msgid "Download Metadata"
 msgstr "Descargar metadatos"
 
-#: documents/templates/documents/document_detail.html:111
-#: documents/templates/documents/document_detail.html:136
-#: layers/templates/layers/layer_detail.html:198
-#: layers/templates/layers/layer_detail.html:223
-#: layers/templates/layers/layer_detail.html:258
+#: documents/templates/documents/document_detail.html:126
+#: documents/templates/documents/document_detail.html:151
+#: layers/templates/layers/layer_detail.html:170
+#: layers/templates/layers/layer_detail.html:195
+#: layers/templates/layers/layer_detail.html:230
 #: maps/templates/maps/map_detail.html:92
 #: maps/templates/maps/map_detail.html:120
-#: tabular/templates/tabular/document_detail.html:111
-#: tabular/templates/tabular/document_detail.html:137
+#: tabular/templates/tabular/document_detail.html:182
+#: tabular/templates/tabular/document_detail.html:208
 msgid "Close"
 msgstr "Cerrar"
 
-#: documents/templates/documents/document_detail.html:119
+#: documents/templates/documents/document_detail.html:134
 msgid "Edit Document"
 msgstr "Editar Documento"
 
-#: documents/templates/documents/document_detail.html:130
-#: layers/templates/layers/layer_detail.html:245
-#: tabular/templates/tabular/document_detail.html:130
+#: documents/templates/documents/document_detail.html:145
+#: layers/templates/layers/layer_detail.html:217
+#: tabular/templates/tabular/document_detail.html:201
 msgid "Edit Metadata"
 msgstr "Editar Metadatos"
 
-#: documents/templates/documents/document_detail.html:131
+#: documents/templates/documents/document_detail.html:146
 msgid "Replace this Document"
 msgstr "Remplazar Documento"
 
-#: documents/templates/documents/document_detail.html:132
+#: documents/templates/documents/document_detail.html:147
 msgid "Remove this Document"
 msgstr "Eliminar Documento"
 
-#: documents/templates/documents/document_detail.html:144
+#: documents/templates/documents/document_detail.html:159
 msgid "Resource using this document"
 msgstr "Recursos utilizando este documento"
 
-#: documents/templates/documents/document_detail.html:146
+#: documents/templates/documents/document_detail.html:161
 msgid "List of resources using this document:"
 msgstr "Lista de recursos utilizando este documento"
 
-#: documents/templates/documents/document_detail.html:150
+#: documents/templates/documents/document_detail.html:165
 msgid "This document is related to a "
 msgstr "Este documento esta relacionado con "
 
-#: documents/templates/documents/document_detail.html:153
+#: documents/templates/documents/document_detail.html:168
 msgid "This document is not related to any maps or layers"
 msgstr "Este documento no esta relacionado con ningun mapa o capa"
 
-#: documents/templates/documents/document_detail.html:161
+#: documents/templates/documents/document_detail.html:176
 msgid "Click the button below to change the permissions of this document."
 msgstr ""
 "Haga clic en el botón de abajo para cambiar los permisos de este documento."
 
-#: documents/templates/documents/document_detail.html:162
+#: documents/templates/documents/document_detail.html:177
 msgid "Change Document Permissions"
 msgstr "Cambiar Permisos del documento"
 
@@ -2629,12 +2649,9 @@ msgstr ": asociación requerida"
 #: layers/templates/layers/layer_custom_metadata.html:59
 #: layers/templates/layers/layer_metadata.html:41
 #: layers/templates/layers/layer_metadata.html:79
+#: tabular/templates/tabular/document_detail.html:80
 msgid "Attributes"
 msgstr "Atributos"
-
-#: layers/templates/layers/_actions.html:6
-msgid "Links"
-msgstr "Enlaces"
 
 #: layers/templates/layers/_actions.html:16
 msgid "GeoGit"
@@ -2645,8 +2662,8 @@ msgid "Create a map"
 msgstr "Crear un Mapa"
 
 #: layers/templates/layers/_layer_list_item.html:48
-#: layers/templates/layers/layer_detail.html:180
-#: layers/templates/layers/layer_detail.html:188
+#: layers/templates/layers/layer_detail.html:152
+#: layers/templates/layers/layer_detail.html:160
 msgid "Download Layer"
 msgstr "Descargar Capa"
 
@@ -2739,6 +2756,7 @@ msgid "Unit"
 msgstr "Unidad"
 
 #: layers/templates/layers/layer_detail.html:52
+#: tabular/templates/tabular/document_detail.html:102
 msgid "Attribute Name"
 msgstr "Nombre del Atributo"
 
@@ -2748,64 +2766,40 @@ msgstr "Nombre del Atributo"
 msgid "Description"
 msgstr "Descripción"
 
-#: layers/templates/layers/layer_detail.html:99
-msgid "This layer is linked to the following layers:"
-msgstr "Esta capa esta relacionada con las siguientes capas:"
-
-#: layers/templates/layers/layer_detail.html:103
-msgid "Link type"
-msgstr "Tipo de Enlace"
-
-#: layers/templates/layers/layer_detail.html:104
-msgid "Direction"
-msgstr "Dirección"
-
-#: layers/templates/layers/layer_detail.html:105
-msgid "Target"
-msgstr "Destino"
-
-#: layers/templates/layers/layer_detail.html:112
-msgid "forward"
-msgstr "adelante"
-
-#: layers/templates/layers/layer_detail.html:120
-msgid "backward"
-msgstr "atras"
-
-#: layers/templates/layers/layer_detail.html:161
+#: layers/templates/layers/layer_detail.html:133
 msgid "Rate this layer"
 msgstr "Puntuar esta Capa"
 
-#: layers/templates/layers/layer_detail.html:232
-#: layers/templates/layers/layer_detail.html:241
+#: layers/templates/layers/layer_detail.html:204
+#: layers/templates/layers/layer_detail.html:213
 msgid "Edit Layer"
 msgstr "Editar Capa"
 
-#: layers/templates/layers/layer_detail.html:253
+#: layers/templates/layers/layer_detail.html:225
 msgid "Replace this Layer"
 msgstr "Remplazar esta Capa"
 
-#: layers/templates/layers/layer_detail.html:254
+#: layers/templates/layers/layer_detail.html:226
 msgid "Remove this Layer"
 msgstr "Eliminar esta Capa"
 
-#: layers/templates/layers/layer_detail.html:318
+#: layers/templates/layers/layer_detail.html:290
 msgid "Related resources"
 msgstr "Recursos relacionados"
 
-#: layers/templates/layers/layer_detail.html:320
+#: layers/templates/layers/layer_detail.html:292
 msgid "List of resources related to this layer:"
 msgstr "Lista de recursos relacionados con esta Capa:"
 
-#: layers/templates/layers/layer_detail.html:349
+#: layers/templates/layers/layer_detail.html:321
 msgid "There is no resources related to this layer."
 msgstr "No hay recursos relacionados con esta Capa:"
 
-#: layers/templates/layers/layer_detail.html:382
+#: layers/templates/layers/layer_detail.html:354
 msgid "Click the button below to change the permissions of this layer."
 msgstr "Haga clic en el botón de abajo para cambiar los permisos de esta Capa."
 
-#: layers/templates/layers/layer_detail.html:383
+#: layers/templates/layers/layer_detail.html:355
 msgid "Change Layer Permissions"
 msgstr "Cambia los permisos de la Capa"
 
@@ -3419,6 +3413,14 @@ msgstr "Usted no tiene permisos para acceder a este Mapa"
 #: maps/templates/maps/map_list.html:12
 msgid "Explore Maps"
 msgstr "Explora Mapas"
+
+#: maps/templates/maps/map_detail.html:38 templates/_actions.html:5
+msgid "Share"
+msgstr "Compartido"
+
+#: maps/templates/maps/map_detail.html:41
+msgid "Ratings"
+msgstr "Puntaje"
 
 #: maps/templates/maps/map_detail.html:54 templates/_actions.html:6
 msgid "Rate this Map"
@@ -4162,7 +4164,7 @@ msgstr "Delimitador"
 
 #: tabular/templates/tabular/document_append.html:4
 #: tabular/templates/tabular/document_append.html:28
-#: tabular/templates/tabular/document_detail.html:132
+#: tabular/templates/tabular/document_detail.html:203
 msgid "Append to this Table"
 msgstr "Agregaar a la Tabla"
 
@@ -4170,52 +4172,62 @@ msgstr "Agregaar a la Tabla"
 msgid "Append to "
 msgstr "Agregar a "
 
-#: tabular/templates/tabular/document_detail.html:68
+#: tabular/templates/tabular/document_detail.html:43
+#: tabular/templates/tabular/document_detail.html:45
+msgid "Download the"
+msgstr "Descargar la"
+
+#: tabular/templates/tabular/document_detail.html:43
+#: tabular/templates/tabular/document_detail.html:45
+msgid "table"
+msgstr "tabla"
+
+#: tabular/templates/tabular/document_detail.html:137
 msgid "Rate this table"
 msgstr "Puntuar Tabla"
 
-#: tabular/templates/tabular/document_detail.html:86
-#: tabular/templates/tabular/document_detail.html:88
-#: tabular/templates/tabular/document_detail.html:90
-#: tabular/templates/tabular/document_detail.html:101
-#: tabular/templates/tabular/document_detail.html:126
+#: tabular/templates/tabular/document_detail.html:157
+#: tabular/templates/tabular/document_detail.html:159
+#: tabular/templates/tabular/document_detail.html:161
+#: tabular/templates/tabular/document_detail.html:172
+#: tabular/templates/tabular/document_detail.html:197
 msgid "Download Table"
 msgstr "Descargar Tabla"
 
-#: tabular/templates/tabular/document_detail.html:119
+#: tabular/templates/tabular/document_detail.html:190
 msgid "Edit Table"
 msgstr "Editar Tabla"
 
-#: tabular/templates/tabular/document_detail.html:131
+#: tabular/templates/tabular/document_detail.html:202
 msgid "Replace this Table"
 msgstr "Remplazar Tabla"
 
-#: tabular/templates/tabular/document_detail.html:133
+#: tabular/templates/tabular/document_detail.html:204
 msgid "Remove this Table"
 msgstr "Eliminar Tabla"
 
-#: tabular/templates/tabular/document_detail.html:145
+#: tabular/templates/tabular/document_detail.html:216
 msgid "Resource using this table"
 msgstr "Recurso utilizando este tabla"
 
-#: tabular/templates/tabular/document_detail.html:147
+#: tabular/templates/tabular/document_detail.html:218
 msgid "List of resources using this table:"
 msgstr "Lista de recursos utilizando esta tabla:"
 
-#: tabular/templates/tabular/document_detail.html:151
+#: tabular/templates/tabular/document_detail.html:222
 msgid "This table is related to a "
 msgstr "Esta tabla esta relacionada con "
 
-#: tabular/templates/tabular/document_detail.html:154
+#: tabular/templates/tabular/document_detail.html:225
 msgid "This table is not related to any maps or layers"
 msgstr "Esta tabla no esta relacionado con ningún mapa o capa"
 
-#: tabular/templates/tabular/document_detail.html:162
+#: tabular/templates/tabular/document_detail.html:233
 msgid "Click the button below to change the permissions of this table."
 msgstr ""
 "Haga clic en el botón de abajo para cambiar los permisos de esta tabla."
 
-#: tabular/templates/tabular/document_detail.html:163
+#: tabular/templates/tabular/document_detail.html:234
 msgid "Change Table Permissions"
 msgstr "Cambiar los permisos de la Tabla"
 

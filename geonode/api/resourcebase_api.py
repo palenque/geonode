@@ -957,15 +957,16 @@ class TabularResource(CommonModelApi):
         self.throttle_check(request)
 
         cursor = connections['datastore'].cursor()
-
         fields = [a.attribute for a in Tabular.objects.get(id=resource_id).tabular_attribute_set.all()]
 
         # FIXME: hacer seguro
+
         cursor.execute(
-            'select %s from tabular_%s where %s order by id limit %s offset %s;' % (
+            'select %s from tabular_%s where %s order by %s limit %s offset %s;' % (
                 ', '.join(['"%s"' % f for f in fields]),
                 resource_id, 
                 request.GET.get('q', '1=1'),
+                fields[0],
                 request.GET.get('limit', '50'),
                 request.GET.get('offset', '0')
             ) 
