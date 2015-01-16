@@ -912,7 +912,7 @@ class TabularResource(CommonModelApi):
 
     """Tabular API"""
 
-    tabular_type = fields.ForeignKey(TabularTypeResource, 'tabular_type', full=True)
+    tabular_type = fields.ForeignKey(TabularTypeResource, 'tabular_type', full=True, null=True)
     attributes = fields.ToManyField(TabularAttributeResource, 'tabular_attribute_set', full=True)
 
     class Meta(CommonMetaApi):

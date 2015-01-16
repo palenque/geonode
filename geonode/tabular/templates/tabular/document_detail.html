@@ -43,16 +43,50 @@
     <div class="documents-actions">
       <ul class="nav nav-tabs">
         <li class="active"><a href="#info" data-toggle="tab"><i class="fa fa-info-circle"></i>{% trans "Info" %}</a></li>
+        <li><a href="#attributes" data-toggle="tab"><i class="fa fa-bars"></i>{% trans "Attributes" %}</a></li>
+        <li><a id="permissions-btn" href="#permissions" data-toggle="tab"><i class="fa fa-lock"></i>{% trans "Permissions" %}</a></li>  
+        <li><a href="#links" data-toggle="tab"><i class="fa fa-link"></i>{% trans "Links" %}</a></li>  
+        {% comment %}
         {% if SOCIAL_BUTTONS %}
         <li><a href="#share" data-toggle="tab"><i class="fa fa-share"></i>{% trans "Share" %}</a></li>
         {% endif %}
         <li><a href="#rate" data-toggle="tab"><i class="fa fa-star"></i>{% trans "Ratings" %}</a></li>
+        {% endcomment %}
         <li><a href="#comments" data-toggle="tab"><i class="fa fa-comment-o"></i> {% trans "Comments" %}</a></li>
       </ul>
     </div>
 
     <div class="tab-content">
       {% include "base/resourcebase_info_panel.html" %}
+
+      <article id="attributes" class="tab-pane">
+        {% if resource.tabular_attribute_set.all %}
+            <table class="table table-striped table-bordered table-condensed">
+              <thead>
+                <tr>
+                  <th>{% trans "Attribute Name" %}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for attribute in resource.tabular_attribute_set.all %}
+                  <tr>
+                    <td>{{ attribute }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+        {% endif %}
+      </article>
+
+     {% include "base/resourcebase_links_panel.html" %}
+
+      <article id="permissions" class="tab-pane">
+        <div class="row">
+          <div class="col-md-12">
+            
+          </div>
+        </div>      
+      </article>
 
       {% block social_links %}
         {% include "social_links.html" %}

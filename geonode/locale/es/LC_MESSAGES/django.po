@@ -4437,7 +4437,7 @@ msgstr "¿Quién puede administrar o editar estos datos?"
 
 #: templates/_permissions_form.html:16
 msgid "Apply Changes"
-msgstr "Aplica cambios"
+msgstr "Aplicar cambios"
 
 #: templates/_permissions_form_js.html:157
 msgid "Choose users..."
