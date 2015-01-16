@@ -114,6 +114,7 @@ urlpatterns = patterns('',
                        (r'^documents/', include('geonode.documents.urls')),
                        (r'^tabular/', include('geonode.tabular.urls')),
                        (r'^services/', include('geonode.services.urls')),
+                       url(r'api/doc/', include('tastypie_swagger.urls', namespace='tastypie_swagger')),
                        url(r'', include(api.urls)),
                        )
 

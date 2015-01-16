@@ -1,6 +1,7 @@
 {% extends "documents/document_upload_base.html" %}
 {% load bootstrap_tags %}
 {% load i18n %}
+{% load bootstrap3 %}
 
 {% block title %} {% trans "Upload Document" %} - {{ block.super }} {% endblock %}
 
@@ -19,7 +20,8 @@
   <form id="upload_form"  method="post" enctype="multipart/form-data" action="{% url "document_upload" %}">
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
     {{ form|as_bootstrap }}
-    <button type="submit" id="upload-button" class="btn btn-danger">Upload</button>
+    <!-- { bootstrap_form form } -->
+    <button type="submit" id="upload-button" class="btn btn-danger">{% trans "Upload" %}</button>
   </form>
 
 </div>

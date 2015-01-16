@@ -4,6 +4,7 @@
 {% load url from future %}
 {% load friendly_loader %}
 {% load i18n %}
+{% load bootstrap3 %}
 {% friendly_load avatar_tags %}
 
 {% load i18n %}
@@ -52,7 +53,7 @@
           <form action="{% comment_target resource %}" method="POST" id="form_post_comment">
           <div class="modal-body">
               {% csrf_token %}
-              {{ form|as_bootstrap }}
+              {% bootstrap_form form  %}
           </div>
 
           <div class="modal-footer">

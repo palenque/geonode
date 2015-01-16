@@ -167,6 +167,10 @@ ALLOWED_DOCUMENT_TYPES = [
 MAX_DOCUMENT_SIZE = 8  # MB
 DOCUMENT_TYPE_MAP = dict(zip(ALLOWED_DOCUMENT_TYPES, ALLOWED_DOCUMENT_TYPES))
 
+# doc api
+TASTYPIE_SWAGGER_API_MODULE = 'geonode.api.urls.api'
+
+
 GEONODE_APPS = (
 
 
@@ -217,6 +221,7 @@ INSTALLED_APPS = (
 
     # Third party apps
     'eav',
+    'tastypie_swagger',
 
     # Utility
     'pagination',

@@ -1,6 +1,7 @@
 {% extends "apps/app_base.html" %}
 {% load bootstrap_tags %}
 {% load i18n %}
+{% load bootstrap3 %}
 
 {% block head_title %}{% trans "Create App" %}{% endblock %}
 {% block body_class %}apps create{% endblock %}
@@ -20,7 +21,7 @@
         <form class="uniForm" id="form" method="POST" action="" enctype="multipart/form-data">
         {% csrf_token %}
         <fieldset>
-            {{ form|as_bootstrap }}
+            {% bootstrap_form form %}
             <div class="form_block">
                 <input type="hidden" name="action" value="create" />
                 <input type="submit" class="btn btn-primary" value="{% trans 'Create' %}"/>

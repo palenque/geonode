@@ -1,6 +1,7 @@
 {% extends "people/profile_base.html" %}
 {% load i18n avatar_tags %}
 {% load bootstrap_tags %}
+{% load bootstrap3 %}
 
 {% block body_class %}explore people{% endblock %}
 
@@ -18,7 +19,7 @@
       <!-- <legend>{% trans "Edit Your Profile" %}</legend> -->
       {% csrf_token %}
       <div class="form-controls">
-        {{ form|as_bootstrap }}
+        {% bootstrap_form form  %}
       </div>
       <div class="form-actions">
         <input type="submit" class="btn btn-primary" value="{% trans "Update profile" %}" />

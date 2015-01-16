@@ -34,7 +34,8 @@ h6 {
   width: 100%;
 }
 .container {
-  width: 970px !important;
+  /*width: 970px !important;*/
+  width: 90% !important;
 }
 .fa {
   margin-right: 8px;

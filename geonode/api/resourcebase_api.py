@@ -77,6 +77,22 @@ class MultipartResource(object):
 
 
 class CommonMetaApi:
+    # doc
+    extra_actions = [
+        {
+            "name": "search",
+            "http_method": "GET",
+            "resource_type": "list",
+            "description": "Seach endpoint",
+            "fields": {
+                "q": {
+                    "type": "string",
+                    "required": True,
+                    "description": "Search query terms"
+                }
+            }
+        }
+    ]
     authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
     authorization = GeoNodeAuthorization()
     allowed_methods = ['get']
@@ -962,15 +978,16 @@ class TabularResource(CommonModelApi):
         self.throttle_check(request)
 
         cursor = connections['datastore'].cursor()
-
         fields = [a.attribute for a in Tabular.objects.get(id=resource_id).tabular_attribute_set.all()]
 
         # FIXME: hacer seguro
+
         cursor.execute(
-            'select %s from tabular_%s where %s order by id limit %s offset %s;' % (
+            'select %s from tabular_%s where %s order by %s limit %s offset %s;' % (
                 ', '.join(['"%s"' % f for f in fields]),
                 resource_id, 
                 request.GET.get('q', '1=1'),
+                fields[0],
                 request.GET.get('limit', '50'),
                 request.GET.get('offset', '0')
             ) 

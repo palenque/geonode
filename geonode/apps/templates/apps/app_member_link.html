@@ -9,7 +9,7 @@
   <div class="col-md-8">
     <form action="{% url "app_member_link" app.slug request.user.username %}" method="POST">
       <h2>{% trans app.title %}</h2>
-      <h4>This app needs access to the following resources:</h4>
+      <h4>{% trans "This app needs access to the following resources:" %}</h4>
       <ul>
         {% for kw in app.keywords.all %}
           <li>{{kw}}</li>

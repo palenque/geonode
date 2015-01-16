@@ -23,6 +23,8 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth import login
 from django.contrib.auth.models import Group
 
+from geonode.people.enumerations import ROLE_VALUES, PROFILE
+
 from guardian.shortcuts import assign_perm, remove_perm, \
     get_groups_with_perms, get_users_with_perms
 
@@ -123,6 +125,22 @@ class PermissionLevelMixin(object):
         }
         """
         self.remove_all_permissions()
+        
+        # organization users always make public resources
+        if (
+            hasattr(self, 'owner') and 
+            hasattr(self.owner, 'profile') and 
+            self.owner.profile == PROFILE.ORGANIZATION
+        ):
+            if 'users' not in perm_spec:
+                perm_spec['users'] = {}
+
+            if "AnonymousUser" not in perm_spec['users']:
+                perm_spec['users']['AnonymousUser'] = [] 
+
+            if 'view_resourcebase' not in perm_spec['users']['AnonymousUser']:
+                perm_spec['users']['AnonymousUser'].append('view_resourcebase')
+
 
         perm_spec['users'].update(perm_spec.get('apps',{}))
 

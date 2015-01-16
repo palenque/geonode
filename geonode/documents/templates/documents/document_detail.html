@@ -18,7 +18,7 @@
 {% block body_class %}documents{% endblock %}
 
 {% block body_outer %}
-
+{% get_obj_perms request.user for resource.get_self_resource as "resource_perms" %}
 <div class="row">
   <div class="col-md-12">
     <h2 class="page-title">{{ resource.title }}</h2>
@@ -43,10 +43,14 @@
     <div class="documents-actions">
       <ul class="nav nav-tabs">
         <li class="active"><a href="#info" data-toggle="tab"><i class="fa fa-info-circle"></i>{% trans "Info" %}</a></li>
+        <li><a id="permissions-btn" href="#permissions" data-toggle="tab"><i class="fa fa-lock"></i>{% trans "Permissions" %}</a></li>  
+        <li><a href="#links" data-toggle="tab"><i class="fa fa-link"></i>{% trans "Links" %}</a></li>  
+        {% comment %}        
         {% if SOCIAL_BUTTONS %}
         <li><a href="#share" data-toggle="tab"><i class="fa fa-share"></i>{% trans "Share" %}</a></li>
         {% endif %}
         <li><a href="#rate" data-toggle="tab"><i class="fa fa-star"></i>{% trans "Ratings" %}</a></li>
+        {% endcomment %}
         <li><a href="#comments" data-toggle="tab"><i class="fa fa-comment-o"></i> {% trans "Comments" %}</a></li>
       </ul>
     </div>
@@ -57,7 +61,24 @@
       {% block social_links %}
         {% include "social_links.html" %}
       {% endblock %}
-        
+
+      {% include "base/resourcebase_links_panel.html" %}
+
+      <article id="permissions" class="tab-pane">
+        <div class="row">
+          <div class="col-md-12">
+            {% if "change_resourcebase_permissions" in resource_perms %}
+            <li class="list-group-item">
+              <h4>{% trans "Permissions" %}</h4>
+              <p>{% trans "Click the button below to change the permissions of this document." %}</p>
+              <p><a href="#modal_perms" data-toggle="modal" class="btn btn-default btn-block" data-target="#_permissions">{% trans "Change Document Permissions" %}</a></p>
+            </li>
+            {% include "_permissions_form.html" %}
+            {% endif %}            
+          </div>
+        </div>      
+      </article>
+
       <article id="comments" class="tab-pane">
       {% include "_comments.html" %}
       </article>
@@ -113,7 +134,7 @@
           </div>
         </div>
       </div>
-      {% get_obj_perms request.user for resource.get_self_resource as "resource_perms" %}
+      
       {% if "change_resourcebase" in resource_perms %}
       <li class="list-group-item">
         <button class="btn btn-default btn-md btn-block" data-toggle="modal" data-target="#edit-document">{% trans "Edit Document" %}</button>
@@ -154,15 +175,6 @@
           {% endif %}
         </ul>
       </li>
-
-      {% if "change_resourcebase_permissions" in resource_perms %}
-      <li class="list-group-item">
-        <h4>{% trans "Permissions" %}</h4>
-        <p>{% trans "Click the button below to change the permissions of this document." %}</p>
-        <p><a href="#modal_perms" data-toggle="modal" class="btn btn-default btn-block" data-target="#_permissions">{% trans "Change Document Permissions" %}</a></p>
-      </li>
-      {% include "_permissions_form.html" %}
-      {% endif %}
 
       {% include "base/_resourcebase_contact_snippet.html" %}
 

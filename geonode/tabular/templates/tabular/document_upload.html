@@ -1,8 +1,9 @@
 {% extends "tabular/document_upload_base.html" %}
 {% load bootstrap_tags %}
+{% load bootstrap3 %}
 {% load i18n %}
 
-{% block title %} {% trans "Upload Data" %} - {{ block.super }} {% endblock %}
+{% block title %} {% trans "Upload Table" %} - {{ block.super }} {% endblock %}
 
 {% block body_class %}tabular upload{% endblock body_class %}
 
@@ -18,8 +19,9 @@
 
   <form id="upload_form"  method="post" enctype="multipart/form-data" action="{% url "tabular_upload" %}">
     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+    <!-- { bootstrap_form form  } -->
     {{ form|as_bootstrap }}
-    <button type="submit" id="upload-button" class="btn btn-danger">Upload</button>
+    <button type="submit" id="upload-button" class="btn btn-danger">{% trans "Upload" %}</button>
   </form>
 
 </div>

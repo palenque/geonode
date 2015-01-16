@@ -3,14 +3,14 @@
 {% load staticfiles %}
 {% load url from future %}
 
-{% block title %} {% trans "Explore Imported Data" %} - {{ block.super }} {% endblock %}
+{% block title %} {% trans "Explore Tables" %} - {{ block.super }} {% endblock %}
 
 {% block body_class %}tabular documents-list explore{% endblock %}
 
 {% block body %}
   <div class="col-md-12">
-    <a href="{% url "tabular_upload" %}" class="btn btn-primary pull-right">{% trans "Upload Data" %}</a>
-    <h2 class="page-title">{% trans "Explore Imported Data" %}</h2>
+    <a href="{% url "tabular_upload" %}" class="btn btn-primary pull-right">{% trans "Upload Table" %}</a>
+    <h2 class="page-title">{% trans "Explore Tables" %}</h2>
   </div>
 
   {% with custom_filters='tabular/_tabular_filter.html' %}

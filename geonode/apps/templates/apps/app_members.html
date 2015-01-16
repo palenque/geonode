@@ -1,6 +1,7 @@
 {% extends "apps/app_base.html" %}
 {% load i18n %}
 {% load bootstrap_tags %}
+{% load bootstrap3 %}
 
 {% block sidebar %}
 <div class="col-md-12">
@@ -19,7 +20,7 @@
         <h2>{% trans "Add members" %}</h2>
         <form class="uniForm" method="POST" action="{% url "group_members_add" object.slug %}">
             {% csrf_token %}
-            {{ member_form|as_bootstrap }}<br/><br/>
+            {% bootstrap_form member_form  %}<br/><br/>
             <input type="submit" value="Add Group Members" />
         </form>
     {% endif %}
@@ -28,7 +29,7 @@
         <h2>{% trans "Invite people" %}</h2>
         <form class="uniForm" method="POST" action="{% url "group_invite" object.slug %}">
             {% csrf_token %}
-            {{ invite_form|as_bootstrap }}
+            {% bootstrap_form invite_form  %}
             <input type="submit" value="invite" />
         </form>
     {% endif %}

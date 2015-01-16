@@ -50,10 +50,18 @@ ROLE_VALUES = (
     ('principalInvestigator', _('key party responsible for gathering information and conducting research')),
 )
 
+
+class PROFILE:
+    USER = 'user'
+    ORGANIZATION = 'organization'
+    DEVELOPER = 'developer'
+    ADMIN = 'admin'
+    APP = 'app'
+
 PROFILE_VALUES = (
-    ('user', _('user')),
-    ('organization', _('organization')),
-    ('developer', _('developer')),
-    ('admin', _('administrator')),
-    ('app', _('application')),
+    (PROFILE.USER, _('user')),
+    (PROFILE.ORGANIZATION, _('organization')),
+    (PROFILE.DEVELOPER, _('developer')),
+    (PROFILE.ADMIN, _('administrator')),
+    (PROFILE.APP, _('application')),
 )
