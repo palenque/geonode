@@ -22,7 +22,7 @@
 {% block body_class %}layers{% endblock %}
 
 {% block body_outer %}
-
+{% get_obj_perms request.user for resource.get_self_resource as "resource_perms" %}
 <div class="row">
   <div class="col-md-12">
     <h2 class="page-title">{{ resource.title|default:resource.typename }}</h2>
@@ -99,6 +99,16 @@
         <div class="row">
           <div class="col-md-12">
             {% include 'layers/_profile_list_item.html' %}
+        
+            {% if GEONODE_SECURITY_ENABLED %}
+            {% if "change_resourcebase_permissions" in resource_perms %}
+            <li class="list-group-item">
+              <h4>{% trans "Permissions" %}</h4>
+              <p>{% trans "Click the button below to change the permissions of this layer." %}</p>
+              <p><a href="#modal_perms" data-toggle="modal" class="btn btn-default btn-block" data-target="#_permissions">{% trans "Change Layer Permissions" %}</a></p>
+            </li>
+            {% endif %}
+            {% endif %}
           </div>
         </div>      
       </article>
@@ -197,7 +207,6 @@
     </div>
 
     <li class="list-group-item">
-    {% get_obj_perms request.user for resource.get_self_resource as "resource_perms" %}
     {% if "change_resourcebase" in resource_perms %}
     <button class="btn btn-default btn-md btn-block" data-toggle="modal" data-target="#edit-layer">{% trans "Edit Layer" %}</button>
 
@@ -339,16 +348,6 @@
     </li>
     {% endif %}
     {% endcomment %}
-
-    {% if GEONODE_SECURITY_ENABLED %}
-    {% if "change_resourcebase_permissions" in resource_perms %}
-    <li class="list-group-item">
-      <h4>{% trans "Permissions" %}</h4>
-      <p>{% trans "Click the button below to change the permissions of this layer." %}</p>
-      <p><a href="#modal_perms" data-toggle="modal" class="btn btn-default btn-block" data-target="#_permissions">{% trans "Change Layer Permissions" %}</a></p>
-    </li>
-    {% endif %}
-    {% endif %}
 
     {% comment %}
     <li class="list-group-item">
