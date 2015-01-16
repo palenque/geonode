@@ -47,9 +47,16 @@
         if (tile_layer != null) {
             map.layerscontrol.addOverlay(tile_layer,"{{ resource.title }}");
             map.addLayer(tile_layer);
-
         }
+
+        angular.element($('#preview_map')).scope().load_public_layers(map);
+
+        map.on('moveend', function(e) {
+            angular.element($('#preview_map')).scope().update_public_layers(map);
+        });
+
     });
+
     function zoom_to_box(map, bbox){
         var bounds = [
             [bbox[1], bbox[0]],

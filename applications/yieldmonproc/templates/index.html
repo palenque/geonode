@@ -98,7 +98,6 @@
 								td.append(
 									$("<div>").addClass("btn").addClass("btn-default").data('id',obj.id).text("process")
 										.click(function(ev) {
-											debugger;
 											$(this).text("wait").addClass("disabled");
 											$.post('/process',{layer_id: $(this).data('id'), username: $("#username").val()})
 												.success(function(ev) {

@@ -1,0 +1,176 @@
+
+<script type="text/javascript">
+
+  String.prototype.hashCode = function() {
+    var hash = 0, i, chr, len;
+    if (this.length == 0) return hash;
+    for (i = 0, len = this.length; i < len; i++) {
+      chr   = this.charCodeAt(i);
+      hash  = ((hash << 5) - hash) + chr;
+      hash |= 0; // Convert to 32bit integer
+    }
+    return hash;
+  };
+
+  (function(){
+  L.Control.Layers = L.Control.Layers.extend({
+
+    _getCategoryElem: function(container, category) {
+      var elems = container.getElementsByClassName(
+        "leaflet-layers-category-"+category.hashCode());
+
+      if (elems.length == 0) {
+        elem = this._createCategoryElem(category);
+        container.appendChild(elem);
+      } else {
+        elem = elems[0];
+      }
+
+      var innerElem = elem.getElementsByTagName('div')[0];
+      return innerElem;
+    },
+
+    _createCategoryElem: function(category) {
+        var elem = document.createElement('div');
+        elem.className = 'leaflet-layers-category-'+category.hashCode();
+        
+        var title = null;
+        if(category) {
+          var title = document.createElement('span');
+          title.className = 'label label-primary';
+
+            var arrow = document.createElement('i');
+            arrow.className = 'fa fa-chevron-right';
+
+            var text = document.createElement('span');       
+            text.innerHTML = category;                  
+
+          title.appendChild(arrow);
+          title.appendChild(text);
+
+          $(title).click(function(ev) {
+            $(ev.target)
+              .parent().parent()
+              .find(".leaflet-layers-category-inner").toggle();
+
+            var i = $(ev.target).parent().find("i");
+            if(i.hasClass("fa-chevron-right")) {
+              i.removeClass("fa-chevron-right");
+              i.addClass("fa-chevron-down");
+            } else {
+              i.addClass("fa-chevron-right");
+              i.removeClass("fa-chevron-down");                    
+            }
+          });
+          elem.appendChild(title);              
+        }
+
+
+        var innerElem = document.createElement('div');
+        innerElem.className = 'leaflet-layers-category-inner';
+        if(title) {
+          $(innerElem).hide();
+        }
+        elem.appendChild(innerElem);
+        return elem;
+    },
+
+    addOverlay: function (layer, name, category) {
+      this._addLayer(layer, name, true, category);
+      this._update();
+      return this;
+    },
+
+    _addLayer: function (layer, name, overlay, category) {
+      var id = L.stamp(layer);
+
+      this._layers[id] = {
+        layer: layer,
+        name: name,
+        category: category,
+        overlay: overlay
+      };
+
+      if (this.options.autoZIndex && layer.setZIndex) {
+        this._lastZIndex++;
+        layer.setZIndex(this._lastZIndex);
+      }
+    },
+
+    _addItem: function (obj) {
+      var label = document.createElement('label'),
+          input,
+          checked = this._map.hasLayer(obj.layer);
+
+      if (obj.overlay) {
+        input = document.createElement('input');
+        input.type = 'checkbox';
+        input.className = 'leaflet-control-layers-selector';
+        input.defaultChecked = checked;
+      } else {
+        input = this._createRadioElement('leaflet-base-layers', checked);
+      }
+
+      input.layerId = L.stamp(obj.layer);
+
+      L.DomEvent.on(input, 'click', this._onInputClick, this);
+
+      var name = document.createElement('span');
+      name.innerHTML = ' ' + obj.name;
+
+      label.appendChild(input);
+      label.appendChild(name);
+
+      var container = obj.overlay ? this._overlaysList : this._baseLayersList;
+
+      if (!obj.category) {
+        obj.category = "";
+      }
+
+      var elem = this._getCategoryElem(container, obj.category);
+      elem.appendChild(label);
+
+      return label;
+    }
+  });
+  })();
+
+  (function(){
+    var module = angular.module('map',['main_search']);
+
+    module.load_public_layers = function() {
+      var params = {};
+      params.is_public = "1";
+      $.get("/api/layers", params).success(function(data){
+        var control = new L.Control.Layers();
+        for(i in data.objects) {
+          var obj = data.objects[i];
+          var layer = L.tileLayer.wms("http://localhost:8080/geoserver/geonode/wms", {
+              layers: "geonode:suelos_500000_v9_1",
+              format: 'image/png',
+              transparent: true
+          });
+          var cat = "";
+          if(obj.category) cat = obj.category.description;
+          control.addOverlay(layer, obj.title, cat);
+        }
+        debugger;
+        if(module) {
+          if(module.map) {
+            control.addTo(module.map);
+          } else {
+            module.map_controls = [control];
+          }
+        }
+        else if(map) {
+          control.addTo(map);
+        }
+      });
+    };
+
+    module.load_public_layers();
+    
+  })();
+
+</script>
+

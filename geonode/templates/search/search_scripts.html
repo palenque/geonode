@@ -16,6 +16,8 @@
 {% endif %}
 <script src="{{ STATIC_URL }}geonode/js/search/explore.js"></script>
 <script src="{{ STATIC_URL }}geonode/js/search/search.js"></script>
+<script src="{{ STATIC_URL }}geonode/js/map/map.js"></script>
+
 <script type="text/javascript">
   $("body").attr('ng-controller', 'MainController');
   CATEGORIES_ENDPOINT = '{% url 'api_dispatch_list' api_name='api' resource_name='categories' %}';
@@ -35,7 +37,7 @@
     url: SEARCH_URL
   });
 
-  var deps = ['search'];
+  var deps = ['search','map'];
   {% if include_spatial == 'true' %}
   deps.push('leaflet-directive');
   {% endif %}

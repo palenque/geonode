@@ -24,7 +24,9 @@
 
 {% endblock %}
 
+
 {% block extra_script %}
+
   <script type="text/javascript">
       {% if HAYSTACK_SEARCH %}
           SEARCH_URL = '{% url 'api_get_search' api_name='api' resource_name='base' %}?type__in=layer'
@@ -36,4 +38,5 @@
   {% with include_spatial='true' %}
   {% include 'search/search_scripts.html' %}
   {% endwith %}
+
 {% endblock extra_script %}
