@@ -435,6 +435,9 @@ def insert_data(sender, instance, created, create_table=True, **kwargs):
         path,
     ]
 
+    if kw['no_header_row']:
+        args.append('--no-header-row')
+
     if not create_table:
         args.append('--no-create')
 

@@ -32,6 +32,8 @@ from geonode.apps.models import App
 from geonode.layers.models import Layer, LayerType, AttributeType
 from geonode.layers.views import layer_upload
 
+from geonode.tabular.forms import DocumentReplaceForm
+from geonode.tabular.forms import DocumentCreateForm
 from geonode.maps.models import Map
 from geonode.documents.models import Document
 from geonode.tabular.models import Tabular, TabularType
@@ -924,7 +926,7 @@ class TabularAttributeResource(ModelResource):
         }
 
 
-class TabularResource(CommonModelApi):
+class TabularResource(MultipartResource, CommonModelApi):
 
     """Tabular API"""
 
@@ -944,7 +946,7 @@ class TabularResource(CommonModelApi):
             }
         queryset = Tabular.objects.distinct().order_by('-date')
         resource_name = 'tabular'
-
+        allowed_methods = ['get','post', 'put']
         post_query_filtering = {
             'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
         }
@@ -957,10 +959,44 @@ class TabularResource(CommonModelApi):
                 ),
                 self.wrap_view('sql'), 
                 name="api_tabular_sql"
-            )
+            ),
+            url(
+                r"^(?P<resource_name>%s)/(?P<resource_id>\d+)/append%s$" % (
+                    self._meta.resource_name, trailing_slash()
+                ),
+                self.wrap_view('append'), 
+                name="api_tabular_append"
+            )            
         ]
 
         return urls
+
+
+    def append(self, request, resource_id, **kwargs):
+        '''
+        curl 
+        --dump-header - 
+        -F doc_file=@Allianz-Visbroker.xls   
+        'http://localhost:8000/api/tabular/100/append/?username=admin&api_key=1e7ee138294d929505aa0057ac243daaf374ee38'
+
+        '''
+
+        self.method_check(request, allowed=['post'])
+        self.is_authenticated(request)
+        self.throttle_check(request)
+
+        form = DocumentReplaceForm(
+            request.POST,
+            request.FILES,
+            instance=Tabular.objects.get(id=resource_id)
+        )
+        if form.is_valid():
+            obj = form.save()
+            obj.append()
+            return HttpNoContent()
+        else:
+            logging.exception('Error trying load table: %s' % unicode(form.errors))
+            raise BadRequest('Error trying load table: %s' % unicode(form.errors))
 
     def sql(self, request, resource_id, **kwargs):
         '''query the table.
@@ -981,9 +1017,8 @@ class TabularResource(CommonModelApi):
         fields = [a.attribute for a in Tabular.objects.get(id=resource_id).tabular_attribute_set.all()]
 
         # FIXME: hacer seguro
-
         cursor.execute(
-            'select %s from tabular_%s where %s order by %s limit %s offset %s;' % (
+            'select %s from tabular_%s where %s order by "%s" limit %s offset %s;' % (
                 ', '.join(['"%s"' % f for f in fields]),
                 resource_id, 
                 request.GET.get('q', '1=1'),
@@ -1002,6 +1037,55 @@ class TabularResource(CommonModelApi):
             results
         )
         return self.create_response(request, to_be_serialized)
+
+    def obj_create(self, bundle, request=None, **kwargs):
+        """
+        <QueryDict: {u'resource': [u''], u'title': [u'C:\\fakepath\\Allianz-Visbroker.xls'], 
+        u'charset': [u''], u'delimiter': [u''], u'tabular_type': [u''], u'quotechar': [u''], 
+        u'csrfmiddlewaretoken': [u'2EozhP87wSPOFFSAF475O86O77oe1Ozn'], u'doc_url': [u''], 
+        u'has_header': [u'on'], u'permissions': [u'{"users":{},"groups":{},"apps":{}}']}>
+        
+        <MultiValueDict: {u'doc_file': [<InMemoryUploadedFile: Allianz-Visbroker.xls (application/vnd.ms-excel)>]}>
+
+
+        Ejemplo simple upload:
+
+        curl 
+        --dump-header - 
+        -F doc_file=@Allianz-Visbroker.xls 
+        -F title='xxx' 
+        -F charset='' 
+        -F delimiter='' 
+        -F quotechar='' 
+        -F has_header='true' 
+        -F permissions='{"users":{},"groups":{},"apps":{}}'   
+        'http://localhost:8000/api/tabular/?username=admin&api_key=1e7ee138294d929505aa0057ac243daaf374ee38'
+
+        Ejemplo ppciones de permisos:
+        
+        {
+            "users":{"AnonymousUser":["view_resourcebase"], "tinkamako":["change_resourcebase"] }, 
+            "groups":{"foo":["change_resourcebase_permissions"] } 
+        }
+
+
+
+        """
+        
+        form = DocumentCreateForm(bundle.request.POST, bundle.request.FILES)
+        if form.is_valid():
+            obj = form.save(commit=False)
+            obj.owner = bundle.request.user
+            obj.save()
+            obj.set_permissions(form.cleaned_data['permissions'])
+            # XXX:
+            # se guarda de nuevo porque se borran los permisos
+            # y se deben dar permisos a las aplicaciones de nuevo
+            obj.save()
+            return obj
+        
+        logging.exception('Error trying load table: %s' % unicode(form.errors))
+        raise BadRequest('Error trying load table: %s' % unicode(form.errors))
 
 
 class InternalLinkResource(ModelResource):

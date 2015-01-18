@@ -252,7 +252,7 @@
             if(data.objects.length == 0) {
               var msg = $("<p>")
                 .addClass("col-md-offset-1")
-                .html("Qué esperás para empezar a usar aplicaciones?<br/>Consultá las aplicaciones disponibles en la sección <b>apps</b>");
+                .html("¿Qué esperás para empezar a usar aplicaciones?<br/>Consultá las aplicaciones disponibles en la sección <b><a href=\"{% url 'app_list' %}\">Aplicaciones</a></b>");
               $("#my_applications").append(msg);
             }
             else {
