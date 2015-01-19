@@ -22,45 +22,49 @@ from geonode.tabular.models import TabularType
 
 
 class DocumentForm(TranslationModelForm):
-    date = forms.DateTimeField(widget=forms.SplitDateTimeWidget)
+    date = forms.DateTimeField(label=_('Date'), widget=forms.SplitDateTimeWidget)
     date.widget.widgets[0].attrs = {
         "class": "datepicker",
         'data-date-format': "yyyy-mm-dd"}
     date.widget.widgets[1].attrs = {"class": "time"}
     temporal_extent_start = forms.DateField(
+        label=_('Temporal extend start'),
         required=False,
         widget=forms.DateInput(
             attrs={
                 "class": "datepicker",
                 'data-date-format': "yyyy-mm-dd"}))
     temporal_extent_end = forms.DateField(
+        label=_('Temporal extend end'),
         required=False,
         widget=forms.DateInput(
             attrs={
                 "class": "datepicker",
                 'data-date-format': "yyyy-mm-dd"}))
 
-    resource = forms.ChoiceField(label='Link to')
+    resource = forms.ChoiceField(label=_('Link to'))
 
     poc = forms.ModelChoiceField(
-        empty_label="Person outside GeoNode (fill form)",
-        label="Point Of Contact",
+        empty_label=_("Person outside GeoNode (fill form)"),
+        label=_("Point Of Contact"),
         required=False,
         queryset=Profile.objects.exclude(
             username='AnonymousUser'))
 
     metadata_author = forms.ModelChoiceField(
-        empty_label="Person outside GeoNode (fill form)",
-        label="Metadata Author",
+        empty_label=_("Person outside GeoNode (fill form)"),
+        label=_("Metadata Author"),
         required=False,
         queryset=Profile.objects.exclude(
             username='AnonymousUser'))
 
     keywords = taggit.forms.TagField(
+        label=_('Keywords'),
         required=False,
         help_text=_("A space or comma-separated list of keywords"))
 
     regions = TreeNodeMultipleChoiceField(
+        label=_('Regions'),
         required=False,
         queryset=Region.objects.all(),
         level_indicator=u'___')
@@ -211,7 +215,7 @@ class DocumentCreateForm(TranslationModelForm):
     The document upload form.
     """
 
-    charset = forms.ChoiceField(choices=CHARSETS, required=False)
+    charset = forms.ChoiceField(label=_('Charset'), choices=CHARSETS, required=False)
 
     permissions = forms.CharField(
         widget=HiddenInput(

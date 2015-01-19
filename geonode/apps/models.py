@@ -30,15 +30,15 @@ class App(models.Model):
     email_help_text = _('Public url for the application.')
 
     # group = models.OneToOneField(Group)
-    title = models.CharField(max_length=50)
-    slug = models.SlugField(unique=True)
-    logo = models.FileField(upload_to="people_group", blank=True)
-    description = models.TextField()    # markdown
-    short_description = models.TextField(blank=True, null=True)
-    thumbnail = models.FileField(upload_to="people_group", null=True, blank=True)
+    title = models.CharField(_('Title'), max_length=50)
+    slug = models.SlugField(_('Slug'), unique=True)
+    logo = models.FileField(_('Logo'), upload_to="people_group", blank=True)
+    description = models.TextField(_('Description'))    # markdown
+    short_description = models.TextField(_('Short Description'), blank=True, null=True)
+    thumbnail = models.FileField(_('Thumbnail'), upload_to="people_group", null=True, blank=True)
 
     # TODO: improve
-    rating = models.IntegerField(null=True, blank=True)
+    rating = models.IntegerField(_('Rating'), null=True, blank=True)
 
 
     email = models.URLField(

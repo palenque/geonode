@@ -1,4 +1,10 @@
 {% load i18n %}
+
+<style>
+/*ul.select2-choices{border:0 !important; }
+.select2-search-field input.select2-input{padding:0 !important;}
+*/
+</style>
 <div id="permissions-body" >
   <div class="control-group" id="permission-view-download" >
     <label class="control-label">{% trans "Who can view and download this data?" %}</label>
@@ -12,13 +18,13 @@
       <div class="radio">
         <label>
           {% trans "The following users:" %}
-          <input class="user-select" type="text" name="view_resourcebase" id="view_resourcebase_users" />
+          <input class="form-control user-select" type="text" name="view_resourcebase" id="view_resourcebase_users" />
         </label>
       </div>
       <div class="radio">
         <label>
           {% trans "The following groups:" %}
-          <input class="group-select" type="text" name="view_resourcebase" id="view_resourcebase_groups" />
+          <input class="form-control group-select" type="text" name="view_resourcebase" id="view_resourcebase_groups" />
         </label>
       </div>
       <div class="radio">
