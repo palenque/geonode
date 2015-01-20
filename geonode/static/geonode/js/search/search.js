@@ -164,11 +164,6 @@
           module.load_filter(filter, $http, $rootScope, $location);
       });
 
-    // activate the proper public/private filter
-    var is_public = $location.search.is_public;
-    if(!is_public) is_public = "";
-    $("#sort a[data-value='"+is_public+"']").addClass('selected');
-
 
     // Activate the type filters if in the url
     if($location.search().hasOwnProperty('type__in')){
@@ -297,6 +292,14 @@
     }
 
     $scope.$watch('query.is_public',function(){
+
+      if($("#sort a.selected").length == 0) {
+        // activate the proper public/private filter
+        var is_public = $location.search().is_public;
+        if(!is_public) is_public = "";
+        $("#sort a[data-value='"+is_public+"']").addClass('selected');
+      }
+
       module.load_filter('creators', $http, $scope, $location);
     }, true);
 
@@ -547,7 +550,7 @@
       */
 
       map.then(function(map){
-        
+
         if($scope.query.extent) {
           var p=$scope.query.extent.split(",");
           var bounds = L.latLngBounds(

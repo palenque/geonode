@@ -41,8 +41,7 @@
 	        var title = null;
 	        if(category) {
 	          var title = document.createElement('span');
-	          title.className = 'label label-primary';
-	          title.setAttribute("style","display:block");
+	          title.setAttribute("style","display:block; border-bottom: black solid 1px");
 
 	            var arrow = document.createElement('i');
 	            arrow.className = 'fa fa-chevron-right';

@@ -28,6 +28,9 @@ FILTER_TYPES = {
     'document': Document
 }
 
+def remove_internationalization_fields(bundle):
+    bundle.data = dict(filter(lambda (k,v):len(k)>3 and k[-3] != '_', bundle.data.items()))
+    return bundle
 
 class TypeFilteredResource(ModelResource):
 
@@ -37,6 +40,9 @@ class TypeFilteredResource(ModelResource):
     count = fields.IntegerField()
 
     type_filter = None
+
+    def dehydrate(self, bundle):
+        return remove_internationalization_fields(bundle)
 
     def dehydrate_count(self, bundle):
         raise Exception('dehydrate_count not implemented in the child class')

@@ -147,25 +147,20 @@
 
      {% include "base/resourcebase_links_panel.html" %}
 
+      {% block social_links %}
+        {% include "social_links.html" %}
+      {% endblock %}
+
       <article id="permissions" class="tab-pane">
         <div class="row">
           <div class="col-md-12">
-            {% if "change_resourcebase_permissions" in resource_perms %}
-            <li class="list-group-item">
-              <h4>{% trans "Permissions" %}</h4>
-              <p>{% trans "Click the button below to change the permissions of this table." %}</p>
-              <p><a href="#modal_perms" data-toggle="modal" class="btn btn-default btn-block" data-target="#_permissions">{% trans "Change Table Permissions" %}</a></p>
-            </li>
-            {% include "_permissions_form.html" %}
-            {% endif %}
-            
+            {% include 'base/_profile_list_item.html' %}        
           </div>
         </div>      
       </article>
 
-      {% block social_links %}
-        {% include "social_links.html" %}
-      {% endblock %}
+      {% include "_permissions_form.html" %}
+
         
       <article id="comments" class="tab-pane">
       {% include "_comments.html" %}
@@ -301,4 +296,25 @@
         {% endif %}
     </script>
     {% include "_permissions_form_js.html" %}
+
+  <script type="text/javascript">
+  
+    permissions = JSON.parse('{{permissions_json|safe}}');
+    users = [];
+    for(var i in permissions.users) {
+      if(permissions.users[i].indexOf("change_resourcebase_permissions")<0)
+        users.push(i);
+    }
+    for(var i in permissions.apps) {
+      users.push(i);
+    }
+
+
+    SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='profiles' %}'+ '?username__in='+ users.join(',');
+  </script>
+
+  {% with include_spatial='false' %}
+  {% include 'search/search_scripts.html' %}
+  {% endwith %}
+    
 {% endblock extra_script %}

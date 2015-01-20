@@ -1,0 +1,124 @@
+{% load i18n %}
+ {% load staticfiles %}
+
+<div class="tab-content paginate paginate-auto" id="search-content"
+  ng-init="url_profile = '{% url 'profile_browse' %}profile/'; 
+           url_app = '{% url 'app_list' %}'">
+
+
+  {% if resource.is_public %}
+
+  <div class="row">
+    <div class="col-md-offset-1">
+      <article>
+        <div class="col-md-1">
+          <img width="50px" class="img-thumbnail" ng-src="{% static 'geonode/img/world.png' %}"/>
+        </div>
+        <div class="col-md-4">
+          {% trans "This resource is public." %}<br/>
+          {% trans "Everybody can use it." %}
+        </div>
+      </article>
+    </div>
+  </div>
+
+  {% else %}
+
+  <div class="row" ng-if="results.length == 0">
+    <div class="col-md-offset-1">
+      <article>
+        <div class="col-md-1">
+          <i class="fa fa-2x fa-lock img-thumbnail"></i>
+        </div>
+        <div class="col-md-4">
+          {% trans "This resource is private." %}<br/>
+          {% trans "Only you can use it." %}
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <div class="row" ng-if="results.length > 0">
+    <h4>{% trans "Users" %}</h4>
+
+    <p class="col-md-offset-1" ng-if="(results|filter:{profile:'user'}).length == 0">
+      {% trans "This resource is not shared with any user" %}
+    </p>
+
+    {% verbatim %}
+    <div class="col-md-offset-1">
+      <article ng-repeat="profile in results | filter:{profile:'user'}">
+          <div class="col-md-2">
+            <a class="thumbnail" href="{{url_profile}}{{profile.username}}">
+              <img width="50px" ng-src="{{ profile.avatar_100 }}"/>
+              <small align="center" class="caption">{{ profile.username }}</small>
+            </a>
+          </div>
+      </article>
+    </div>
+    {% endverbatim %}
+
+  </div> 
+
+  <div class="row" ng-if="results.length > 0">
+    <h4>{% trans "Organizations" %}</h4> 
+
+    <p class="col-md-offset-1" ng-if="(results|filter:{profile:'organization'}).length == 0">
+      {% trans "This resource is not shared with any organization" %}
+    </p>
+
+    {% verbatim %}
+    <div class="col-md-offset-1">
+      <article ng-repeat="profile in results | filter:{profile:'organization'} ">
+          <div class="col-md-2">          
+            <a class="thumbnail" href="{{url_app}}{{profile.username}}">
+            <img width="50px" ng-src="{{ profile.avatar_100 }}"/>
+            <small align="center" class="caption">{{ profile.username }}
+            </small>
+            </a>
+          </div>
+      </article>
+    </div>
+    {% endverbatim %}
+  </div>   
+
+  <div class="row" ng-if="results.length > 0">
+    <h4>{% trans "Applications" %}</h4> 
+
+    <p class="col-md-offset-1" ng-if="(results|filter:{profile:'application'}).length == 0">
+      {% trans "This resource is not shared with any application" %}
+    </p>
+
+    {% verbatim %}
+    <div class="col-md-offset-1">
+      <article ng-repeat="profile in results | filter:{profile:'application'} ">
+          <div class="col-md-2">          
+            <a class="thumbnail" href="{{url_app}}{{profile.username}}">
+            <img width="50px" ng-src="{{ profile.avatar_100 }}"/>
+            <small align="center" class="caption">{{ profile.username }}
+            </small>
+            </a>
+          </div>
+      </article>
+    </div>
+    {% endverbatim %}
+  </div> 
+
+  {% endif %}
+
+  {% if GEONODE_SECURITY_ENABLED %}
+  {% if "change_resourcebase_permissions" in resource_perms %}
+
+  <div class="row">
+    <h4>{% trans "Advanced" %}</h4>
+    <div class="col-md-offset-1">
+      <p>{% trans "Click the button below to change the permissions of this layer." %}</p>
+      <p class="col-md-3"><a href="#modal_perms" data-toggle="modal" class="btn btn-default btn-block" data-target="#_permissions">{% trans "Change Permissions" %}</a></p>
+    </div>
+  </div>
+
+  {% endif %}
+  {% endif %}
+
+
+</div>

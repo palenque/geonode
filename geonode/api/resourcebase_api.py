@@ -42,7 +42,7 @@ from geonode.base.models import ResourceBase, TopicCategory, Link, InternalLink
 from .authorization import GeoNodeAuthorization, InternalLinkAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
-    FILTER_TYPES, AppResource
+    FILTER_TYPES, AppResource, remove_internationalization_fields
 
 from eav.forms import BaseDynamicEntityForm
 
@@ -121,13 +121,16 @@ class CommonModelApi(ModelResource):
     creator = fields.ToOneField(ProfileResource, 'creator', full=True, null=True)
     permission_class = fields.CharField(null=True)
 
+    def dehydrate(self, bundle):
+        bundle = super(CommonModelApi, self).dehydrate(bundle)
+        return remove_internationalization_fields(bundle)
+
     def dehydrate_permission_class(self, bundle):
         if bundle.obj.is_public():
             return "public"
         else:
             # TODO: shared missiong
             return "owned"
-
 
     def apply_post_query_filters(self, objects, bundle):
         if hasattr(self.Meta, 'post_query_filtering'):
@@ -807,6 +810,11 @@ class LayerResource(MultipartResource, CommonModelApi):
                 layer_form.save()
             else:
                 raise BadRequest('Error metadata: %s' % json.dumps(layer_form.errors))
+
+    def dehydate(self, bundle):
+        import ipdb; ipdb.set_trace()
+        bundle = super(CommonModelApi, self).dehydrate(bundle)
+        return remove_internationalization_fields(bundle)
 
     def obj_update(self, bundle, pk, **kwargs):
         '''Update metadata.
