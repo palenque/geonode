@@ -16,7 +16,10 @@
 
 {% block body_class %}data{% endblock %}
 
-{% block body_outer %}  
+{% block body_outer %} 
+ <div class="row">
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
 <form class="form-horizontal" action="{% url "tabular_metadata" document.id %}" method="POST">
     <legend>
       {% blocktrans with document.name_long as document_title %}
@@ -84,6 +87,10 @@
       <input type="submit" class="btn btn-primary" value="{% trans "Update" %}"/>
     </div>
   </form>
+    </div>
+    <div class="col-md-2"></div>
+</div>
+
 {% endblock %}
 {% block extra_script %}
 {% include 'metadata_form_js.html' %}

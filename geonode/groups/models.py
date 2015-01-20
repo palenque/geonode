@@ -28,10 +28,10 @@ class GroupProfile(models.Model):
                         'such as a mailing list, shared email, or exchange group.')
 
     group = models.OneToOneField(Group)
-    title = models.CharField(max_length=50)
-    slug = models.SlugField(unique=True)
-    logo = models.FileField(upload_to="people_group", blank=True)
-    description = models.TextField()
+    title = models.CharField(_('Title'), max_length=50)
+    slug = models.SlugField(_('Slug'), unique=True)
+    logo = models.FileField(_('Logo'), upload_to="people_group", blank=True)
+    description = models.TextField(_('Description'))
     email = models.EmailField(
         _('email'),
         null=True,
@@ -42,6 +42,7 @@ class GroupProfile(models.Model):
         help_text=_("A space or comma-separated list of keywords"),
         blank=True)
     access = models.CharField(
+        _('Access'),
         max_length=15,
         default="public'",
         choices=GROUP_CHOICES,

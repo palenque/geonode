@@ -259,9 +259,9 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
                                          ' dataset')
     # internal fields
     uuid = models.CharField(max_length=36)
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='owned_resource')
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Owner'), blank=True, null=True, related_name='owned_resource')
     
-    creator = models.ForeignKey(settings.AUTH_USER_MODEL, blank=True, null=True, related_name='created_resource')
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name=_('Creator'), blank=True, null=True, related_name='created_resource')
     
     contacts = models.ManyToManyField(settings.AUTH_USER_MODEL, through='ContactRole')
     title = models.CharField(_('title'), max_length=255, help_text=_('name by which the cited resource is known'))
@@ -285,7 +285,7 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
     constraints_other = models.TextField(_('restrictions other'), blank=True, null=True,
                                          help_text=constraints_other_help_text)
 
-    license = models.ForeignKey(License, null=True, blank=True,
+    license = models.ForeignKey(License, null=True, blank=True, verbose_name=_('License'),
                                 help_text=license_help_text)
     language = models.CharField(_('language'), max_length=3, choices=ALL_LANGUAGES, default='eng',
                                 help_text=language_help_text)
@@ -295,12 +295,13 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
 
     spatial_representation_type = models.ForeignKey(SpatialRepresentationType, null=True, blank=True,
                                                     limit_choices_to=Q(is_choice=True),
+                                                    verbose_name=_('Spatial Representation Type'),
                                                     help_text=spatial_representation_type_help_text)
 
     # Section 5
-    temporal_extent_start = models.DateField(_('temporal extent start'), blank=True, null=True,
+    temporal_extent_start = models.DateField(verbose_name=_('temporal extent start'), blank=True, null=True,
                                              help_text=temporal_extent_start_help_text)
-    temporal_extent_end = models.DateField(_('temporal extent end'), blank=True, null=True,
+    temporal_extent_end = models.DateField(verbose_name=_('temporal extent end'), blank=True, null=True,
                                            help_text=temporal_extent_end_help_text)
 
     supplemental_information = models.TextField(_('supplemental information'), default=DEFAULT_SUPPLEMENTAL_INFORMATION,
@@ -352,12 +353,12 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
     popular_count = models.IntegerField(default=0)
     share_count = models.IntegerField(default=0)
 
-    featured = models.BooleanField(default=False, help_text=_('Should this resource be advertised in home page?'))
+    featured = models.BooleanField(verbose_name=_('Featured'), default=False, help_text=_('Should this resource be advertised in home page?'))
 
     # fields necessary for the apis
-    thumbnail_url = models.CharField(max_length=255, null=True, blank=True)
-    detail_url = models.CharField(max_length=255, null=True, blank=True)
-    rating = models.IntegerField(default=0, null=True)
+    thumbnail_url = models.CharField(verbose_name=_('Thumbnail URL'), max_length=255, null=True, blank=True)
+    detail_url = models.CharField(verbose_name=_('Detail URL'), max_length=255, null=True, blank=True)
+    rating = models.IntegerField(verbose_name=_('Rating'), default=0, null=True)
 
     def transfer_owner(self, user, app):
         '''Replaces the owner of this resource.

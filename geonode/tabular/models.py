@@ -207,7 +207,7 @@ class Tabular(ResourceBase):
     quoting = models.CharField(max_length=10, blank=True, null=True)
     doblequote = models.CharField(max_length=10, blank=True, null=True)
     escapechar = models.CharField(max_length=10, blank=True, null=True)
-    charset = models.CharField(max_length=128, blank=True, null=True)
+    charset = models.CharField(verbose_name=_('Charset'), max_length=128, blank=True, null=True)
 
     # Relation to the resource model
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
