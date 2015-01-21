@@ -29,7 +29,7 @@ FILTER_TYPES = {
 }
 
 def remove_internationalization_fields(bundle):
-    bundle.data = dict(filter(lambda (k,v):len(k)>3 and k[-3] != '_', bundle.data.items()))
+    bundle.data = dict(filter(lambda (k,v):len(k)<3 or k[-3] != '_', bundle.data.items()))
     return bundle
 
 class TypeFilteredResource(ModelResource):
