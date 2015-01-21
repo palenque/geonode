@@ -262,7 +262,16 @@
         </ul>
       </li>
 
+      {% comment %}
       {% include "base/_resourcebase_contact_snippet.html" %}
+      {% endcomment %}
+
+      <li class="list-group-item">
+        <h4>{% trans "Creator" %}</h4>
+        {% with resource.creator as profile %}
+          {% include "people/_profile_about_item.html" %}
+        {% endwith %}
+      </li>
 
     </ul>
   </div>
@@ -299,6 +308,11 @@
 
   <script type="text/javascript">
   
+    layer_id = {{resource.id}};
+    permissions = JSON.parse('{{permissions_json|safe}}');
+    owner = '{{resource.owner.username}}';
+    creator = '{{resource.creator.username}}';
+
     permissions = JSON.parse('{{permissions_json|safe}}');
     users = [];
     for(var i in permissions.users) {
@@ -316,5 +330,5 @@
   {% with include_spatial='false' %}
   {% include 'search/search_scripts.html' %}
   {% endwith %}
-    
+
 {% endblock extra_script %}

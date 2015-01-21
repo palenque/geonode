@@ -682,8 +682,13 @@ class LayerResource(MultipartResource, CommonModelApi):
 
     layer_type = fields.ForeignKey(LayerTypeResource, 'layer_type', full=True)
     links = fields.ToManyField(LinkResource, 'link_set', full=True)
+    internal_links = fields.ToManyField(
+        'geonode.api.resourcebase_api.InternalLinkResource','internal_links', null=True, full=True)
 
     class Meta(CommonMetaApi):
+        authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
+        authorization = GeoNodeAuthorization()
+
         queryset = Layer.objects.all().distinct().order_by('-date')
         resource_name = 'layers'
         excludes = ['csw_anytext', 'metadata_xml', 'layer_type']
@@ -703,7 +708,6 @@ class LayerResource(MultipartResource, CommonModelApi):
         }
 
     def _set_default_metadata(self, bundle, layer, update=False):
-
         now = dt.datetime.now()
 
         bundle.request.POST['charset'] = bundle.request.POST.get(
@@ -747,7 +751,6 @@ class LayerResource(MultipartResource, CommonModelApi):
             raise BadRequest('Error metadata: %s' % json.dumps(form.errors))
 
     def _create_layer(self, bundle):
-
         try:
             layer_type = LayerType.objects.get(
                 name=bundle.request.POST.get('layer_type', 'default')
@@ -812,7 +815,6 @@ class LayerResource(MultipartResource, CommonModelApi):
                 raise BadRequest('Error metadata: %s' % json.dumps(layer_form.errors))
 
     def dehydate(self, bundle):
-        import ipdb; ipdb.set_trace()
         bundle = super(CommonModelApi, self).dehydrate(bundle)
         return remove_internationalization_fields(bundle)
 
@@ -1051,7 +1053,7 @@ class TabularResource(MultipartResource, CommonModelApi):
         <QueryDict: {u'resource': [u''], u'title': [u'C:\\fakepath\\Allianz-Visbroker.xls'], 
         u'charset': [u''], u'delimiter': [u''], u'tabular_type': [u''], u'quotechar': [u''], 
         u'csrfmiddlewaretoken': [u'2EozhP87wSPOFFSAF475O86O77oe1Ozn'], u'doc_url': [u''], 
-        u'has_header': [u'on'], u'permissions': [u'{"users":{},"groups":{},"apps":{}}']}>
+        u'has_header': [u'on'], u'permissions': [u'{"users":{},"groups":{}}']}>
         
         <MultiValueDict: {u'doc_file': [<InMemoryUploadedFile: Allianz-Visbroker.xls (application/vnd.ms-excel)>]}>
 
@@ -1066,7 +1068,7 @@ class TabularResource(MultipartResource, CommonModelApi):
         -F delimiter='' 
         -F quotechar='' 
         -F has_header='true' 
-        -F permissions='{"users":{},"groups":{},"apps":{}}'   
+        -F permissions='{"users":{},"groups":{}}'   
         'http://localhost:8000/api/tabular/?username=admin&api_key=1e7ee138294d929505aa0057ac243daaf374ee38'
 
         Ejemplo ppciones de permisos:
@@ -1110,3 +1112,4 @@ class InternalLinkResource(ModelResource):
 
     source = fields.ToOneField(ResourceBaseResource, 'source')
     target = fields.ToOneField(ResourceBaseResource, 'target')
+

@@ -373,6 +373,8 @@
 
 {% block extra_script %}
 
+{{block.super}}
+
     {% if GEOGIT_ENABLED and resource.link_set.geogit %}
         {% with "_geogit_scripts.html" as geogit_scripts_template %}
             {% include  geogit_scripts_template %}
@@ -424,8 +426,12 @@
     {% endif %}
 
   <script type="text/javascript">
-  
+
+  layer_id = {{resource.id}};
   permissions = JSON.parse('{{permissions_json|safe}}');
+  owner = '{{resource.owner.username}}';
+  creator = '{{resource.creator.username}}';
+
   users = [];
   for(var i in permissions.users) {
     if(permissions.users[i].indexOf("change_resourcebase_permissions")<0)
@@ -434,7 +440,6 @@
   for(var i in permissions.apps) {
     users.push(i);
   }
-
 
   SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='profiles' %}'+ '?username__in='+ users.join(',');
   </script>
