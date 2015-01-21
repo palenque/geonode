@@ -1,3 +1,5 @@
+# -*-encoding:utf8
+
 import cherrypy
 import os
 import simplejson
@@ -9,14 +11,22 @@ import subprocess
 
 class YieldMonitorProcessing(object):
     lookup = TemplateLookup(directories=[os.path.join(os.path.dirname(__file__),'templates')])
-    palenque_api_url = 'http://localhost:8000/api'
+    palenque_url = 'http://localhost:8000'
+    palenque_api_url = palenque_url + '/api'
     username = 'yieldmonproc'
     api_key = 'bd51709e7c2a867e6debb058fbc99e321253e02e'
 
     @cherrypy.expose
     def index(self):
+        resp = requests.get('%s/layers/resolve_user' % self.palenque_url,
+            cookies = dict([(k,v.value) for k,v in cherrypy.request.cookie.items()]))
+
+        user = ''
+        if resp.ok:
+            user = simplejson.loads(resp.text).get('user','')
+        
         templ = self.lookup.get_template('index.html')
-        return templ.render()
+        return templ.render(username=user)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -31,22 +41,17 @@ class YieldMonitorProcessing(object):
         if not resp.ok:
             ans = dict(status='error', message=resp.text)
             return ans
+        
         data = simplejson.loads(resp.text)
         
-        resp = requests.get('%s/internal_links/' % self.palenque_api_url,
-            params=dict(resource__owner__username=username, name='rasterized', api_key=self.api_key, username=self.username))
-        if not resp.ok:
-            ans = dict(status='error', message=resp.text)
-            return ans
-        data2 = simplejson.loads(resp.text)
-
         objs = []
         for obj in data['objects']:
             objs.append(dict(
-                id=obj['id'],
+                uri=obj['resource_uri'],
                 product=obj['supplemental_information'], #category_description'],
+                abstract='Rasterización a partir del campo masa_humedo',
                 date=obj['date'],
-                processed=any(x for x in data2['objects'] if x['source'] == '/api/base/%s/' % obj['id']),
+                processed=any(x for x in obj['internal_links_forward'] if x['name'] == 'rasterized'),
                 title=obj['title']))
         ans=dict(status='ok',objects=objs)
         return ans
@@ -67,11 +72,10 @@ class YieldMonitorProcessing(object):
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
-    def process(self, username, layer_id):
-        import ipdb; ipdb.set_trace()
+    def process(self, username, resource_uri):
         # get original layer data
-        resp = requests.get('%s/layers/%s' % (self.palenque_api_url,layer_id),
-            params={'owner__username':username, 'api_key':self.api_key, 'username':self.username})
+        resp = requests.get(urllib.basejoin(self.palenque_api_url,resource_uri),
+            params={'username':self.username, 'api_key':self.api_key})
         if not resp.ok:
             ans = dict(status='error', code=resp.status_code, message=resp.text or resp.reason)
             return ans
@@ -94,12 +98,14 @@ class YieldMonitorProcessing(object):
             ans = dict(status='error', message=resp.text)
             return ans
 
-        url = resp.headers['location']
-        new_layer_id = url.split('/')[-2]
+        new_layer_id = urlparse.urlparse(resp.headers['location']).path
 
         # link new layer
         url = '%s/internal_links/' % self.palenque_api_url
-        data = {'name': 'rasterized', 'source': '/api/base/%s/' % layer['id'], 'target': '/api/base/%s/' % new_layer_id}
+        data = {
+            'name': 'rasterized', 
+            'source': layer['resource_uri'], 
+            'target': new_layer_id}
         headers['Content-Type'] = 'application/json'
         resp = requests.post(url, headers=headers, params=params, data=simplejson.dumps(data))
         if not resp.ok:

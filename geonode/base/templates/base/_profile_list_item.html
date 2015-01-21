@@ -49,7 +49,7 @@
 
     <p class="col-md-offset-0" ng-if="(profile_list|filter:{profile:'user'}).length == 0">
       {% trans "This resource is not shared with any user" %}
-      <br/><i class="fa fa-4x fa-plus-circle" style="color:black"></i>
+      <br/><i class="fa fa-4x fa-plus-square" style="color:green"></i>
     </p>
 
     {% verbatim %}
@@ -61,16 +61,13 @@
 
               <i ng-if="!disabled_user(profile.username)" style="color:black" class="fa fa-times-circle fa-2x"></i>
               
-              <i ng-if="disabled_user(profile.username)" style="color:black" class="fa fa-plus-circle fa-2x"></i>
+              <i ng-if="disabled_user(profile.username)" style="color:green" class="fa fa-plus-circle fa-2x"></i>
             </a>
 
 
             <a class="thumbnail" href="{{url_app}}{{profile.username}}" ng-style="disabled_user(profile.username)? {'background-color':'rgba(0,0,0,0.4)'} : {}">
               <img width="50px" ng-src="{{ profile.avatar_100 }}"/>
               <small align="center" class="caption">{{ profile.username }}</small>
-
-              <i ng-if="disabled_user(profile.username)" class="fa fa-4x fa-times" style="color:black; position:absolute; top:25px; left:35px"></i>
-          
             </a>
           </div>
 
@@ -78,7 +75,7 @@
 
       <article>
           <div class="col-md-2" style="position:relative; top:40px">
-              <i class="fa fa-4x fa-plus-circle" style="color:black"></i>      
+              <i class="fa fa-4x fa-plus-square" style="color:green"></i>      
           </div>
       </article>
 
@@ -92,7 +89,7 @@
     <p class="col-md-offset-0" ng-if="(profile_list|filter:{profile:'organization'}).length == 0">
       {% trans "This resource is not shared with any organization" %}
       <br/>
-      <i class="fa fa-4x fa-plus-circle" style="color:black"></i>
+      <i class="fa fa-4x fa-plus-square" style="color:green"></i>
     </p>
 
 
@@ -118,7 +115,7 @@
     </p>
 
     {% verbatim %}
-    <div class="col-md-offset-0" ng-if="(profile_list | filter:{profile:'user'}).length > 0">
+    <div class="col-md-offset-0" ng-if="(profile_list | filter:{profile:'application'}).length > 0">
       <article ng-repeat="profile in profile_list | filter:{profile:'application'} ">
           <div class="col-md-2">
 
@@ -126,16 +123,12 @@
 
               <i ng-if="!disabled_user(profile.username)" style="color:black" class="fa fa-times-circle fa-2x"></i>
               
-              <i ng-if="disabled_user(profile.username)" style="color:black" class="fa fa-plus-circle fa-2x"></i>
+              <i ng-if="disabled_user(profile.username)" style="color:green" class="fa fa-plus-circle fa-2x"></i>
             </a>
-
 
             <a class="thumbnail" href="{{url_app}}{{profile.username}}" ng-style="disabled_user(profile.username)? {'background-color':'rgba(0,0,0,0.4)'} : {}">
               <img width="50px" ng-src="{{ profile.avatar_100 }}"/>
-              <small align="center" class="caption">{{ profile.username }}</small>
-
-              <i ng-if="disabled_user(profile.username)" class="fa fa-4x fa-times" style="color:black; position:absolute; top:25px; left:35px"></i>
-          
+              <small align="center" class="caption">{{ profile.username }}</small>          
             </a>
           </div>
 

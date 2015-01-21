@@ -4,7 +4,7 @@
 
 <article id="links" class="tab-pane">
 
-  {% if resource.internal_links_forward_set.all.count == 0 %}
+  {% if resource.internal_links_forward_set.all.count == 0 and resource.internal_links_backward_set.all.count == 0 %}
     <div class="col-md-offset-1">
       {% trans "This resource is not linked to any other resource" %}
     </div>

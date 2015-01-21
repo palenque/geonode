@@ -682,8 +682,11 @@ class LayerResource(MultipartResource, CommonModelApi):
 
     layer_type = fields.ForeignKey(LayerTypeResource, 'layer_type', full=True)
     links = fields.ToManyField(LinkResource, 'link_set', full=True)
-    internal_links = fields.ToManyField(
-        'geonode.api.resourcebase_api.InternalLinkResource','internal_links', null=True, full=True)
+    internal_links_forward = fields.ToManyField(
+        'geonode.api.resourcebase_api.InternalLinkResource','internal_links_forward_set', null=True, full=True)
+
+    internal_links_backward = fields.ToManyField(
+        'geonode.api.resourcebase_api.InternalLinkResource','internal_links_backward_set', null=True, full=True)
 
     class Meta(CommonMetaApi):
         authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
