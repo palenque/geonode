@@ -41,6 +41,14 @@
       <p>{{ description|safe }}</p>
     </article>
 
+
+    <article id="comments" class="tab-pane">
+      {% with object as resource %}
+        {% include "_comments.html" %}
+      {% endwith %}
+    </article>
+
+
     {% if is_member %}
 
     <article id="resources" class="tab-pane">
