@@ -27,7 +27,8 @@
   KEYWORDS_ENDPOINT = '{% url 'api_dispatch_list' api_name='api' resource_name='keywords' %}';
   PRIVATE_CREATORS_ENDPOINT = '{% url 'api_dispatch_list' api_name='api' resource_name='profiles' %}?created_resource__owner__username={{request.user}}';
   PUBLIC_CREATORS_ENDPOINT = '{% url 'api_dispatch_list' api_name='api' resource_name='profiles' %}?profile=organization';
-
+  EAV_ENDPOINT = '{% url 'api_dispatch_list' api_name='api' resource_name='eav_attributes' %}';
+  
   HAYSTACK_SEARCH = "{{ HAYSTACK_SEARCH }}".toLowerCase() === "true";
   HAYSTACK_FACET_COUNTS = "{{ HAYSTACK_FACET_COUNTS }}".toLowerCase() === "true";
   CLIENT_RESULTS_LIMIT = {{ CLIENT_RESULTS_LIMIT }};

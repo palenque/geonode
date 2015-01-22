@@ -1,0 +1,29 @@
+{% load i18n %}
+
+<nav class="filter">
+  <h4><a href="#" class="toggle toggle-nav" ng-click="toggle_nav($event)"><i class="fa fa-chevron-right"></i>{% trans "Field" %}</a></h4>
+  <ul class="nav closed eav-filter" id="fields" data-eav-attribute="lote">
+    {% verbatim %}
+      <li ng-repeat="val in eav_lote">
+        <a data-value="{{ val.value_text }}" data-filter="eav_lote__in" 
+         ng-click="multiple_choice_listener($event)" class="{{val.active}}">{{ val.value_text }}
+          <span class="badge pull-right">0</span>
+        </a>
+      </li>
+    {% endverbatim %}
+  </ul>
+</nav>
+
+<nav class="filter">
+  <h4><a href="#" class="toggle toggle-nav" ng-click="toggle_nav($event)"><i class="fa fa-chevron-right"></i>{% trans "Campaign" %}</a></h4>
+  <ul class="nav closed eav-filter" id="campaigns" data-eav-attribute="campana">
+    {% verbatim %}
+      <li ng-repeat="val in eav_campana">
+        <a data-value="{{ val.value_text }}" data-filter="eav_campana__in" 
+         ng-click="multiple_choice_listener($event)" class="{{val.active}}">{{ val.value_text }}
+          <span class="badge pull-right">0</span>
+        </a>
+      </li>
+    {% endverbatim %}
+  </ul>
+</nav>
