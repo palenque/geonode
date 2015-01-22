@@ -78,23 +78,30 @@ class MultipartResource(object):
         return super(MultipartResource, self).deserialize(request, data, format)
 
 
-class CommonMetaApi:
-    # doc
-    extra_actions = [
-        {
-            "name": "search",
-            "http_method": "GET",
-            "resource_type": "list",
-            "description": "Seach endpoint",
-            "fields": {
-                "q": {
-                    "type": "string",
-                    "required": True,
-                    "description": "Search query terms"
-                }
-            }
+extra_actions = [
+    {
+        "name": 'transfer_owner',
+        "http_method": "POST",
+        "resource_type": "",
+        "summary": "Transfer ownership to another user",
+        "fields": {
+            "new_owner": {
+                "type": "integer",
+                "required": True,
+                "description": "new owner id"
+            },
+            "app_id": {
+                "type": "integer",
+                "required": True,
+                "description": "app that generated the resource"
+            }                
         }
-    ]
+    }
+]
+
+
+class CommonMetaApi:
+    extra_actions = extra_actions
     authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
     authorization = GeoNodeAuthorization()
     allowed_methods = ['get']
@@ -689,6 +696,81 @@ class LayerResource(MultipartResource, CommonModelApi):
         'geonode.api.resourcebase_api.InternalLinkResource','internal_links_backward_set', null=True, full=True)
 
     class Meta(CommonMetaApi):
+
+        extra_actions = extra_actions + [
+            {
+                "name": '',
+                "http_method": "POST",
+                "resource_type": "list",
+                "summary": "Create a new layer",
+                "fields": {
+                    "base_file": {
+                        "type": "file",
+                        "required": True,
+                        "description": ".shp file"
+                    },                
+                    "shx_file": {
+                        "type": "file",
+                        "required": True,
+                        "description": ".shx file"
+                    },                    
+                    "dbf_file": {
+                        "type": "file",
+                        "required": True,
+                        "description": ".dbf file"
+                    },                    
+                    "prj_file": {
+                        "type": "file",
+                        "required": True,
+                        "description": ".prj file"
+                    },     
+                    "attributes": {
+                        "type": "string",
+                        "required": True,
+                        "description": """Define if table has header. Omite if not has header."""
+                    },                                                                           
+                    "layer_type": {
+                        "type": "string",
+                        "required": False,
+                        "description": "Layer type"
+                    },                    
+                    "layer_title": {
+                        "type": "string",
+                        "required": True,
+                        "description": "Title"
+                    },
+                    "charset": {
+                        "type": "string",
+                        "required": False,
+                        "description": "Charset. Ex: UTF8"
+                    },
+                    "metadata": {
+                        "type": "string",
+                        "required": True,
+                        "description": """Metadata json. Ex: '{"campana": "xxx", "lote": "111", "producto": "Soja"}'"""
+                    },                    
+                    "permissions": {
+                        "type": "string",
+                        "required": False,
+                        "description": """Permissions. Ex: '[
+                        {"attribute": "MASA_1", "mapping": "MASA_HUMEDO", "magnitude": "kg"}, 
+                        {"attribute":"MASA_2", "mapping": "MASA_SECO", "magnitude": "kg"}]'
+                        """
+                    },
+                    "abstract": {
+                        "type": "string",
+                        "required": False,
+                        "description": "Abstract"
+                    },
+                    "keywords": {
+                        "type": "string",
+                        "required": False,
+                        "description": """Keywords json list. Ex: {"users":{},"groups":{}}"""
+                    }
+                }
+            }
+        ]        
+
         authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
         authorization = GeoNodeAuthorization()
 
@@ -931,6 +1013,7 @@ class TabularAttributeResource(ModelResource):
     tabular = fields.ToOneField('geonode.api.resourcebase_api.TabularResource', 'tabular')
 
     class Meta(CommonMetaApi):
+        extra_actions = []
         resource_name = 'tabular_attributes'
         queryset = TabularAttribute.objects.all()
         fields = ['attribute', 'attribute_label', 'description']
@@ -946,7 +1029,105 @@ class TabularResource(MultipartResource, CommonModelApi):
     tabular_type = fields.ForeignKey(TabularTypeResource, 'tabular_type', full=True, null=True)
     attributes = fields.ToManyField(TabularAttributeResource, 'tabular_attribute_set', full=True)
 
+    # def build_schema(self): 
+    #     schema = super(ModelResource, self).build_schema() 
+    #     schema["fields"]["foo"] = {"blank": False, 
+    #                                         "default": "No default provided.", 
+    #                                         "help_text": "Integer data. Ex: 2673", 
+    #                                         "nullable": False, 
+    #                                         "readonly": False, 
+    #                                         "type": "integer", 
+    #                                         "unique": True 
+    #                                         } 
+    #     return schema
+
     class Meta(CommonMetaApi):
+        extra_actions = extra_actions + [
+            {
+                "name": '',
+                "http_method": "POST",
+                "resource_type": "list",
+                "summary": "Create a new table",
+                "fields": {
+                    "doc_file": {
+                        "type": "file",
+                        "required": True,
+                        "description": "Table to append"
+                    },                
+                    "title": {
+                        "type": "string",
+                        "required": True,
+                        "description": "Title"
+                    },
+                    "permissions": {
+                        "type": "string",
+                        "required": True,
+                        "description": """Permissions. Ex: '{"users":{},"groups":{},"apps":{}}'"""
+                    },
+                    "charset": {
+                        "type": "string",
+                        "required": False,
+                        "description": "Charset"
+                    },
+                    "tabular_type": {
+                        "type": "string",
+                        "required": False,
+                        "description": "Table type"
+                    },                    
+                    "delimiter": {
+                        "type": "string",
+                        "required": False,
+                        "description": "Column table delimiter"
+                    },
+                    "quotechar": {
+                        "type": "string",
+                        "required": False,
+                        "description": "quoting"
+                    },
+                    "has_header": {
+                        "type": "string",
+                        "required": False,
+                        "description": "Define if table has header. Omite if not has header."
+                    }
+                }
+            },                
+            {
+                "name": 'append',
+                "http_method": "POST",
+                "resource_type": "",
+                "summary": "Append data to this table",
+                "fields": {
+                    "doc_file": {
+                        "type": "file",
+                        "required": True,
+                        "description": "Table to append"
+                    }
+                }
+            },        
+            {
+                "name": "sql",
+                "http_method": "GET",
+                "resource_type": "",
+                "summary": "Search in a SQL way",
+                "fields": {
+                    "q": {
+                        "type": "string",
+                        "required": False,
+                        "description": "SQL query"
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "required": False,
+                        "description": "Limit"
+                    },
+                    "offset": {
+                        "type": "integer",
+                        "required": False,
+                        "description": "Offset"
+                    }
+                }
+            }
+        ]
         filtering = {
             'title': ALL,
             'keywords': ALL_WITH_RELATIONS,
@@ -959,7 +1140,7 @@ class TabularResource(MultipartResource, CommonModelApi):
             }
         queryset = Tabular.objects.distinct().order_by('-date')
         resource_name = 'tabular'
-        allowed_methods = ['get','post', 'put']
+        allowed_methods = ['get','post']
         post_query_filtering = {
             'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
         }
@@ -987,6 +1168,8 @@ class TabularResource(MultipartResource, CommonModelApi):
 
     def append(self, request, resource_id, **kwargs):
         '''
+        Append a table to an existing table
+
         curl 
         --dump-header - 
         -F doc_file=@Allianz-Visbroker.xls   
@@ -1071,10 +1254,11 @@ class TabularResource(MultipartResource, CommonModelApi):
         -F delimiter='' 
         -F quotechar='' 
         -F has_header='true' 
-        -F permissions='{"users":{},"groups":{}}'   
+        -F tabular_type='' 
+        -F permissions='{"users":{},"groups":{},"apps":{}}'   
         'http://localhost:8000/api/tabular/?username=admin&api_key=1e7ee138294d929505aa0057ac243daaf374ee38'
 
-        Ejemplo ppciones de permisos:
+        Ejemplo opciones de permisos:
         
         {
             "users":{"AnonymousUser":["view_resourcebase"], "tinkamako":["change_resourcebase"] }, 
@@ -1084,7 +1268,7 @@ class TabularResource(MultipartResource, CommonModelApi):
 
 
         """
-        
+
         form = DocumentCreateForm(bundle.request.POST, bundle.request.FILES)
         if form.is_valid():
             obj = form.save(commit=False)
