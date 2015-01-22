@@ -19,7 +19,7 @@ from geonode.apps.models import App
 from taggit.models import Tag
 
 from tastypie import fields
-from tastypie.resources import ModelResource
+from tastypie.resources import ModelResource, Resource
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.utils import trailing_slash
 
@@ -367,35 +367,28 @@ class TabularTypeResource(TypeFilteredResource):
             'name': ALL,
         }
 
-class EavValueResource(TypeFilteredResource):
-
-    class Meta:
-        queryset = eav.models.Value.objects.all()
-        resource_name = 'eav_values'
-        allowed_methods = ['get']
-        filtering = {
-            'value_text': ALL
-        }
-
-    def dehydrate_count(self, bundle):
-        attr = bundle.obj.attribute.slug
-        val = bundle.obj.value_text
-        resources = get_objects_for_user(
-            bundle.request.user,
-            'base.view_resourcebase')
-
-        return len(filter(lambda res: \
-            (hasattr(res,'layer') and hasattr(res.layer.eav,attr) and getattr(res.layer.eav,attr) == val) or \
-            (hasattr(res,'tabular') and hasattr(res.tabular.eav,attr) and getattr(res.tabular.eav,attr) == val), resources))
-
 
 class EavAttributeResource(ModelResource):
 
-    values = fields.ToManyField(EavValueResource, 'value_set', full=True, null=True)
+    values = fields.DictField()
+
     class Meta:
         queryset = eav.models.Attribute.objects.all()
         resource_name = 'eav_attributes'
         filtering = {
             'slug': ALL,
         }
+
+    def dehydrate_values(self, bundle):
+        attr = bundle.obj.slug
+        resources = get_objects_for_user(
+            bundle.request.user,
+            'base.view_resourcebase')
+
+        values = eav.models.Value.objects.filter(attribute=bundle.obj).values('value_text').distinct()
+        for val in values:
+            if val['value_text'] is not None: val['value_text'] = val['value_text'].encode('utf8')
+            val['count'] = len([res for res in resources if 
+                hasattr(res,'layer') and hasattr(res.layer.eav,attr) and getattr(res.layer.eav,attr) == val['value_text']])
+        return list(values)
 
