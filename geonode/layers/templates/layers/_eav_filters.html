@@ -7,7 +7,7 @@
       <li ng-repeat="val in eav_lote">
         <a data-value="{{ val.value_text }}" data-filter="eav_lote__in" 
          ng-click="multiple_choice_listener($event)" class="{{val.active}}">{{ val.value_text }}
-          <span class="badge pull-right">0</span>
+          <span class="badge pull-right">{{val.count}}</span>
         </a>
       </li>
     {% endverbatim %}
@@ -21,7 +21,7 @@
       <li ng-repeat="val in eav_campana">
         <a data-value="{{ val.value_text }}" data-filter="eav_campana__in" 
          ng-click="multiple_choice_listener($event)" class="{{val.active}}">{{ val.value_text }}
-          <span class="badge pull-right">0</span>
+          <span class="badge pull-right">{{val.count}}</span>
         </a>
       </li>
     {% endverbatim %}

@@ -367,7 +367,7 @@ class TabularTypeResource(TypeFilteredResource):
             'name': ALL,
         }
 
-class EavValueResource(ModelResource):
+class EavValueResource(TypeFilteredResource):
 
     class Meta:
         queryset = eav.models.Value.objects.all()
@@ -376,6 +376,17 @@ class EavValueResource(ModelResource):
         filtering = {
             'value_text': ALL
         }
+
+    def dehydrate_count(self, bundle):
+        attr = bundle.obj.attribute.slug
+        val = bundle.obj.value_text
+        resources = get_objects_for_user(
+            bundle.request.user,
+            'base.view_resourcebase')
+
+        return len(filter(lambda res: \
+            (hasattr(res,'layer') and hasattr(res.layer.eav,attr) and getattr(res.layer.eav,attr) == val) or \
+            (hasattr(res,'tabular') and hasattr(res.tabular.eav,attr) and getattr(res.tabular.eav,attr) == val), resources))
 
 
 class EavAttributeResource(ModelResource):
@@ -387,6 +398,4 @@ class EavAttributeResource(ModelResource):
         filtering = {
             'slug': ALL,
         }
-
-
 
