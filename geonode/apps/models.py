@@ -169,7 +169,6 @@ class App(models.Model):
 
     def set_free_resources(self, user):
         ''
-
         manager = self.get_managers()[0]
         for resource in self.resources_by_user(user):
             remove_perm('view_resourcebase', manager, resource)

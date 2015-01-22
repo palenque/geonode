@@ -96,6 +96,8 @@ class LayerForm(TranslationModelForm):
         level_indicator=u'___')
     regions.widget.attrs = {"size": 20}
 
+    owner = forms.CharField(required=False)
+
     class Meta:
         model = Layer
         exclude = (
@@ -132,6 +134,7 @@ class LayerForm(TranslationModelForm):
             'styles')
         widgets = autocomplete_light.get_widgets_dict(Layer)
 
+
     def __init__(self, *args, **kwargs):
         super(LayerForm, self).__init__(*args, **kwargs)
         for field in self.fields:
@@ -145,6 +148,12 @@ class LayerForm(TranslationModelForm):
                         'data-placement': 'right',
                         'data-container': 'body',
                         'data-html': 'true'})
+
+    def clean_owner(self):
+        if len(self.cleaned_data['owner']) > 0:
+            return Profile.objects.get(username=self.cleaned_data['owner'])
+        else:
+            return self.cleaned_data['owner']
 
 
 class LayerUploadForm(forms.Form):

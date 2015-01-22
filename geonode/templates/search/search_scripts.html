@@ -17,6 +17,7 @@
 <script src="{{ STATIC_URL }}geonode/js/search/explore.js"></script>
 <script src="{{ STATIC_URL }}geonode/js/search/search.js"></script>
 <script src="{{ STATIC_URL }}geonode/js/map/map.js"></script>
+<script src="{{ STATIC_URL }}geonode/js/base/profile_list.js"></script>
 
 <script type="text/javascript">
   $("body").attr('ng-controller', 'MainController');
@@ -37,7 +38,7 @@
     url: SEARCH_URL
   });
 
-  var deps = ['search','map'];
+  var deps = ['search','map','profile_list'];
   {% if include_spatial == 'true' %}
   deps.push('leaflet-directive');
   {% endif %}

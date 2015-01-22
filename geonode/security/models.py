@@ -24,7 +24,7 @@ from django.contrib.auth import login
 from django.contrib.auth.models import Group
 
 from geonode.people.enumerations import ROLE_VALUES, PROFILE
-
+from geonode.apps.models import App
 from guardian.shortcuts import assign_perm, remove_perm, \
     get_groups_with_perms, get_users_with_perms
 
@@ -53,7 +53,7 @@ class PermissionLevelMixin(object):
 
     def get_all_level_info(self):
         resource = self.get_self_resource()
-        info = {'users': {}, 'groups': {}, 'apps': {}}
+        info = {'users': {}, 'groups': {}}
 
         users = get_users_with_perms(
                     resource, 
@@ -64,12 +64,24 @@ class PermissionLevelMixin(object):
                     resource,
                     attach_perms=True)
 
-        for user,perms in users.items():
-            if user.profile == 'application': info['apps'][user] = perms
-            else: info['users'][user] = perms
+        # add the creator even if they have no permissions
+        if self.creator not in users: users[self.creator] = []
 
+        # add the applications that needs this resource
+        # even if they have no permissions
+        typ = None
+        if hasattr(self, 'layer') and self.layer.layer_type is not None:
+            typ = self.layer.layer_type.name
+        elif hasattr(self, 'tabular') and self.tabular.tabular_type is not None:
+            typ = self.tabular.tabular_type.name
+
+        if typ is not None:
+            for app in App.objects.filter(keywords__name=typ):
+                ego = app.get_alter_ego()
+                if ego is not None and ego not in users: users[ego] = []
+
+        info['users'] = users
         info['groups'] = groups
-
 
         return info
 
@@ -103,6 +115,8 @@ class PermissionLevelMixin(object):
 
         for perm in ADMIN_PERMISSIONS:
             assign_perm(perm, self.owner, self.get_self_resource())
+            if self.creator != self.owner:
+                assign_perm(perm, self.creator, self.get_self_resource())
 
     def set_permissions(self, perm_spec):
         """
@@ -141,8 +155,6 @@ class PermissionLevelMixin(object):
             if 'view_resourcebase' not in perm_spec['users']['AnonymousUser']:
                 perm_spec['users']['AnonymousUser'].append('view_resourcebase')
 
-
-        perm_spec['users'].update(perm_spec.get('apps',{}))
 
         if 'users' in perm_spec and "AnonymousUser" in perm_spec['users']:
             anonymous_group = Group.objects.get(name='anonymous')

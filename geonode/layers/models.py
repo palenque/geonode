@@ -861,8 +861,8 @@ def share(instance, created=False, update_fields=None, **kwargs):
             if instance.layer_type and instance.layer_type.name.lower() in app.keyword_list():
                 if not alter_ego.has_perm('view_resourcebase', resource):
                     assign_perm('view_resourcebase', alter_ego, resource)
-            else:
-                remove_perm('view_resourcebase', alter_ego, resource)
+            #else:
+            #    remove_perm('view_resourcebase', alter_ego, resource)
 
 
 def unshare(instance, **kwargs):

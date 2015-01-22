@@ -10,7 +10,11 @@
         <p class="abstract">{{ item.abstract|limitTo:250 }}</p>
         <p class="actions">
           <span>
-            <i class="fa fa-user"></i>{{ item.creator.username }}</span>
+            <i ng-if="item.creator.profile == 'user'" class="fa fa-user"></i>
+            <i ng-if="item.creator.profile == 'application'" class="fa fa-cubes"></i>
+            <i ng-if="item.creator.profile == 'organization'" class="fa fa-bank"></i>
+            {{ item.creator.username }}
+          </span>
           <br/>
           <span><i class="fa fa-calendar-o"></i>{{ item.date|date:'d MMM y' }}</span> 
           <!--

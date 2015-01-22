@@ -4,8 +4,7 @@
   function permissionsString(form, type) {
     var permissions = {
       'users': {},
-      'groups': {},
-      'apps': {}
+      'groups': {}
     }
     if (typeof form === 'string'){
       form = $(form);
@@ -50,10 +49,10 @@
       if(data[perm][2] && data[perm][2] !== ''){
         for (var i=0;i<data[perm][2].split(',').length;i++){
           var app = data[perm][2].split(',')[i];
-          if(permissions['apps'].hasOwnProperty(app)){
-            permissions['apps'][app].push(perm);
+          if(permissions['users'].hasOwnProperty(app)){
+            permissions['users'][app].push(perm);
           }else{
-            permissions['apps'][app] = [perm];
+            permissions['users'][app] = [perm];
           }
         }
       }

@@ -42,7 +42,7 @@ from geonode.base.models import ResourceBase, TopicCategory, Link, InternalLink
 from .authorization import GeoNodeAuthorization, InternalLinkAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
-    FILTER_TYPES, AppResource
+    FILTER_TYPES, AppResource, remove_internationalization_fields
 
 from eav.forms import BaseDynamicEntityForm
 
@@ -128,13 +128,16 @@ class CommonModelApi(ModelResource):
     creator = fields.ToOneField(ProfileResource, 'creator', full=True, null=True)
     permission_class = fields.CharField(null=True)
 
+    def dehydrate(self, bundle):
+        bundle = super(CommonModelApi, self).dehydrate(bundle)
+        return remove_internationalization_fields(bundle)
+
     def dehydrate_permission_class(self, bundle):
         if bundle.obj.is_public():
             return "public"
         else:
             # TODO: shared missiong
             return "owned"
-
 
     def apply_post_query_filters(self, objects, bundle):
         if hasattr(self.Meta, 'post_query_filtering'):
@@ -686,8 +689,14 @@ class LayerResource(MultipartResource, CommonModelApi):
 
     layer_type = fields.ForeignKey(LayerTypeResource, 'layer_type', full=True)
     links = fields.ToManyField(LinkResource, 'link_set', full=True)
+    internal_links_forward = fields.ToManyField(
+        'geonode.api.resourcebase_api.InternalLinkResource','internal_links_forward_set', null=True, full=True)
+
+    internal_links_backward = fields.ToManyField(
+        'geonode.api.resourcebase_api.InternalLinkResource','internal_links_backward_set', null=True, full=True)
 
     class Meta(CommonMetaApi):
+
         extra_actions = extra_actions + [
             {
                 "name": '',
@@ -761,6 +770,10 @@ class LayerResource(MultipartResource, CommonModelApi):
                 }
             }
         ]        
+
+        authentication = MultiAuthentication(SessionAuthentication(), ApiKeyAuthentication())
+        authorization = GeoNodeAuthorization()
+
         queryset = Layer.objects.all().distinct().order_by('-date')
         resource_name = 'layers'
         excludes = ['csw_anytext', 'metadata_xml', 'layer_type']
@@ -780,7 +793,6 @@ class LayerResource(MultipartResource, CommonModelApi):
         }
 
     def _set_default_metadata(self, bundle, layer, update=False):
-
         now = dt.datetime.now()
 
         bundle.request.POST['charset'] = bundle.request.POST.get(
@@ -824,7 +836,6 @@ class LayerResource(MultipartResource, CommonModelApi):
             raise BadRequest('Error metadata: %s' % json.dumps(form.errors))
 
     def _create_layer(self, bundle):
-
         try:
             layer_type = LayerType.objects.get(
                 name=bundle.request.POST.get('layer_type', 'default')
@@ -887,6 +898,10 @@ class LayerResource(MultipartResource, CommonModelApi):
                 layer_form.save()
             else:
                 raise BadRequest('Error metadata: %s' % json.dumps(layer_form.errors))
+
+    def dehydate(self, bundle):
+        bundle = super(CommonModelApi, self).dehydrate(bundle)
+        return remove_internationalization_fields(bundle)
 
     def obj_update(self, bundle, pk, **kwargs):
         '''Update metadata.
@@ -1224,7 +1239,7 @@ class TabularResource(MultipartResource, CommonModelApi):
         <QueryDict: {u'resource': [u''], u'title': [u'C:\\fakepath\\Allianz-Visbroker.xls'], 
         u'charset': [u''], u'delimiter': [u''], u'tabular_type': [u''], u'quotechar': [u''], 
         u'csrfmiddlewaretoken': [u'2EozhP87wSPOFFSAF475O86O77oe1Ozn'], u'doc_url': [u''], 
-        u'has_header': [u'on'], u'permissions': [u'{"users":{},"groups":{},"apps":{}}']}>
+        u'has_header': [u'on'], u'permissions': [u'{"users":{},"groups":{}}']}>
         
         <MultiValueDict: {u'doc_file': [<InMemoryUploadedFile: Allianz-Visbroker.xls (application/vnd.ms-excel)>]}>
 
@@ -1284,3 +1299,4 @@ class InternalLinkResource(ModelResource):
 
     source = fields.ToOneField(ResourceBaseResource, 'source')
     target = fields.ToOneField(ResourceBaseResource, 'target')
+

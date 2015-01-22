@@ -51,7 +51,7 @@ DATABASES = {
          'NAME': 'geonode',
          'USER': 'geonode',
          'PASSWORD': 'geonode',
-         'HOST' : 'localhost',
+         'HOST' : '146.148.63.168',
          'PORT' : '5432',         
      },
     # vector datastore for uploads
@@ -222,6 +222,7 @@ INSTALLED_APPS = (
     # Third party apps
     'eav',
     'tastypie_swagger',
+    'corsheaders',
 
     # Utility
     'pagination',
@@ -336,6 +337,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 MIDDLEWARE_CLASSES = (
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -443,7 +445,7 @@ OGP_URL = "http://geodata.tufts.edu/solr/select"
 
 # Topic Categories list should not be modified (they are ISO). In case you
 # absolutely need it set to True this variable
-MODIFY_TOPICCATEGORY = False
+MODIFY_TOPICCATEGORY = True
 
 MISSING_THUMBNAIL = 'geonode/img/missing_thumb.png'
 
@@ -456,12 +458,10 @@ OGC_SERVER = {
     'default': {
         'BACKEND': 'geonode.geoserver',
         'LOCATION': 'http://146.148.63.168:8080/geoserver/',
-        #'LOCATION': 'http://localhost:8080/geoserver/',
         # PUBLIC_LOCATION needs to be kept like this because in dev mode
         # the proxy won't work and the integration tests will fail
         # the entire block has to be overridden in the local_settings
         'PUBLIC_LOCATION': 'http://146.148.63.168:8080/geoserver/',
-        #'PUBLIC_LOCATION': 'http://localhost:8080/geoserver/',
         'USER': 'admin',
         'PASSWORD': '4dm1n',
         'MAPFISH_PRINT_ENABLED': True,
@@ -763,6 +763,10 @@ CACHES = {
     #     'LOCATION': '/tmp/django_cache',
     #     }
 }
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_WHITELIST = ()
+
 
 # Load more settings from a file called local_settings.py if it exists
 try:

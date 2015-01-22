@@ -1,8 +1,16 @@
 
 {% load i18n %}
+  
 
 <article id="links" class="tab-pane">
-  <h5>{% trans "This layer is linked to the following layers:" %}</h5>
+
+  {% if resource.internal_links_forward_set.all.count == 0 and resource.internal_links_backward_set.all.count == 0 %}
+    <div class="col-md-offset-1">
+      {% trans "This resource is not linked to any other resource" %}
+    </div>
+  {% else %}
+
+  <p>{% trans "This layer is linked to the following layers:" %}</p>
   <table class="table table-striped table-bordered table-condensed">
     <thead>
       <tr>
@@ -29,4 +37,8 @@
       {% endfor %}            
     </tbody>
   </table>
-</article>      
+
+  {% endif %}  
+
+</article>
+

@@ -39,8 +39,6 @@ def _perms_info_json(obj):
                           for u, perms in info['users'].items()])
     info['groups'] = dict([(g.name, perms)
                            for g, perms in info['groups'].items()])
-    info['apps'] = dict([(g.username, perms)
-                           for g, perms in info['apps'].items()])
 
     return json.dumps(info)
 

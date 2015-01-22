@@ -1,0 +1,22 @@
+<script language="javascript">
+
+'use strict';
+
+(function(){
+
+  var module = angular.module('profile_list', [], function($locationProvider) {
+    $locationProvider.html5Mode(true);
+  });
+
+	module.controller('ProfileListController', function($injector, $scope, $location, $http, Configs){
+
+		debugger;
+  	$.get("/api/profiles",{"username__in":permissions.users.join(',')})
+  		.success(function(data) {
+  			$scope.profile_list = data.objects;
+  		});
+	});
+
+})();
+
+</script>
