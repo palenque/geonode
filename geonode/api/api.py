@@ -6,6 +6,7 @@ from django.conf import settings
 
 from avatar.templatetags.avatar_tags import avatar_url
 from guardian.shortcuts import get_objects_for_user
+import eav.models
 
 from geonode.base.models import TopicCategory
 from geonode.layers.models import Layer, LayerType
@@ -365,3 +366,27 @@ class TabularTypeResource(TypeFilteredResource):
         filtering = {
             'name': ALL,
         }
+
+class EavValueResource(ModelResource):
+
+    class Meta:
+        queryset = eav.models.Value.objects.all()
+        resource_name = 'eav_values'
+        allowed_methods = ['get']
+        filtering = {
+            'value_text': ALL
+        }
+
+
+class EavAttributeResource(ModelResource):
+
+    values = fields.ToManyField(EavValueResource, 'value_set', full=True, null=True)
+    class Meta:
+        queryset = eav.models.Attribute.objects.all()
+        resource_name = 'eav_attributes'
+        filtering = {
+            'slug': ALL,
+        }
+
+
+

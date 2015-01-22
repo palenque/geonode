@@ -139,6 +139,14 @@ class CommonModelApi(ModelResource):
             # TODO: shared missiong
             return "owned"
 
+    def apply_eav_filters(self, objects, bundle):
+        for flt,vals in bundle.request.eav_filters.items():
+            objects = filter(lambda obj: \
+                hasattr(obj,'eav') and \
+                hasattr(obj.eav,flt) and \
+                getattr(obj.eav,flt) in vals, objects)
+        return objects
+
     def apply_post_query_filters(self, objects, bundle):
         if hasattr(self.Meta, 'post_query_filtering'):
             for name,vals in bundle.request.post_query_filters.items():
@@ -147,7 +155,15 @@ class CommonModelApi(ModelResource):
 
     def build_filters(self, filters={}):
         orm_filters = {}
-        
+
+        to_remove = set()
+        for flt,vals in filters.lists():
+            if flt.startswith('eav_'):
+                to_remove.add(flt)                
+                if flt.endswith('__in'): flt = flt[:-4]
+                orm_filters[flt] = vals
+        for flt in to_remove: filters.pop(flt)
+
         if hasattr(self.Meta, 'post_query_filtering'):
             for flt in self.Meta.post_query_filtering:
                 if flt in filters:
@@ -170,6 +186,15 @@ class CommonModelApi(ModelResource):
 
     def apply_filters(self, request, applicable_filters):
         request.post_query_filters = {}
+        request.eav_filters = {}
+
+        to_remove = set()
+        for flt in applicable_filters:
+            if flt.startswith('eav_'):
+                request.eav_filters[flt[4:]] = applicable_filters[flt]
+                to_remove.add(flt)
+        for flt in to_remove: applicable_filters.pop(flt)
+
         if hasattr(self.Meta, 'post_query_filtering'):
             for flt in self.Meta.post_query_filtering:
                 if flt in applicable_filters:
@@ -460,7 +485,9 @@ class CommonModelApi(ModelResource):
 
     def obj_get_list(self, **kwargs):
         objects = super(CommonModelApi, self).obj_get_list(**kwargs)
-        objects = self.apply_post_query_filters(objects, kwargs['bundle'])
+        bundle = kwargs['bundle']
+        objects = self.apply_eav_filters(objects, bundle)
+        objects = self.apply_post_query_filters(objects, bundle)
         return objects
         
     # def get_list_xx(self, request, **kwargs):
