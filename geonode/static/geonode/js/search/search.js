@@ -24,6 +24,7 @@
 
   // Load categories and keywords
   module.load_filter = function (filter, $http, $rootScope, $location){
+
       if(filter == 'categories') {
         var params = typeof FILTER_TYPE == 'undefined' ? {} : {'type': FILTER_TYPE};
         $http.get(CATEGORIES_ENDPOINT, {params: params}).success(function(data){
@@ -52,6 +53,20 @@
         });
       }
 
+      if(filter == 'app_categories') {
+        var params = typeof FILTER_TYPE == 'undefined' ? {} : {'type': FILTER_TYPE};
+        $http.get(APP_CATEGORIES_ENDPOINT, {params: params}).success(function(data){
+            if($location.search().hasOwnProperty('category__identifier__in')){
+                data.objects = module.set_initial_filters_from_query(data.objects,
+                    $location.search()['category__identifier__in'], 'identifier');
+            }
+            $rootScope.app_categories = data.objects;
+            if (HAYSTACK_FACET_COUNTS && $rootScope.query_data) {
+                module.haystack_facets($http, $rootScope, $location);
+            }
+        });
+      }      
+
       else if(filter == 'layer_types') {
 
         $http.get(LAYER_TYPES_ENDPOINT, {params: params}).success(function(data){
@@ -60,6 +75,19 @@
                     $location.search()['layer_type__name__in'], 'name');
             }
             $rootScope.layer_types = data.objects;
+            if (HAYSTACK_FACET_COUNTS && $rootScope.query_data) {
+                module.haystack_facets($http, $rootScope, $location);
+            }
+        });
+      } 
+
+      else if(filter == 'developers') {
+        $http.get(PROFILES_ENDPOINT, {params: {profile: 'developer'}}).success(function(data){
+            if($location.search().hasOwnProperty('developer')){
+                data.objects = module.set_initial_filters_from_query(data.objects,
+                    $location.search()['developer__in'], 'developer');
+            }
+            $rootScope.developers = data.objects;
             if (HAYSTACK_FACET_COUNTS && $rootScope.query_data) {
                 module.haystack_facets($http, $rootScope, $location);
             }
@@ -172,7 +200,7 @@
     * Load categories and keywords if the filter is available in the page
     * and set active class if needed
     */
-    ['categories','layer_types','tabular_types','keywords']
+    ['categories','layer_types','tabular_types','keywords','developers','app_categories']
       .forEach(function(filter){
         if ($('#'+filter).length > 0)
           module.load_filter(filter, $http, $rootScope, $location);

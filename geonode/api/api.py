@@ -14,7 +14,7 @@ from geonode.tabular.models import TabularType
 from geonode.maps.models import Map
 from geonode.documents.models import Document
 from geonode.groups.models import GroupProfile
-from geonode.apps.models import App
+from geonode.apps.models import App, AppCategory
 
 from taggit.models import Tag
 
@@ -123,6 +123,19 @@ class TopicCategoryResource(TypeFilteredResource):
             'identifier': ALL,
         }
 
+class AppCategoryResource(TypeFilteredResource):
+
+    class Meta:
+        queryset = AppCategory.objects.all()
+        resource_name = 'app_categories'
+        allowed_methods = ['get']
+        filtering = {
+            'identifier': ALL,
+        }
+
+    def dehydrate_count(self, bundle):
+        return bundle.obj.app_set.count()
+
 
 class GroupResource(ModelResource):
 
@@ -159,6 +172,7 @@ class AppResource(ModelResource):
     member_count = fields.IntegerField()
     manager_count = fields.IntegerField()
     developer = fields.CharField()
+    category = fields.ToOneField('geonode.api.api.AppCategoryResource', 'category', null=True)
     
     def dehydrate_member_count(self, bundle):
         return bundle.obj.member_queryset().filter(role='member').count()
@@ -208,7 +222,8 @@ class AppResource(ModelResource):
         resource_name = 'apps'
         allowed_methods = ['get']
         filtering = {
-            'name': ALL
+            'name': ALL,
+            'category': ALL_WITH_RELATIONS
         }
         ordering = ['title', 'last_modified']
 

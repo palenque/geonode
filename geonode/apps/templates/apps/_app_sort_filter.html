@@ -1,0 +1,6 @@
+{% load i18n %}
+
+    <ul class="nav nav-pills filter" id="sort">
+      <li><a data-value="" data-filter="member" class="selected" ng-click="single_choice_listener($event)">{% trans "All" %}</a></li>
+      <li><a data-value="{{ request.user }}" data-filter="member" ng-click="single_choice_listener($event)">{% trans "My apps" %}</a></li>
+    </ul>

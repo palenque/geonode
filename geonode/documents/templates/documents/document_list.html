@@ -17,19 +17,6 @@
   {% include "search/_search_content.html" %}
   {% endwith %}
 
-
-{% comment %}  
-  {% with include_type_filter='true' %}
-  {% with facet_type='documents' %}
-  {% with header='Document Type' %}
-  {% with filter='doc_type__in' %}
-  {% include "search/_search_content.html" %}
-  {% endwith %}
-  {% endwith %}
-  {% endwith %}
-  {% endwith %}
-{% endcomment %}
-
 {% endblock %}
 
 {% block extra_script %}
