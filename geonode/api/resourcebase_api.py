@@ -133,6 +133,10 @@ class CommonModelApi(ModelResource):
         return remove_internationalization_fields(bundle)
 
     def dehydrate_permission_class(self, bundle):
+        if type(bundle.obj.is_public) == bool:
+            return bundle.obj
+        else:
+            return ""
         if bundle.obj.is_public():
             return "public"
         else:

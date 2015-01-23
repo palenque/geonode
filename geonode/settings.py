@@ -51,7 +51,7 @@ DATABASES = {
          'NAME': 'geonode',
          'USER': 'geonode',
          'PASSWORD': 'geonode',
-         'HOST' : '146.148.63.168',
+         'HOST' : 'localhost',
          'PORT' : '5432',         
      },
     # vector datastore for uploads
