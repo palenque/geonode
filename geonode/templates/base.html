@@ -177,7 +177,7 @@
       <div class="container">
         <div class="row">
           <div class="col-md-8">
-            {% if request.user %}
+            {% if request.user and request.user.profile == 'user' %}
               <h4>{% trans "My applications" %}</h4>              
               <div id="apps_container">
                 <div id="my_applications" class="col-md-16"></div>

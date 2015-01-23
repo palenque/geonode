@@ -96,7 +96,7 @@ class AppDetailView(ListView):
         manager = self.app.get_managers()[0]
         alter_ego = self.app.get_alter_ego()
         profile = get_object_or_404(Profile, username=self.request.user.username)
-        user_objects = profile.resourcebase_set.distinct()
+        user_objects = profile.owned_resource.distinct()
 
         content_filter = 'all'
 

@@ -42,7 +42,8 @@ from geonode.base.models import ResourceBase, TopicCategory, Link, InternalLink
 from .authorization import GeoNodeAuthorization, InternalLinkAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
-    FILTER_TYPES, AppResource, remove_internationalization_fields
+    FILTER_TYPES, AppResource, remove_internationalization_fields, \
+    PostQueryFilteringMixin
 
 from eav.forms import BaseDynamicEntityForm
 
@@ -76,6 +77,7 @@ class MultipartResource(object):
             return data
 
         return super(MultipartResource, self).deserialize(request, data, format)
+
 
 
 extra_actions = [
@@ -117,7 +119,7 @@ class CommonMetaApi:
     max_limit = None
     #paginator_class = Paginator
 
-class CommonModelApi(ModelResource):
+class CommonModelApi(ModelResource, PostQueryFilteringMixin):
     keywords = fields.ToManyField(TagResource, 'keywords', null=True)
     category = fields.ToOneField(
         TopicCategoryResource,
@@ -136,7 +138,7 @@ class CommonModelApi(ModelResource):
         if bundle.obj.is_public():
             return "public"
         else:
-            # TODO: shared missiong
+            # TODO: shared missing
             return "owned"
 
     def apply_eav_filters(self, objects, bundle):
@@ -147,14 +149,12 @@ class CommonModelApi(ModelResource):
                 getattr(obj.eav,flt) in vals, objects)
         return objects
 
-    def apply_post_query_filters(self, objects, bundle):
-        if hasattr(self.Meta, 'post_query_filtering'):
-            for name,vals in bundle.request.post_query_filters.items():
-                objects = filter(self.Meta.post_query_filtering[name](vals), objects)
-        return objects
 
     def build_filters(self, filters={}):
         orm_filters = {}
+
+        if 'app' in filters:
+            orm_filters['app'] = filters.pop('app')
 
         to_remove = set()
         for flt,vals in filters.lists():
@@ -164,10 +164,7 @@ class CommonModelApi(ModelResource):
                 orm_filters[flt] = vals
         for flt in to_remove: filters.pop(flt)
 
-        if hasattr(self.Meta, 'post_query_filtering'):
-            for flt in self.Meta.post_query_filtering:
-                if flt in filters:
-                    orm_filters[flt] = filters.pop(flt)
+        orm_filters.update(self.build_post_query_filters(filters))
 
         orm_filters.update(super(CommonModelApi, self).build_filters(filters))
 
@@ -185,8 +182,15 @@ class CommonModelApi(ModelResource):
         return orm_filters
 
     def apply_filters(self, request, applicable_filters):
-        request.post_query_filters = {}
         request.eav_filters = {}
+
+        if 'app' in applicable_filters:
+            app = applicable_filters.pop('app')[0]
+            if not any(x for x in request.user.apps_list_all() if x.slug == app):
+                # TODO: Error
+                pass
+            else:
+                request.user = Profile.objects.get(username=app)
 
         to_remove = set()
         for flt in applicable_filters:
@@ -195,10 +199,7 @@ class CommonModelApi(ModelResource):
                 to_remove.add(flt)
         for flt in to_remove: applicable_filters.pop(flt)
 
-        if hasattr(self.Meta, 'post_query_filtering'):
-            for flt in self.Meta.post_query_filtering:
-                if flt in applicable_filters:
-                    request.post_query_filters[flt] = applicable_filters.pop(flt)
+        self.process_post_query_filters(request, applicable_filters)
 
         types = applicable_filters.pop('type', None)
         extent = applicable_filters.pop('extent', None)
@@ -680,6 +681,9 @@ class ResourceBaseResource(CommonModelApi):
         resource_name = 'base'
         excludes = ['csw_anytext', 'metadata_xml']
         authorization = GeoNodeAuthorization()
+        post_query_filtering = {
+            'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
+        }
 
 class FeaturedResourceBaseResource(CommonModelApi):
 
@@ -1019,7 +1023,6 @@ class DocumentResource(CommonModelApi):
             }
         queryset = Document.objects.distinct().order_by('-date')
         resource_name = 'documents'
-
         post_query_filtering = {
             'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
         }        
