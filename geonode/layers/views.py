@@ -47,6 +47,7 @@ from geonode.base.forms import CategoryForm
 from geonode.layers.models import Layer, Attribute, LayerType, Style
 from geonode.base.enumerations import CHARSETS
 from geonode.base.models import TopicCategory
+from geonode.apps.models import App
 
 from geonode.utils import default_map_config, llbbox_to_mercator
 from geonode.utils import GXPLayer
@@ -253,6 +254,8 @@ def layer_detail(request, layername, template='layers/layer_detail.html'):
     metadata = layer.link_set.metadata().filter(
         name__in=settings.DOWNLOAD_FORMATS_METADATA)
 
+    applications = [x.get_alter_ego().id for x in App.objects.filter(appmember__role='member',appmember__user=request.user).all()]
+
     meta_attributes = layer.eav.get_values()
     context_dict = {
         "resource": layer,
@@ -260,6 +263,7 @@ def layer_detail(request, layername, template='layers/layer_detail.html'):
         "documents": get_related_documents(layer),
         "metadata": metadata,
         "meta_attributes": meta_attributes,
+        "applications": applications
     }
 
     context_dict["viewer"] = json.dumps(

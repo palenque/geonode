@@ -4,6 +4,7 @@
 <div class="profile_list tab-content" ng-controller="ProfileListController"
   ng-init="url_profile = '{% url 'profile_browse' %}profile/'; 
            url_app = '{% url 'app_list' %}';
+           applications = {{applications}};
 
   {% if "change_resourcebase_permissions" in resource_perms %}
     can_change = true;
@@ -116,7 +117,7 @@
 
     {% verbatim %}
     <div class="col-md-offset-0" ng-if="(profile_list | filter:{profile:'application'}).length > 0">
-      <article ng-repeat="profile in profile_list | filter:{profile:'application'} ">
+      <article ng-repeat="profile in profile_list | filter:{profile:'application',id:applications} ">
           <div class="col-md-2">
 
             <a ng-if="can_change" style="position:relative; top:10px" ng-click="toggle_permission($event,profile.username)" href="#">

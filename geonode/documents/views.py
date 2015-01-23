@@ -16,6 +16,7 @@ from geonode.utils import resolve_object
 from geonode.security.views import _perms_info_json
 from geonode.people.forms import ProfileForm
 from geonode.base.forms import CategoryForm
+from geonode.apps.models import App
 from geonode.base.models import TopicCategory, ResourceBase
 from geonode.documents.models import Document
 from geonode.documents.forms import DocumentForm, DocumentCreateForm, DocumentReplaceForm
@@ -61,6 +62,8 @@ def document_detail(request, docid):
 
     Document.objects.filter(id=document.id).update(popular_count=F('popular_count') + 1)
 
+    applications = [x.get_alter_ego().id for x in App.objects.filter(appmember__role='member',appmember__user=request.user).all()]
+
     return render_to_response(
         "documents/document_detail.html",
         RequestContext(
@@ -69,6 +72,7 @@ def document_detail(request, docid):
                 'permissions_json': _perms_info_json(document),
                 'resource': document,
                 'imgtypes': IMGTYPES,
+                'applications': applications,
                 'related': related}))
 
 
