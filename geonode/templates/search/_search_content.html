@@ -1,5 +1,7 @@
 {% load i18n %}
-  <div class="col-md-8 filter">      
+
+
+  <div class="col-md-8 filter" style="font-size:11px;">      
     {% if custom_sort_filter %}
       {% include custom_sort_filter %}
     {% else %}
@@ -10,7 +12,7 @@
     <div class="row" id="contain-slider">
       <div class="col-md-3">
         <div class="selections">
-          <h5>
+          <h5 style="font-size:11px;">
             {% trans "Filters" %}
             <a href="." id="clear-search" class="pull-right">{% trans "Clear all filters" %}</a>
           </h5>
