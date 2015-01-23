@@ -146,10 +146,12 @@ body.apps li#nav_apps a {
 }
 .items-list h4 {
   font-weight: 300;
+  font-size: 14px;
+}  
 }
 .items-list h4 .owner {
   color: #999999;
-  font-size: 14px;
+  font-size: 12px;
 }
 .items-list .abstract {
   color: #999999;
