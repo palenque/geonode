@@ -51,7 +51,7 @@ DATABASES = {
          'NAME': 'geonode',
          'USER': 'geonode',
          'PASSWORD': 'geonode',
-         'HOST' : '146.148.63.168',
+         'HOST' : 'localhost',
          'PORT' : '5432',         
      },
     # vector datastore for uploads
@@ -694,7 +694,7 @@ TASTYPIE_DEFAULT_FORMATS = ['json']
 AUTO_GENERATE_AVATAR_SIZES = (20, 32, 80, 100, 140, 200)
 
 # Number of results per page listed in the GeoNode search pages
-CLIENT_RESULTS_LIMIT = 100
+CLIENT_RESULTS_LIMIT = 4
 
 # Number of items returned by the apis 0 equals no limit
 API_LIMIT_PER_PAGE = 0
