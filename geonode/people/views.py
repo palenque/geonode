@@ -36,6 +36,18 @@ from geonode.layers.models import Layer
 from geonode.maps.models import Map
 from geonode.documents.models import Document
 
+import account.views
+import geonode.people.forms
+
+
+class SignUpView(account.views.SignupView):
+
+   form_class = geonode.people.forms.SignUpForm
+
+   def after_signup(self, form):
+        self.created_user.profile = form.cleaned_data["profile"]
+        self.created_user.save()
+        super(SignUpView, self).after_signup(form)
 
 @login_required
 def profile_edit(request, username=None):

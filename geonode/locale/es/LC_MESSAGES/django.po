@@ -5379,7 +5379,7 @@ msgstr "Ya no"
 
 #: templates/relationships/confirm.html:12
 msgid "Confirm"
-msgstr "Confirma"
+msgstr "Confirmar"
 
 #: templates/relationships/relationship_list.html:26
 #, python-format
