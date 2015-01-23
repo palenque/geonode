@@ -6,6 +6,7 @@ from django.conf import settings
 
 from avatar.templatetags.avatar_tags import avatar_url
 from guardian.shortcuts import get_objects_for_user
+import eav.models
 
 from geonode.base.models import TopicCategory
 from geonode.layers.models import Layer, LayerType
@@ -18,7 +19,7 @@ from geonode.apps.models import App
 from taggit.models import Tag
 
 from tastypie import fields
-from tastypie.resources import ModelResource
+from tastypie.resources import ModelResource, Resource
 from tastypie.constants import ALL, ALL_WITH_RELATIONS
 from tastypie.utils import trailing_slash
 
@@ -29,7 +30,7 @@ FILTER_TYPES = {
 }
 
 def remove_internationalization_fields(bundle):
-    bundle.data = dict(filter(lambda (k,v):len(k)>3 and k[-3] != '_', bundle.data.items()))
+    bundle.data = dict(filter(lambda (k,v):len(k)<3 or k[-3] != '_', bundle.data.items()))
     return bundle
 
 class TypeFilteredResource(ModelResource):
@@ -365,3 +366,29 @@ class TabularTypeResource(TypeFilteredResource):
         filtering = {
             'name': ALL,
         }
+
+
+class EavAttributeResource(ModelResource):
+
+    values = fields.DictField()
+
+    class Meta:
+        queryset = eav.models.Attribute.objects.all()
+        resource_name = 'eav_attributes'
+        filtering = {
+            'slug': ALL,
+        }
+
+    def dehydrate_values(self, bundle):
+        attr = bundle.obj.slug
+        resources = get_objects_for_user(
+            bundle.request.user,
+            'base.view_resourcebase')
+
+        values = eav.models.Value.objects.filter(attribute=bundle.obj).values('value_text').distinct()
+        for val in values:
+            if val['value_text'] is not None: val['value_text'] = val['value_text'].encode('utf8')
+            val['count'] = len([res for res in resources if 
+                hasattr(res,'layer') and hasattr(res.layer.eav,attr) and getattr(res.layer.eav,attr) == val['value_text']])
+        return list(values)
+

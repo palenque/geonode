@@ -98,6 +98,20 @@
 
     }
 
+  module.load_eav_filter = function (attr, $http, $rootScope, $location){
+    var eav_attr = "eav_"+attr;
+    $http.get(EAV_ENDPOINT, {params: {slug: attr}}).success(function(data){
+        if($location.search().hasOwnProperty(eav_attr+'__in')){
+            data.objects = module.set_initial_filters_from_query(data.objects,
+                $location.search()[eav_attr+'__in'], eav_attr);
+        }
+        $rootScope[eav_attr] = data.objects[0].values;
+        if (HAYSTACK_FACET_COUNTS && $rootScope.query_data) {
+            module.haystack_facets($http, $rootScope, $location);
+        }
+    });
+  }
+
   // Update facet counts for categories and keywords
   module.haystack_facets = function($http, $rootScope, $location) {
       var data = $rootScope.query_data;
@@ -164,6 +178,10 @@
           module.load_filter(filter, $http, $rootScope, $location);
       });
 
+    $('.eav-filter').each(function(elem) {
+      var attr = $(this).data('eav-attribute');
+      module.load_eav_filter(attr, $http, $rootScope, $location);
+    });
 
     // Activate the type filters if in the url
     if($location.search().hasOwnProperty('type__in')){
