@@ -91,7 +91,7 @@ class GroupDetailView(ListView):
         context['can_view'] = self.group.can_view(self.request.user)
         return context
 
-
+@login_required
 def group_members(request, slug):
     group = get_object_or_404(GroupProfile, slug=slug)
     ctx = {}
@@ -172,6 +172,7 @@ def group_join(request, slug):
 
 
 @require_POST
+@login_required
 def group_invite(request, slug):
     group = get_object_or_404(GroupProfile, slug=slug)
 

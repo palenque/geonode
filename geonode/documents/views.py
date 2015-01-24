@@ -40,6 +40,7 @@ def _resolve_document(request, docid, permission='base.change_resourcebase',
                           permission=permission, permission_msg=msg, **kwargs)
 
 
+@login_required
 def document_detail(request, docid):
     """
     The view that show details of each document
@@ -71,7 +72,7 @@ def document_detail(request, docid):
                 'imgtypes': IMGTYPES,
                 'related': related}))
 
-
+@login_required
 def document_download(request, docid):
     document = get_object_or_404(Document, pk=docid)
     if not request.user.has_perm(
@@ -228,7 +229,7 @@ def document_metadata(
         "category_form": category_form,
     }))
 
-
+@login_required
 def document_search_page(request):
     # for non-ajax requests, render a generic search page
 

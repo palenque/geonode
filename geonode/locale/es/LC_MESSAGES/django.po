@@ -152,7 +152,7 @@ msgstr "Actividad para"
 #: social/templates/social/activity_list.html:23
 #: templates/actstream/actor.html:27
 msgid "No actions yet"
-msgstr "No hay ninguna acción aún"
+msgstr "No hay ninguna acción todavia"
 
 #: apps/templates/apps/app_create.html:6 apps/templates/apps/app_list.html:12
 #: apps/templates/apps/app_update.html:6

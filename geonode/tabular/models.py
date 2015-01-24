@@ -467,6 +467,7 @@ def insert_data(sender, instance, created, create_table=True, **kwargs):
     if subprocess.call(args):
         if tmp:
             os.remove(tmp)
+        instance.delete()
         raise Exception('Error import file %s' % table_name)    
 
 

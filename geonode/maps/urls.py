@@ -20,6 +20,7 @@
 
 from django.conf.urls import patterns, url
 from django.views.generic import TemplateView
+from django.contrib.auth.decorators import login_required
 
 js_info_dict = {
     'packages': ('geonode.maps',),
@@ -27,8 +28,8 @@ js_info_dict = {
 
 urlpatterns = patterns('geonode.maps.views',
                        url(r'^$',
-                           TemplateView.as_view(
-                               template_name='maps/map_list.html'),
+                           login_required(TemplateView.as_view(
+                               template_name='maps/map_list.html')),
                            name='maps_browse'),
                        url(r'^new$', 'new_map', name="new_map"),
                        url(r'^new/data$', 'new_map_json', name='new_map_json'),

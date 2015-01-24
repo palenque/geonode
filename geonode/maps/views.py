@@ -114,6 +114,7 @@ def _resolve_map(request, id, permission='base.change_resourcebase',
 
 # BASIC MAP VIEWS #
 
+@login_required
 def map_detail(request, mapid, snapshot=None, template='maps/map_detail.html'):
     '''
     The view that show details of each map
@@ -267,7 +268,7 @@ def map_remove(request, mapid, template='maps/map_remove.html'):
             status=401
         )
 
-
+@login_required
 def map_embed(
         request,
         mapid=None,
@@ -290,7 +291,7 @@ def map_embed(
 
 # MAPS VIEWER #
 
-
+@login_required
 def map_view(request, mapid, snapshot=None, template='maps/map_view.html'):
     """
     The view that returns the map composer opened to
@@ -308,13 +309,13 @@ def map_view(request, mapid, snapshot=None, template='maps/map_view.html'):
         'map': map_obj
     }))
 
-
+@login_required
 def map_view_js(request, mapid):
     map_obj = _resolve_map(request, mapid, 'base.view_resourcebase', _PERMISSION_MSG_VIEW)
     config = map_obj.viewer_json(request.user)
     return HttpResponse(json.dumps(config), mimetype="application/javascript")
 
-
+@login_required
 def map_json(request, mapid, snapshot=None):
     if request.method == 'GET':
         map_obj = _resolve_map(request, mapid, 'base.view_resourcebase', _PERMISSION_MSG_VIEW)
@@ -373,7 +374,7 @@ def clean_config(conf):
     else:
         return conf
 
-
+@login_required
 def new_map(request, template='maps/map_view.html'):
     config = new_map_config(request)
     if isinstance(config, HttpResponse):
@@ -383,7 +384,7 @@ def new_map(request, template='maps/map_view.html'):
             'config': config,
         }))
 
-
+@login_required
 def new_map_json(request):
 
     if request.method == 'GET':
@@ -431,7 +432,7 @@ def new_map_json(request):
     else:
         return HttpResponse(status=405)
 
-
+@login_required
 def new_map_config(request):
     '''
     View that creates a new map.
@@ -561,6 +562,7 @@ def new_map_config(request):
 
 # MAPS DOWNLOAD #
 
+@login_required
 def map_download(request, mapid, template='maps/map_download.html'):
     """
     Download all the layers of a map as a batch
@@ -629,7 +631,7 @@ def map_download(request, mapid, template='maps/map_download.html'):
         "site": settings.SITEURL
     }))
 
-
+@login_required
 def map_download_check(request):
     """
     this is an endpoint for monitoring map downloads
@@ -654,7 +656,7 @@ def map_download_check(request):
             "User tried to check status, but has no download in progress.")
     return HttpResponse(content=content, status=status)
 
-
+@login_required
 def map_wmc(request, mapid, template="maps/wmc.xml"):
     """Serialize an OGC Web Map Context Document (WMC) 1.1"""
     map_obj = _resolve_map(request, mapid, 'base.view_resourcebase', _PERMISSION_MSG_VIEW)
@@ -664,7 +666,7 @@ def map_wmc(request, mapid, template="maps/wmc.xml"):
         'siteurl': settings.SITEURL,
     }), mimetype='text/xml')
 
-
+@login_required
 def map_wms(request, mapid):
     """
     Publish local map layers as group layer in local OWS.
@@ -698,12 +700,12 @@ def map_wms(request, mapid):
 
     return HttpResponseNotAllowed(['PUT', 'GET'])
 
-
+@login_required
 def map_thumbnail(request, mapid):
     map_obj = _resolve_map(request, mapid, 'base.view_resourcebase', _PERMISSION_MSG_VIEW)
     return _handleThumbNail(request, map_obj)
 
-
+@login_required
 def maplayer_attributes(request, layername):
     # Return custom layer attribute labels/order in JSON format
     layer = Layer.objects.get(typename=layername)
@@ -778,7 +780,7 @@ def get_suffix_if_custom(map):
     else:
         return None
 
-
+@login_required
 def featured_map(request, site):
     """
     The view that returns the map composer opened to
@@ -788,7 +790,7 @@ def featured_map(request, site):
                              permission_msg=_PERMISSION_MSG_VIEW)
     return map_view(request, str(map_obj.id))
 
-
+@login_required
 def featured_map_info(request, site):
     '''
     main view for map resources, dispatches to correct
@@ -798,7 +800,7 @@ def featured_map_info(request, site):
                              permission_msg=_PERMISSION_MSG_VIEW)
     return map_detail(request, str(map_obj.id))
 
-
+@login_required
 def snapshot_create(request):
     """
     Create a permalinked map
@@ -815,13 +817,13 @@ def snapshot_create(request):
     else:
         return HttpResponse("Invalid JSON", mimetype="text/plain", status=500)
 
-
+@login_required
 def ajax_snapshot_history(request, mapid):
     map_obj = _resolve_map(request, mapid, 'base.view_resourcebase', _PERMISSION_MSG_VIEW)
     history = [snapshot.json() for snapshot in map_obj.snapshots]
     return HttpResponse(json.dumps(history), mimetype="text/plain")
 
-
+@login_required
 def ajax_url_lookup(request):
     if request.method != 'POST':
         return HttpResponse(

@@ -41,7 +41,7 @@ def _resolve_document(request, docid, permission='base.change_resourcebase',
     return resolve_object(request, Tabular, {'pk': docid},
                           permission=permission, permission_msg=msg, **kwargs)
 
-
+@login_required
 def document_detail(request, docid):
     """
     The view that show details of each document
@@ -73,7 +73,7 @@ def document_detail(request, docid):
                 'imgtypes': IMGTYPES,
                 'related': related}))
 
-
+@login_required
 def document_download(request, docid):
     document = get_object_or_404(Tabular, pk=docid)
     if not request.user.has_perm(
@@ -197,7 +197,7 @@ def document_custom_metadata(request, docid, template='tabular/document_custom_m
         "document_form": document_form,
     }))
 
-@login_required
+
 def document_default_metadata(
         request,
         docid,
@@ -312,7 +312,7 @@ def document_metadata(request, docid, template='tabular/document_metadata.html')
         return document_default_metadata(request, docid)
 
 
-
+@login_required
 def document_search_page(request):
     # for non-ajax requests, render a generic search page
 

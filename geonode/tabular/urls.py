@@ -30,7 +30,7 @@ js_info_dict = {
 
 urlpatterns = patterns('geonode.tabular.views',
                        url(r'^$',
-                           TemplateView.as_view(template_name='tabular/document_list.html'),
+                           login_required(TemplateView.as_view(template_name='tabular/document_list.html')),
                            name='tabular_browse'),
                        url(r'^(?P<docid>\d+)/?$',
                            'document_detail',

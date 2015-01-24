@@ -56,7 +56,7 @@ class PROFILE:
     ORGANIZATION = 'organization'
     DEVELOPER = 'developer'
     ADMIN = 'admin'
-    APP = 'app'
+    APP = 'application'
 
 PROFILE_VALUES = (
     (PROFILE.USER, _('user')),
