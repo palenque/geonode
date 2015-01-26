@@ -124,6 +124,8 @@ class AppDetailView(ListView):
         else:
             user_objects = user_objects.order_by('-date')
 
+        action_list = Action.objects.filter(target_object_id__in=[x.id for x in user_objects])[:15]
+
         context = super(AppDetailView, self).get_context_data(**kwargs)
         context['object'] = self.app
         context['app_manager'] = manager
@@ -133,7 +135,8 @@ class AppDetailView(ListView):
         context['is_member'] = self.app.user_is_member(self.request.user)
         context['is_manager'] = self.app.user_is_role(self.request.user, "manager")
         context['description'] = markdown.markdown(self.app.description)
-        
+        context['action_list'] = action_list
+
         context['profile'] = profile
         context['sortby_field'] = sortby_field
         context['content_filter'] = content_filter

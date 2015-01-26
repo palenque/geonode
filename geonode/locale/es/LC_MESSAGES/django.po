@@ -208,7 +208,7 @@ msgstr "Eliminar"
 
 #: apps/templates/apps/app_detail.html:107
 msgid "Unlink this App"
-msgstr "Eliminar Aplicación"
+msgstr "Desvincular aplicación"
 
 #: apps/templates/apps/app_detail.html:111
 #: groups/templates/groups/group_detail.html:62
@@ -232,7 +232,7 @@ msgstr "Cualquiera puede agregar esta Aplicación."
 
 #: apps/templates/apps/app_detail.html:127
 msgid "Link this app"
-msgstr "Agregar Aplicación"
+msgstr "Vincular aplicación"
 
 #: apps/templates/apps/app_detail.html:148
 #: documents/templates/documents/document_detail.html:46
@@ -325,11 +325,12 @@ msgid ""
 "        "
 msgstr ""
 "\n"
-"¿Está seguro que desea eliminar %(app_title)s?"
+"         ¿Está seguro que desea desvincular la aplicación %(app_title)s?"
+"        "
 
 #: apps/templates/apps/app_member_unlink.html:20
 msgid "No, don't unlink it"
-msgstr "No, no voy a eliminarlo"
+msgstr "No, no voy a desvincularla"
 
 #: apps/templates/apps/app_members.html:10
 msgid "App details"
@@ -1909,7 +1910,7 @@ msgstr "Información Adicional"
 
 #: base/templates/base/resourcebase_links_panel.html:9
 msgid "This resource is not linked to any other resource"
-msgstr "Este recurso no es compartido con ningún otro recurso"
+msgstr "Este recurso no está relacionado con ningún otro recurso"
 
 #: base/templates/base/resourcebase_links_panel.html:13
 msgid "This layer is linked to the following layers:"
@@ -2874,11 +2875,11 @@ msgstr "Recursos relacionados"
 
 #: layers/templates/layers/layer_detail.html:290
 msgid "List of resources related to this layer:"
-msgstr "Lista de recursos relacionados con esta Capa:"
+msgstr "Lista de recursos relacionados con esta capa:"
 
 #: layers/templates/layers/layer_detail.html:319
 msgid "There is no resources related to this layer."
-msgstr "No hay recursos relacionados con esta Capa:"
+msgstr "No hay recursos relacionados con esta capa"
 
 #: layers/templates/layers/layer_list.html:7
 #: layers/templates/layers/layer_list.html:18

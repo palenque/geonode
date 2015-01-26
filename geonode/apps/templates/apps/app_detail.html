@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load pagination_tags %}
 {% load guardian_tags %}
+{% load activity_tags social_tags i18n %}
 
 {% block title %}{{ object.title|default:object.slug }} — {{ block.super }}{% endblock %}
 
@@ -51,6 +52,16 @@
 
     {% if is_member %}
 
+    <article class="tab-pane" id="actions">
+      <ul class="no-style-list">
+        {% for action in action_list %}
+        {% activity_item action %}
+        {% empty %}
+        <p>{% trans "No actions yet" %}</p>
+        {% endfor %}
+      </ul>
+    </article>
+
     <article id="resources" class="tab-pane">
       <ul class="nav nav-pills filter" id="sort">
         <li><a data-value="" data-filter="csw_type" ng-click="single_choice_listener($event)">{% trans "All contents" %}</a></li>
@@ -60,7 +71,7 @@
       </ul>
 
       <div class="col-md-12">
-        <div class="tab-content span12 paginate paginate-auto">
+        <div caclass="tab-content span12 paginate paginate-auto">
           <div class="tab-pane active list paginate-contents" id="all">
             {% include 'search/_pagination.html' %}          
             {% include "apps/_app_resources.html" %}
@@ -101,21 +112,13 @@
       <li class="list-group-item"><a href="{% url "app_member_unlink" object.slug request.user.username %}">{% trans "Unlink this App" %}</a></li>
       {% endif %}
 
-      {% if can_view %}
-      <li class="list-group-item"><a href="{% url "group_activity" object.slug %}">{% trans "Group Activities" %}</a></li>
-      {% endif %}
-
       {% if not is_manager and not is_member %}
       <li class="list-group-item">
         <p>
-          {% blocktrans with object.get_access_display as access %}
-            This app is public<strong>{{ access }}</strong>.
+          {% blocktrans  %}
+            This app is public.<br/>
+            Anyone may use this app.
           {% endblocktrans %}
-          {% comment %}
-          {% if object.access == "public" %}
-          {% endcomment %}
-            <br/>
-            {% trans "Anyone may use this app." %}
             <br/>
             <a class="btn btn-default btn-md btn-block" href="{% url "app_member_link" object.slug request.user.username %}">{% trans "Link this app" %}</a>            
             {% comment %}

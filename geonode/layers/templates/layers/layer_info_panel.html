@@ -28,7 +28,7 @@
         <dt>{% trans "Abstract" %}</dt>
         <dd>{{ resource.abstract|escape|urlize|linebreaks|safe|truncatechars:500 }}</dd>
         {% endif %}
-        
+
         {% if resource.date %}
         <dt>{% trans resource.date_type|title %} {% trans "Date" %}</dt>
         <dd>{{ resource.date }}</dd>
@@ -57,6 +57,13 @@
         {% endif %}
 
     {% endfor %}  
+
+    <dt>{% trans "Layer type" %}</dt>
+    {% if resource.layer_type.name == 'default' %}
+        <dd>{% trans "Free form" %}</dd>
+    {% else %}
+        <dd>{{resource.layer_type.label}}</dd>
+    {% endif %}
 
     {% if resource.owner %}
     <dt>{% trans "Owner" %}</dt>
