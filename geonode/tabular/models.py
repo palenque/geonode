@@ -464,13 +464,10 @@ def insert_data(sender, instance, created, create_table=True, **kwargs):
             attribute_type=str(csv_table[i].type)
         ).save()
 
-    try:
-        subprocess.call(args)
-    except Exception as e:
-        raise Exception('Error import file')
-    finally:
+    if subprocess.call(args):
         if tmp:
             os.remove(tmp)
+        raise Exception('Error import file %s' % table_name)    
 
 
 
@@ -482,8 +479,7 @@ def delete_table(sender, instance, **kwargs):
     try:
         cursor.execute('DROP TABLE %s;' % table_name)
     except Exception as e:
-        logging.exception('Error deleting tabular table')
-        raise Exception('Error deleting tabular table %s' % table_name)
+        logging.exception('Error deleting tabular table %s' % table_name)
 
 
 def share(instance, created=False, update_fields=None, **kwargs):

@@ -21,14 +21,33 @@
 import taggit
 
 from django import forms
+from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.utils.translation import ugettext_lazy as _
 
 from geonode.people.models import Profile
 from geonode.base.models import ContactRole
+from .enumerations import PROFILE_VALUES
+
+import account.forms
+
 
 # Ported in from django-registration
 attrs_dict = {'class': 'required'}
+
+
+class SignUpForm(account.forms.SignupForm):
+
+    def __init__(self, *args, **kwargs):
+        super(SignUpForm, self).__init__(*args, **kwargs)
+        self.fields.keyOrder = ['username', 'email', 'profile', 'password', 'password_confirm', 'code']
+    
+    profile = forms.ChoiceField(
+        label=_('Profile'), 
+        choices=PROFILE_VALUES, 
+        required=True, 
+        help_text=_('type of user')
+    )
 
 
 class ProfileCreationForm(UserCreationForm):

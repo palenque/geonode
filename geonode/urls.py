@@ -25,9 +25,10 @@ from geonode.sitemap import LayerSitemap, MapSitemap
 from django.views.generic import TemplateView
 
 import geonode.proxy.urls
-
 from geonode.api.urls import api
+from geonode.people.forms import UserCreationForm
 
+from geonode.people.views import SignUpView
 import autocomplete_light
 
 # Setup Django Admin
@@ -78,6 +79,7 @@ urlpatterns = patterns('',
                            name='search'),
 
                        # Social views
+                       url(r"^account/signup/$", SignUpView.as_view(), name="account_signup"),
                        (r"^account/", include("account.urls")),
                        (r'^people/', include('geonode.people.urls')),
                        (r'^avatar/', include('avatar.urls')),
