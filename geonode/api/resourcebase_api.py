@@ -129,10 +129,17 @@ class CommonModelApi(ModelResource, PostQueryFilteringMixin):
     owner = fields.ToOneField(ProfileResource, 'owner', full=True)
     creator = fields.ToOneField(ProfileResource, 'creator', full=True, null=True)
     permission_class = fields.CharField(null=True)
+    metadata = fields.DictField(null=True)
 
     def dehydrate(self, bundle):
         bundle = super(CommonModelApi, self).dehydrate(bundle)
         return remove_internationalization_fields(bundle)
+
+    def dehydrate_metadata(self, bundle):
+        if hasattr(bundle.obj,'eav'):
+            return bundle.obj.eav.get_values_dict()
+        else:
+            return {}
 
     def dehydrate_permission_class(self, bundle):
         if type(bundle.obj.is_public) == bool:
@@ -845,6 +852,9 @@ class LayerResource(MultipartResource, CommonModelApi):
         bundle.request.POST['date_type'] = bundle.request.POST.get(
             'date_type', layer.date_type if update else 'publication'
         )
+        bundle.request.POST['owner'] = bundle.request.POST.get(
+            'owner', bundle.request.user)
+
         bundle.request.POST['supplemental_information'] = bundle.request.POST.get(
             'supplemental_information', layer.supplemental_information if update else 'no info.'
         )
@@ -915,7 +925,7 @@ class LayerResource(MultipartResource, CommonModelApi):
                 super(LayerMetadataForm, self).__init__(data, *args, **kwargs)
                 meta_fields = [
                     a.slug for a in layer.eav.get_all_attributes().filter(
-                        metadatatype__in=layer.layer_type.metadatatype_set.all()
+                        layer_metadata_type_attribute__in=layer.layer_type.metadatatype_set.all()
                     )
                 ]
                 for f in self.fields.keys():
@@ -924,6 +934,22 @@ class LayerResource(MultipartResource, CommonModelApi):
             
             class Meta:
                 model = Layer
+
+            def clean(self):
+                cleaned_data = super(LayerMetadataForm, self).clean()
+                calc_title = self.instance.layer_type.calculated_title
+                if calc_title is not None:
+                    try:
+                        cleaned_data['title'] = calc_title % cleaned_data
+                    except: pass
+
+                calc_abstract = self.instance.layer_type.calculated_abstract
+                if calc_abstract is not None:
+                    try:
+                        cleaned_data['abstract'] = calc_abstract % cleaned_data
+                    except: pass 
+                return cleaned_data
+                
 
         if bundle.request.POST.get('metadata'):
             bundle.request.POST.update(json.loads(bundle.request.POST.get('metadata')))
@@ -985,7 +1011,6 @@ class LayerResource(MultipartResource, CommonModelApi):
             "groups":{"foo":["change_resourcebase_permissions"] } 
         }
         """
-
         layer = self._create_layer(bundle)
         self._set_default_metadata(bundle, layer)
 

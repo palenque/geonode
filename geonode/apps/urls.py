@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth.decorators import login_required
 
 # from .views import GroupDetailView, GroupActivityView
-from .views import AppDetailView
+#from .views import AppDetailView
 
 urlpatterns = patterns('geonode.apps.views',
                        url(r'^$',
@@ -19,7 +19,8 @@ urlpatterns = patterns('geonode.apps.views',
                            'app_create',
                            name="app_create"),
                        url(r'^(?P<slug>[-\w]+)/$',
-                           AppDetailView.as_view(),
+                           'app_detail',
+                           #AppDetailView.as_view(),
                            name='app_detail'),
                        url(r'^(?P<slug>[-\w]+)/update/$',
                            'app_update',

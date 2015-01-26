@@ -142,7 +142,7 @@
         <h4>{% trans "Permissions" %}</h4>
         {% trans "This app needs access to the following resources:" %}
         <ul>
-          {% for keyword in object.keyword_list %}
+          {% for keyword in keywords %}
             <li>{{keyword}}</li>
           {% endfor %}
         </ul>
