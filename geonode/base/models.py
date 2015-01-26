@@ -24,12 +24,11 @@ from geonode.base.enumerations import ALL_LANGUAGES, \
     DEFAULT_SUPPLEMENTAL_INFORMATION, LINK_TYPES
 from geonode.utils import bbox_to_wkt
 from geonode.utils import forward_mercator
-from geonode.security.models import PermissionLevelMixin
+from geonode.security.models import PermissionLevelMixin,ADMIN_PERMISSIONS
 from taggit.managers import TaggableManager
 from taggit.models import TaggedItem
 from guardian.shortcuts import assign_perm, remove_perm, get_anonymous_user, get_groups_with_perms
 from guardian.models import Group
-
 from geonode.people.models import Profile
 from geonode.people.enumerations import ROLE_VALUES
 
@@ -780,8 +779,19 @@ class InternalLink(models.Model):
     target = models.ForeignKey(ResourceBase, related_name='internal_links_backward_set')
     name = models.CharField(max_length=255, help_text=_('For example "rasterized"'))
 
+def resourcebase_post_save(instance, *args, **kwargs):
+    """
+    Set permissions to owner and creator
+    """
+    res = instance.get_self_resource()
+    for perm in ADMIN_PERMISSIONS:
+        assign_perm(perm, instance.owner, res)
+        if instance.owner != instance.creator:
+            assign_perm(perm, instance.creator, res)
+
 
 signals.post_save.connect(rating_post_save, sender=OverallRating)
 signals.post_save.connect(share, sender=TaggedItem)
 signals.post_delete.connect(unshare, sender=TaggedItem)
+signals.post_save.connect(resourcebase_post_save, sender=ResourceBase)
 
