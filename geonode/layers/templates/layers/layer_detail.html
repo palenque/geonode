@@ -29,10 +29,22 @@
 </div>
 
 <div class="row">
-  <div class="col-md-8">
+  <div class="col-md-9">
 
-    <div id="embedded_map" class="mrg-btm">
-      <div id="preview_map" ng-controller="MapController"></div>
+    <ul class="nav nav-tabs">
+      <li class="active"><a href="#map" data-toggle="tab"><i class="fa fa-info-circle"></i>{% trans "Map" %}</a></li>
+      <li><a href="#table" data-toggle="tab"><i class="fa fa-bars"></i>{% trans "Table" %}</a></li>
+    </ul>
+    
+    <div class="tab-content">
+      <article id="map" class="tab-pane">
+        <div id="embedded_map" class="mrg-btm">
+          <div id="preview_map" ng-controller="MapController"></div>
+        </div>
+      </article>
+      <article id="table" class="tab-pane">
+        xxx
+      </article>      
     </div>
 
     <div class="layer-actions">
@@ -141,7 +153,7 @@
 
   </div>
 
-  <div class="col-md-4">
+  <div class="col-md-3">
 
     <ul class="list-group">
       {% if resource.storeType != "remoteStore" %}

@@ -19,12 +19,7 @@
         <hr>
     </div>
  -->    
-<!--     <div class="col-md-12">
-        <hr>
-        <a href="{% url "layer_upload" %}" style="width:100%;" class="btn btn-primary ">{% trans "Upload Layers" %}</a>
-        <hr>
-    </div>
- -->
+
     <div class="row">
     {% with custom_filters='layers/_layer_filter.html' %}
     </div>
@@ -83,7 +78,7 @@
   
   <div class="col-md-3">
 
-    <div class="col-md-12">
+    <div class="col-md-12" style="margin-top:10px;">
         <a href="{% url "layer_upload" %}" style="width:100%;" class="btn btn-primary ">{% trans "Upload Layers" %}</a>
         <hr>
     </div>

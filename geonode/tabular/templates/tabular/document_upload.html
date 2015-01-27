@@ -28,16 +28,16 @@
 
 {% endblock %}
 
+{% comment %}
 {% block sidebar %}
-
 <div class="col-md-4">
   <h3>{% trans "Permissions"  %}</h3>
   <form id="permission_form">
     {% include "_permissions.html" %}
   </form>
 </div>
-
 {% endblock %}
+{% endcomment %}
 
 {% block extra_script %}
 {% include "_permissions_form_js.html" %}

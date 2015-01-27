@@ -13,9 +13,12 @@
     <h2 class="page-title">{% trans "Explore Tables" %}</h2>
   </div>
 
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
   {% with custom_filters='tabular/_tabular_filter.html' %}
   {% include "search/_search_content.html" %}
   {% endwith %}
+  </div>
 
 {% endblock %}
 

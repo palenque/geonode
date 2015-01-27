@@ -13,10 +13,12 @@
     <h2 class="page-title">{% trans "Explore Documents" %}</h2>
   </div>
 
+  <div class="col-md-2"></div>
+  <div class="col-md-8">
   {% with custom_filters='documents/_document_filter.html' %}
   {% include "search/_search_content.html" %}
   {% endwith %}
-
+  </div>
 
 {% comment %}  
   {% with include_type_filter='true' %}

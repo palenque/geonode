@@ -13,7 +13,7 @@
 {% endblock %}
 
 {% block body %}
-
+  <div class="col-md-2"></div>
   <div class="col-md-8">
     {% if incomplete %}
     <section class="widget" id="incomplete-download-list">
@@ -54,7 +54,7 @@
     <p>{% trans " or select them one by one:" %}</p>
 
     <form id="file-uploader" method="post" enctype="multipart/form-data">
-      <input class="btn" id="file-input" type="file" multiple>
+      <input class="btn " id="file-input" type="file" multiple>
     </form>
 
     <section class="widget">
@@ -63,18 +63,18 @@
       <div id="file-queue"></div>
     </section>
 
-    <section class="layer-type">
+    <section class="layer-type form-group">
       <p>{% trans "Layer type" %}</p>
-      <select id="layer-type">
+      <select id="layer-type" class="form-control">
         {% for pt in layer_types %}
           <option value="{{pt.id}}" {% if pt.is_default %}selected="selected"{% endif %}>{{ pt }}</option>
         {% endfor %}
       </select>
     </section>
 
-    <section class="charset">
+    <section class="charset form-group">
       <p>{% trans "Charset" %}</p>
-      <select id="charset">
+      <select id="charset" class="form-control">
         {% for charset in charsets %}
         {% if charset.0 == 'UTF-8' %} 
         <option selected='selected' value={{ charset.0 }}>{{ charset.1 }}</option>
@@ -93,9 +93,8 @@
 {% endblock %}
 
 
-{% block sidebar %}
-
 {% comment %}
+{% block sidebar %}
 {% if GEONODE_SECURITY_ENABLED %}
 <div class="col-md-4">
   <h3>{% trans "Permissions"  %}</h3>
@@ -104,9 +103,8 @@
   </form>
 </div>
 {% endif %}
-{% endcomment %}
-
 {% endblock %}
+{% endcomment %}
 
 
 {% block extra_script %}
