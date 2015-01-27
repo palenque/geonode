@@ -17,6 +17,11 @@
 {% endif %}
 {{ block.super }}
 
+<style>
+#map {
+   width: 100%;
+}
+</style>
 <link href="{{ STATIC_URL }}/geonode/js/datatables/jquery.dataTables.css" rel="stylesheet" />
 <script src="{{ STATIC_URL }}/geonode/js/datatables/jquery-1.11.1.min.js"></script>
 <script src="{{ STATIC_URL }}/geonode/js/datatables/jquery.dataTables.min.js"></script>
@@ -87,7 +92,7 @@
     </ul>
     
     <div class="tab-content">
-      <article id="map" class="tab-pane">
+      <article id="map" class="tab-pane active">
         <div id="embedded_map" class="mrg-btm">
           <div id="preview_map" ng-controller="MapController"></div>
         </div>
