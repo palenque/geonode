@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load pagination_tags %}
 {% load guardian_tags %}
+{% load activity_tags social_tags i18n %}
 
 {% block title %}{{ object.title|default:object.slug }} — {{ block.super }}{% endblock %}
 
@@ -51,25 +52,29 @@
 
     {% if is_member %}
 
+    <article class="tab-pane" id="actions">
+      <ul class="no-style-list">
+        {% for action in action_list %}
+        {% activity_item action %}
+        {% empty %}
+        <p>{% trans "No actions yet" %}</p>
+        {% endfor %}
+      </ul>
+    </article>
+
     <article id="resources" class="tab-pane">
       <ul class="nav nav-pills filter" id="sort">
         <li><a data-value="" data-filter="csw_type" ng-click="single_choice_listener($event)">{% trans "All contents" %}</a></li>
-        <li><a data-value="dataset" data-filter="csw_type" 
-          data-url="{% url 'api_dispatch_list' api_name='api' resource_name='base' %}?app={{ object.slug}}"
-          ng-click="single_choice_listener($event)">{% trans "Layers" %}</a></li>
-        <li><a data-value="document" data-filter="csw_type" 
-          data-url="{% url 'api_dispatch_list' api_name='api' resource_name='base' %}?app={{ object.slug}}"
-        ng-click="single_choice_listener($event)">{% trans "Documents" %}</a></li>
-        <li><a data-value="tabular" data-filter="csw_type" 
-          data-url="{% url 'api_dispatch_list' api_name='api' resource_name='base' %}?app={{ object.slug}}"
-          ng-click="single_choice_listener($event)">{% trans "Tables" %}</a></li>
+        <li><a data-value="dataset" data-filter="csw_type" ng-click="single_choice_listener($event)">{% trans "Layers" %}</a></li>
+        <li><a data-value="document" data-filter="csw_type" ng-click="single_choice_listener($event)">{% trans "Documents" %}</a></li>
+        <li><a data-value="tabular" data-filter="csw_type" ng-click="single_choice_listener($event)">{% trans "Tables" %}</a></li>
       </ul>
 
       <div class="col-md-12">
-        <div class="tab-content span12 paginate paginate-auto">
+        <div caclass="tab-content span12 paginate paginate-auto">
           <div class="tab-pane active list paginate-contents" id="all">
+            {% include 'search/_pagination.html' %}          
             {% include "apps/_app_resources.html" %}
-            {% include 'search/_pagination.html' %}
           </div>
         </div>
       </div>
@@ -107,21 +112,13 @@
       <li class="list-group-item"><a href="{% url "app_member_unlink" object.slug request.user.username %}">{% trans "Unlink this App" %}</a></li>
       {% endif %}
 
-      {% if can_view %}
-      <li class="list-group-item"><a href="{% url "group_activity" object.slug %}">{% trans "Group Activities" %}</a></li>
-      {% endif %}
-
       {% if not is_manager and not is_member %}
       <li class="list-group-item">
         <p>
-          {% blocktrans with object.get_access_display as access %}
-            This app is public<strong>{{ access }}</strong>.
+          {% blocktrans  %}
+            This app is public.<br/>
+            Anyone may use this app.
           {% endblocktrans %}
-          {% comment %}
-          {% if object.access == "public" %}
-          {% endcomment %}
-            <br/>
-            {% trans "Anyone may use this app." %}
             <br/>
             <a class="btn btn-default btn-md btn-block" href="{% url "app_member_link" object.slug request.user.username %}">{% trans "Link this app" %}</a>            
             {% comment %}
@@ -145,7 +142,7 @@
         <h4>{% trans "Permissions" %}</h4>
         {% trans "This app needs access to the following resources:" %}
         <ul>
-          {% for keyword in object.keyword_list %}
+          {% for keyword in keywords %}
             <li>{{keyword}}</li>
           {% endfor %}
         </ul>
@@ -176,13 +173,36 @@
 {% endblock %}
 
 {% block extra_script %}
+
+  <script src="{{ STATIC_URL }}geonode/js/search/embedded_search.js"></script>
   <script type="text/javascript">
-  SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='base' %}'+ '?app='+ '{{ object.slug }}';
+
+    SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='base' %}'+ '?app='+ '{{ object.slug }}';
+    SEARCH_QUERY = {is_public:0};
+    CLIENT_RESULTS_LIMIT = 10;
+
+    $("#resources").attr('ng-controller', 'EmbeddedSearchController');
+
+    var module = angular.module('search', ['embedded_search']);
+    module.constant('Configs', {
+      url: SEARCH_URL,
+      query: SEARCH_QUERY
+    });
+
+    var deps = ['search'];
+    angular.bootstrap(document, deps);
+  </script>
+
+
+{% comment %}
+  <script type="text/javascript">
+
 
   </script>
 
   {% with include_spatial='false' %}
   {% include 'search/search_scripts.html' %}
   {% endwith %}
-{% endblock extra_script %}
+{% endcomment %}
 
+{% endblock extra_script %}

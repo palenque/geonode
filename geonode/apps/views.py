@@ -20,10 +20,10 @@ from geonode.base.models import ResourceBase
 from geonode.apps.forms import AppForm, AppUpdateForm
 from geonode.apps.models import App, AppMember
 from geonode.people.models import Profile
-from geonode.layers.models import Layer
+from geonode.layers.models import Layer, LayerType
 from geonode.maps.models import Map
 from geonode.documents.models import Document
-from geonode.tabular.models import Tabular
+from geonode.tabular.models import Tabular, TabularType
 
 @login_required
 def app_create(request):
@@ -73,77 +73,114 @@ def app_update(request, slug):
     }, context_instance=RequestContext(request))
 
 
-class AppDetailView(ListView):
+@login_required
+def app_detail(request, slug):
+    app = get_object_or_404(App, slug=slug)
+    manager = app.get_managers()[0]
+    alter_ego = app.get_alter_ego()
+    profile = get_object_or_404(Profile, username=request.user.username)
+    user_objects = profile.owned_resource.distinct()
 
-    """
-    Mixes a detail view (the app) with a ListView (the members).
-    """
+    action_list = Action.objects.filter(target_object_id__in=[x.id for x in user_objects])[:15]
 
-    model = get_user_model()
-    template_name = "apps/app_detail.html"
-    paginate_by = None
-    app = None
+    keywords = app.keyword_list
+    keyword_labels = set()
+    keyword_labels.update(x.label for x in LayerType.objects.filter(name__in=keywords).all())
+    keyword_labels.update(x.label for x in TabularType.objects.filter(name__in=keywords).all())
 
-    def get_queryset(self):
-        return self.app.member_queryset()
+    context = {}
+    context['object'] = app
+    context['app_manager'] = manager
+    context['app_alter_ego'] = alter_ego
+    context['maps'] = app.resources(resource_type='map')
+    context['layers'] = app.resources(resource_type='layer')
+    context['is_member'] = app.user_is_member(request.user)
+    context['is_manager'] = app.user_is_role(request.user, "manager")
+    context['description'] = markdown.markdown(app.description)
+    context['action_list'] = action_list
+    context['keywords'] = keyword_labels
 
-    def get(self, request, *args, **kwargs):
-        self.app = get_object_or_404(App, slug=kwargs.get('slug'))
-        return super(AppDetailView, self).get(request, *args, **kwargs)
+    context['profile'] = profile
+    context['object_list'] = user_objects.get_real_instances()
+    context['permissions'] = [
+        obj.id for obj in user_objects if alter_ego.has_perm('view_resourcebase', obj)
+    ]
+    return render_to_response("apps/app_detail.html", RequestContext(request, context))
 
-    def get_context_data(self, **kwargs):
+# class AppDetailView(ListView):
 
-        manager = self.app.get_managers()[0]
-        alter_ego = self.app.get_alter_ego()
-        profile = get_object_or_404(Profile, username=self.request.user.username)
-        user_objects = profile.resourcebase_set.distinct()
+#     """
+#     Mixes a detail view (the app) with a ListView (the members).
+#     """
 
-        content_filter = 'all'
+#     model = get_user_model()
+#     template_name = "apps/app_detail.html"
+#     paginate_by = None
+#     app = None
 
-        if ('content' in self.request.GET):
-            content = self.request.GET['content']
-            if content != 'all':
-                if (content == 'layers'):
-                    content_filter = 'layers'
-                    user_objects = user_objects.instance_of(Layer)
-                if (content == 'maps'):
-                    content_filter = 'maps'
-                    user_objects = user_objects.instance_of(Map)
-                if (content == 'documents'):
-                    content_filter = 'documents'
-                    user_objects = user_objects.instance_of(Document)
-                if (content == 'tabular'):
-                    content_filter = 'tabular'
-                    user_objects = user_objects.instance_of(Tabular)
+#     def get_queryset(self):
+#         return self.app.member_queryset()
 
-        sortby_field = 'date'
-        if ('sortby' in self.request.GET):
-            sortby_field = self.request.GET['sortby']
-        if sortby_field == 'title':
-            user_objects = user_objects.order_by('title')
-        else:
-            user_objects = user_objects.order_by('-date')
+#     def get(self, request, *args, **kwargs):
+#         self.app = get_object_or_404(App, slug=kwargs.get('slug'))
+#         return super(AppDetailView, self).get(request, *args, **kwargs)
 
-        context = super(AppDetailView, self).get_context_data(**kwargs)
-        context['object'] = self.app
-        context['app_manager'] = manager
-        context['app_alter_ego'] = alter_ego
-        context['maps'] = self.app.resources(resource_type='map')
-        context['layers'] = self.app.resources(resource_type='layer')
-        context['is_member'] = self.app.user_is_member(self.request.user)
-        context['is_manager'] = self.app.user_is_role(self.request.user, "manager")
-        context['description'] = markdown.markdown(self.app.description)
-        
-        context['profile'] = profile
-        context['sortby_field'] = sortby_field
-        context['content_filter'] = content_filter
-        context['object_list'] = user_objects.get_real_instances()
-        context['permissions'] = [
-            obj.id for obj in user_objects if alter_ego.has_perm('view_resourcebase', obj)
-        ]
+#     def get_context_data(self, **kwargs):
 
-        # context['can_view'] = self.app.can_view(self.request.user)
-        return context
+#         manager = self.app.get_managers()[0]
+#         alter_ego = self.app.get_alter_ego()
+#         profile = get_object_or_404(Profile, username=self.request.user.username)
+#         user_objects = profile.owned_resource.distinct()
+
+#         # content_filter = 'all'
+
+#         # if ('content' in self.request.GET):
+#         #     content = self.request.GET['content']
+#         #     if content != 'all':
+#         #         if (content == 'layers'):
+#         #             content_filter = 'layers'
+#         #             user_objects = user_objects.instance_of(Layer)
+#         #         if (content == 'maps'):
+#         #             content_filter = 'maps'
+#         #             user_objects = user_objects.instance_of(Map)
+#         #         if (content == 'documents'):
+#         #             content_filter = 'documents'
+#         #             user_objects = user_objects.instance_of(Document)
+#         #         if (content == 'tabular'):
+#         #             content_filter = 'tabular'
+#         #             user_objects = user_objects.instance_of(Tabular)
+
+#         # sortby_field = 'date'
+#         # if ('sortby' in self.request.GET):
+#         #     sortby_field = self.request.GET['sortby']
+#         # if sortby_field == 'title':
+#         #     user_objects = user_objects.order_by('title')
+#         # else:
+#         #     user_objects = user_objects.order_by('-date')
+
+#         action_list = Action.objects.filter(target_object_id__in=[x.id for x in user_objects])[:15]
+
+#         context = super(AppDetailView, self).get_context_data(**kwargs)
+#         context['object'] = self.app
+#         context['app_manager'] = manager
+#         context['app_alter_ego'] = alter_ego
+#         context['maps'] = self.app.resources(resource_type='map')
+#         context['layers'] = self.app.resources(resource_type='layer')
+#         context['is_member'] = self.app.user_is_member(self.request.user)
+#         context['is_manager'] = self.app.user_is_role(self.request.user, "manager")
+#         context['description'] = markdown.markdown(self.app.description)
+#         context['action_list'] = action_list
+
+#         context['profile'] = profile
+#         # context['sortby_field'] = sortby_field
+#         # context['content_filter'] = content_filter
+#         context['object_list'] = user_objects.get_real_instances()
+#         context['permissions'] = [
+#             obj.id for obj in user_objects if alter_ego.has_perm('view_resourcebase', obj)
+#         ]
+
+#         # context['can_view'] = self.app.can_view(self.request.user)
+#         return context
 
 
 # def app_members(request, slug):
@@ -231,17 +268,17 @@ def member_detail(request, app_id, username):
                 user_objects = user_objects.instance_of(Tabular)
 
     # TODO: cambiar query
-    user_objects = profile.resourcebase_set.filter(
-        id__in=[obj.id for obj in user_objects if manager.has_perm('view_resourcebase', obj)]
-    ).distinct()
+    # user_objects = profile.resourcebase_set.filter(
+    #     id__in=[obj.id for obj in user_objects if manager.has_perm('view_resourcebase', obj)]
+    # ).distinct()
 
-    sortby_field = 'date'
-    if ('sortby' in request.GET):
-        sortby_field = request.GET['sortby']
-    if sortby_field == 'title':
-        user_objects = user_objects.order_by('title')
-    else:
-        user_objects = user_objects.order_by('-date')
+    # sortby_field = 'date'
+    # if ('sortby' in request.GET):
+    #     sortby_field = request.GET['sortby']
+    # if sortby_field == 'title':
+    #     user_objects = user_objects.order_by('title')
+    # else:
+    #     user_objects = user_objects.order_by('-date')
 
     return render(request, "apps/app_member_detail.html", {
         "app": app,
@@ -306,9 +343,14 @@ def app_member_link(request, slug, username):
     app = get_object_or_404(App, slug=slug)
     user = get_object_or_404(get_user_model(), username=username)
 
+    keywords = app.keyword_list
+    keyword_labels = set()
+    keyword_labels.update(x.label for x in LayerType.objects.filter(name__in=keywords).all())
+    keyword_labels.update(x.label for x in TabularType.objects.filter(name__in=keywords).all())
+
     if request.method == 'GET':
         return render_to_response(
-            "apps/app_member_link.html", RequestContext(request, {"app": app}))
+            "apps/app_member_link.html", RequestContext(request, {"app": app, "keywords": keyword_labels}))
 
     elif request.method == 'POST':
 

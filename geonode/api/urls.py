@@ -2,7 +2,7 @@ from tastypie.api import Api
 
 from .api import TagResource, TopicCategoryResource, ProfileResource, \
     GroupResource, AppResource, LayerTypeResource, TabularTypeResource, \
-    EavAttributeResource
+    EavAttributeResource, AppCategoryResource
 from .resourcebase_api import LayerResource, MapResource, DocumentResource, \
     ResourceBaseResource, FeaturedResourceBaseResource, LinkResource, \
     InternalLinkResource, TabularResource, TabularAttributeResource
@@ -27,3 +27,4 @@ api.register(LayerTypeResource())
 api.register(LinkResource())
 api.register(InternalLinkResource())
 api.register(EavAttributeResource())
+api.register(AppCategoryResource())

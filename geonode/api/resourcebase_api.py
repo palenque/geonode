@@ -42,7 +42,8 @@ from geonode.base.models import ResourceBase, TopicCategory, Link, InternalLink
 from .authorization import GeoNodeAuthorization, InternalLinkAuthorization
 
 from .api import TagResource, ProfileResource, TopicCategoryResource, \
-    FILTER_TYPES, AppResource, remove_internationalization_fields
+    FILTER_TYPES, AppResource, remove_internationalization_fields, \
+    PostQueryFilteringMixin
 
 from eav.forms import BaseDynamicEntityForm
 
@@ -76,6 +77,7 @@ class MultipartResource(object):
             return data
 
         return super(MultipartResource, self).deserialize(request, data, format)
+
 
 
 extra_actions = [
@@ -117,7 +119,7 @@ class CommonMetaApi:
     max_limit = None
     #paginator_class = Paginator
 
-class CommonModelApi(ModelResource):
+class CommonModelApi(ModelResource, PostQueryFilteringMixin):
     keywords = fields.ToManyField(TagResource, 'keywords', null=True)
     category = fields.ToOneField(
         TopicCategoryResource,
@@ -127,10 +129,17 @@ class CommonModelApi(ModelResource):
     owner = fields.ToOneField(ProfileResource, 'owner', full=True)
     creator = fields.ToOneField(ProfileResource, 'creator', full=True, null=True)
     permission_class = fields.CharField(null=True)
+    metadata = fields.DictField(null=True)
 
     def dehydrate(self, bundle):
         bundle = super(CommonModelApi, self).dehydrate(bundle)
         return remove_internationalization_fields(bundle)
+
+    def dehydrate_metadata(self, bundle):
+        if hasattr(bundle.obj,'eav'):
+            return bundle.obj.eav.get_values_dict()
+        else:
+            return {}
 
     def dehydrate_permission_class(self, bundle):
         if type(bundle.obj.is_public) == bool:
@@ -140,7 +149,7 @@ class CommonModelApi(ModelResource):
         if bundle.obj.is_public():
             return "public"
         else:
-            # TODO: shared missiong
+            # TODO: shared missing
             return "owned"
 
     def apply_eav_filters(self, objects, bundle):
@@ -151,14 +160,12 @@ class CommonModelApi(ModelResource):
                 getattr(obj.eav,flt) in vals, objects)
         return objects
 
-    def apply_post_query_filters(self, objects, bundle):
-        if hasattr(self.Meta, 'post_query_filtering'):
-            for name,vals in bundle.request.post_query_filters.items():
-                objects = filter(self.Meta.post_query_filtering[name](vals), objects)
-        return objects
 
     def build_filters(self, filters={}):
         orm_filters = {}
+
+        if 'app' in filters:
+            orm_filters['app'] = filters.pop('app')
 
         to_remove = set()
         for flt,vals in filters.lists():
@@ -168,10 +175,7 @@ class CommonModelApi(ModelResource):
                 orm_filters[flt] = vals
         for flt in to_remove: filters.pop(flt)
 
-        if hasattr(self.Meta, 'post_query_filtering'):
-            for flt in self.Meta.post_query_filtering:
-                if flt in filters:
-                    orm_filters[flt] = filters.pop(flt)
+        orm_filters.update(self.build_post_query_filters(filters))
 
         orm_filters.update(super(CommonModelApi, self).build_filters(filters))
 
@@ -189,8 +193,15 @@ class CommonModelApi(ModelResource):
         return orm_filters
 
     def apply_filters(self, request, applicable_filters):
-        request.post_query_filters = {}
         request.eav_filters = {}
+
+        if 'app' in applicable_filters:
+            app = applicable_filters.pop('app')[0]
+            if not any(x for x in request.user.apps_list_all() if x.slug == app):
+                # TODO: Error
+                pass
+            else:
+                request.user = Profile.objects.get(username=app)
 
         to_remove = set()
         for flt in applicable_filters:
@@ -199,10 +210,7 @@ class CommonModelApi(ModelResource):
                 to_remove.add(flt)
         for flt in to_remove: applicable_filters.pop(flt)
 
-        if hasattr(self.Meta, 'post_query_filtering'):
-            for flt in self.Meta.post_query_filtering:
-                if flt in applicable_filters:
-                    request.post_query_filters[flt] = applicable_filters.pop(flt)
+        self.process_post_query_filters(request, applicable_filters)
 
         types = applicable_filters.pop('type', None)
         extent = applicable_filters.pop('extent', None)
@@ -684,6 +692,9 @@ class ResourceBaseResource(CommonModelApi):
         resource_name = 'base'
         excludes = ['csw_anytext', 'metadata_xml']
         authorization = GeoNodeAuthorization()
+        post_query_filtering = {
+            'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
+        }
 
 class FeaturedResourceBaseResource(CommonModelApi):
 
@@ -841,6 +852,9 @@ class LayerResource(MultipartResource, CommonModelApi):
         bundle.request.POST['date_type'] = bundle.request.POST.get(
             'date_type', layer.date_type if update else 'publication'
         )
+        bundle.request.POST['owner'] = bundle.request.POST.get(
+            'owner', bundle.request.user)
+
         bundle.request.POST['supplemental_information'] = bundle.request.POST.get(
             'supplemental_information', layer.supplemental_information if update else 'no info.'
         )
@@ -911,7 +925,7 @@ class LayerResource(MultipartResource, CommonModelApi):
                 super(LayerMetadataForm, self).__init__(data, *args, **kwargs)
                 meta_fields = [
                     a.slug for a in layer.eav.get_all_attributes().filter(
-                        metadatatype__in=layer.layer_type.metadatatype_set.all()
+                        layer_metadata_type_attribute__in=layer.layer_type.metadatatype_set.all()
                     )
                 ]
                 for f in self.fields.keys():
@@ -920,6 +934,22 @@ class LayerResource(MultipartResource, CommonModelApi):
             
             class Meta:
                 model = Layer
+
+            def clean(self):
+                cleaned_data = super(LayerMetadataForm, self).clean()
+                calc_title = self.instance.layer_type.calculated_title
+                if calc_title is not None:
+                    try:
+                        cleaned_data['title'] = calc_title % cleaned_data
+                    except: pass
+
+                calc_abstract = self.instance.layer_type.calculated_abstract
+                if calc_abstract is not None:
+                    try:
+                        cleaned_data['abstract'] = calc_abstract % cleaned_data
+                    except: pass 
+                return cleaned_data
+                
 
         if bundle.request.POST.get('metadata'):
             bundle.request.POST.update(json.loads(bundle.request.POST.get('metadata')))
@@ -981,7 +1011,6 @@ class LayerResource(MultipartResource, CommonModelApi):
             "groups":{"foo":["change_resourcebase_permissions"] } 
         }
         """
-
         layer = self._create_layer(bundle)
         self._set_default_metadata(bundle, layer)
 
@@ -1023,7 +1052,6 @@ class DocumentResource(CommonModelApi):
             }
         queryset = Document.objects.distinct().order_by('-date')
         resource_name = 'documents'
-
         post_query_filtering = {
             'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
         }        

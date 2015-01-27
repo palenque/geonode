@@ -90,7 +90,15 @@ class YieldMonitorProcessing(object):
         # upload new layer
         params = {'username': self.username, 'api_key': self.api_key}
         files = {'base_file': open('out.tiff')}
-        data = {'charset':'UTF-8', 'layer_title':'%s (raster)' % layer['title'], 'owner':username}
+        metadata = layer['metadata']        
+        data = {
+            'charset': 'UTF-8', 
+            'layer_type': 'yield_raster',
+            'owner': username, 
+            'metadata': simplejson.dumps(metadata),
+            'attributes': simplejson.dumps(
+                [{"attribute":"GRAY_INDEX","mapping":"MASA_HUMEDO","magnitude":"kg"}])
+        }
         headers = {'Accept-Language':'en'}
         url = '%s/layers/' % self.palenque_api_url
         resp = requests.post(url, headers=headers, files=files, params=params, data=data)

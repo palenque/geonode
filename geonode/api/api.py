@@ -14,7 +14,7 @@ from geonode.tabular.models import TabularType
 from geonode.maps.models import Map
 from geonode.documents.models import Document
 from geonode.groups.models import GroupProfile
-from geonode.apps.models import App
+from geonode.apps.models import App, AppCategory
 
 from taggit.models import Tag
 
@@ -32,6 +32,28 @@ FILTER_TYPES = {
 def remove_internationalization_fields(bundle):
     bundle.data = dict(filter(lambda (k,v):len(k)<3 or k[-3] != '_', bundle.data.items()))
     return bundle
+
+class PostQueryFilteringMixin(object):
+    def build_post_query_filters(self, filters):
+        orm_filters = {}
+        if hasattr(self.Meta, 'post_query_filtering'):
+            for flt in self.Meta.post_query_filtering:
+                if flt in filters:
+                    orm_filters[flt] = filters.pop(flt)
+        return orm_filters
+
+    def process_post_query_filters(self, request, applicable_filters):
+        request.post_query_filters = {}
+        if hasattr(self.Meta, 'post_query_filtering'):
+            for flt in self.Meta.post_query_filtering:
+                if flt in applicable_filters:
+                    request.post_query_filters[flt] = applicable_filters.pop(flt)
+
+    def apply_post_query_filters(self, objects, bundle):
+        if hasattr(self.Meta, 'post_query_filtering'):
+            for name,vals in bundle.request.post_query_filters.items():
+                objects = filter(self.Meta.post_query_filtering[name](vals), objects)
+        return objects
 
 class TypeFilteredResource(ModelResource):
 
@@ -123,6 +145,19 @@ class TopicCategoryResource(TypeFilteredResource):
             'identifier': ALL,
         }
 
+class AppCategoryResource(TypeFilteredResource):
+
+    class Meta:
+        queryset = AppCategory.objects.all()
+        resource_name = 'app_categories'
+        allowed_methods = ['get']
+        filtering = {
+            'identifier': ALL,
+        }
+
+    def dehydrate_count(self, bundle):
+        return bundle.obj.app_set.count()
+
 
 class GroupResource(ModelResource):
 
@@ -151,14 +186,28 @@ class GroupResource(ModelResource):
         ordering = ['title', 'last_modified']
 
 
-class AppResource(ModelResource):
+class AppResource(ModelResource, PostQueryFilteringMixin):
 
     """App api"""
+
+    class Meta:
+        queryset = App.objects.all()
+        resource_name = 'apps'
+        allowed_methods = ['get']
+        filtering = {
+            'name': ALL,
+            'category': ALL_WITH_RELATIONS,
+        }
+        ordering = ['title', 'last_modified']
+        post_query_filtering = {
+            'developer': lambda vals: lambda app: app.get_managers()[0].username in vals
+        }
 
     detail_url = fields.CharField()
     member_count = fields.IntegerField()
     manager_count = fields.IntegerField()
     developer = fields.CharField()
+    category = fields.ToOneField('geonode.api.api.AppCategoryResource', 'category', null=True)
     
     def dehydrate_member_count(self, bundle):
         return bundle.obj.member_queryset().filter(role='member').count()
@@ -166,8 +215,8 @@ class AppResource(ModelResource):
     def dehydrate_manager_count(self, bundle):
         return bundle.obj.get_managers().count()
 
-    def dehydrate_detail_url(self, bundle):
-        return reverse('app_detail', args=[bundle.obj.slug])
+    # def dehydrate_detail_url(self, bundle):
+    #     return reverse('app_detail', args=[bundle.obj.slug])
 
     def dehydrate_developer(self, bundle):
         return bundle.obj.get_managers()[0].full_name
@@ -176,7 +225,8 @@ class AppResource(ModelResource):
     def build_filters(self, filters={}):
         """adds filtering by group functionality"""
 
-        orm_filters = super(AppResource, self).build_filters(filters)
+        orm_filters = self.build_post_query_filters(filters)
+        orm_filters.update(super(AppResource, self).build_filters(filters))
 
         if 'member' in filters:
             orm_filters['member'] = filters['member']
@@ -186,6 +236,7 @@ class AppResource(ModelResource):
     def apply_filters(self, request, applicable_filters):
         """filter by group if applicable by group functionality"""
 
+        self.process_post_query_filters(request, applicable_filters)
         member = applicable_filters.pop('member', None)
 
         semi_filtered = super(
@@ -202,15 +253,11 @@ class AppResource(ModelResource):
         
         return semi_filtered
 
-
-    class Meta:
-        queryset = App.objects.all()
-        resource_name = 'apps'
-        allowed_methods = ['get']
-        filtering = {
-            'name': ALL
-        }
-        ordering = ['title', 'last_modified']
+    def obj_get_list(self, **kwargs):
+        objects = super(AppResource, self).obj_get_list(**kwargs)
+        bundle = kwargs['bundle']
+        objects = self.apply_post_query_filters(objects, bundle)
+        return objects
 
 
 class ProfileResource(ModelResource):

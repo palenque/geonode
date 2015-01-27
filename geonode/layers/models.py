@@ -78,18 +78,40 @@ class LayerType(models.Model):
     calculated_abstract = models.CharField(max_length = 1024, blank=True, null=True)
     default_style = models.ForeignKey('Style', null=True, blank=True)
 
+
+    def _set_default_style(self, layer):
+        if self.default_style is None: return
+
+        # Save to GeoServer
+        cat = gs_catalog
+        gs_layer = cat.get_layer(layer.name)
+        gs_layer.default_style = self.default_style.name
+        styles = [self.default_style.name]
+        gs_layer.styles = styles
+        cat.save(gs_layer)
+
+        # Save to Django
+        layer = set_styles(layer, cat)
+        #layer.save()
+
     def update_attributes(self, layer):
         'Updates table fields and attributes to mach layer type attributes.'
 
         if layer.layer_type.is_default:
             return
 
-        with transaction.atomic(using="datastore"):
+        if layer.is_vector():
+            with transaction.atomic(using="datastore"):
+                self._validate_required_attributes(layer)
+                self._rename_fields(layer)
+                self._normalize_units(layer)
+                self._precalculate_fields(layer)
+                self._precalculate_metadata_fields(layer)
+        else:
             self._validate_required_attributes(layer)
-            self._rename_fields(layer)
-            self._normalize_units(layer)
-            self._precalculate_fields(layer)
-            self._precalculate_metadata_fields(layer)
+
+        self._set_default_style(layer)
+
 
     def _validate_required_attributes(self, layer):
 
@@ -901,3 +923,30 @@ class EavConfigClass(EavConfig):
     attribute_relation='layer_metadata_type_attribute'
 
 eav.register(Layer, EavConfigClass)
+
+
+#from geonode.geoserver.helpers import set_styles
+from geonode.geoserver.signals import gs_catalog
+
+def save_style(gs_style):
+    style, created = Style.objects.get_or_create(name=gs_style.sld_name)
+    style.sld_title = gs_style.sld_title
+    style.sld_body = gs_style.sld_body
+    style.sld_url = gs_style.body_href()
+    style.save()
+    return style
+
+def set_styles(layer, gs_catalog):
+    style_set = []
+    gs_layer = gs_catalog.get_layer(layer.name)
+    default_style = gs_layer.default_style
+    layer.default_style = save_style(default_style)
+    style_set.append(layer.default_style)
+
+    alt_styles = gs_layer.styles
+
+    for alt_style in alt_styles:
+        style_set.append(save_style(alt_style))
+
+    layer.styles = style_set
+    return layer

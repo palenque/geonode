@@ -47,6 +47,7 @@ from geonode.base.forms import CategoryForm
 from geonode.layers.models import Layer, Attribute, LayerType, Style
 from geonode.base.enumerations import CHARSETS
 from geonode.base.models import TopicCategory
+from geonode.apps.models import App
 
 from geonode.utils import default_map_config, llbbox_to_mercator
 from geonode.utils import GXPLayer
@@ -55,7 +56,7 @@ from geonode.layers.utils import file_upload, guess_attribute_match
 from geonode.utils import resolve_object
 from geonode.people.forms import ProfileForm, PocForm
 from geonode.security.views import _perms_info_json
-from geonode.security.models import ADMIN_PERMISSIONS
+#from geonode.security.models import ADMIN_PERMISSIONS
 from geonode.documents.models import get_related_documents
 
 from geonode.geoserver.helpers import set_styles
@@ -174,12 +175,12 @@ def layer_upload(request, template='upload/layer_upload.html'):
                     # se guarda de nuevo porque se borran los permisos
                     # y se deben dar permisos a las aplicaciones de nuevo                    
                     saved_layer.save()
-                else:
-                    saved_layer.remove_all_permissions()
-                    for perm in ADMIN_PERMISSIONS:
-                        assign_perm(perm, saved_layer.owner, saved_layer.get_self_resource())
-                        if saved_layer.owner != saved_layer.creator:
-                            assign_perm(perm, saved_layer.creator, saved_layer.get_self_resource())
+                # else:
+                #     saved_layer.remove_all_permissions()
+                #     for perm in ADMIN_PERMISSIONS:
+                #         assign_perm(perm, saved_layer.owner, saved_layer.get_self_resource())
+                #         if saved_layer.owner != saved_layer.creator:
+                #             assign_perm(perm, saved_layer.creator, saved_layer.get_self_resource())
 
             finally:
                 if tempdir is not None:
@@ -253,6 +254,8 @@ def layer_detail(request, layername, template='layers/layer_detail.html'):
     metadata = layer.link_set.metadata().filter(
         name__in=settings.DOWNLOAD_FORMATS_METADATA)
 
+    applications = [x.get_alter_ego().id for x in App.objects.filter(appmember__role='member',appmember__user=request.user).all()]
+
     meta_attributes = layer.eav.get_values()
     context_dict = {
         "resource": layer,
@@ -260,6 +263,7 @@ def layer_detail(request, layername, template='layers/layer_detail.html'):
         "documents": get_related_documents(layer),
         "metadata": metadata,
         "meta_attributes": meta_attributes,
+        "applications": applications
     }
 
     context_dict["viewer"] = json.dumps(

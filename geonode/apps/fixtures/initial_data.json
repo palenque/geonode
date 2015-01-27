@@ -1,0 +1,18 @@
+[
+{
+    "pk": 1, 
+    "model": "apps.appcategory", 
+    "fields": {
+        "description": "Visualización", 
+        "identifier": "visualizacion"
+    }
+}, 
+{
+    "pk": 2, 
+    "model": "apps.appcategory", 
+    "fields": {
+        "description": "Procesamiento", 
+        "identifier": "procesamiento"
+    }
+}
+]

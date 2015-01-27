@@ -36,6 +36,7 @@ class App(models.Model):
     description = models.TextField(_('Description'))    # markdown
     short_description = models.TextField(_('Short Description'), blank=True, null=True)
     thumbnail = models.FileField(_('Thumbnail'), upload_to="people_group", null=True, blank=True)
+    category = models.ForeignKey('AppCategory', null=True, blank=True)
 
     # TODO: improve
     rating = models.IntegerField(_('Rating'), null=True, blank=True)
@@ -243,6 +244,12 @@ class AppMember(models.Model):
     ])
     joined = models.DateTimeField(default=datetime.datetime.now)
 
+class AppCategory(models.Model):
+    identifier = models.CharField(max_length=255)
+    description = models.TextField(null=False, blank=False)
+
+    def __unicode__(self):
+        return self.description
 
 # class GroupInvitation(models.Model):
 
