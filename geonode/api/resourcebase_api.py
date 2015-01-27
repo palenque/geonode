@@ -133,9 +133,9 @@ class CommonModelApi(ModelResource, PostQueryFilteringMixin):
 
     def dehydrate(self, bundle):
         bundle = super(CommonModelApi, self).dehydrate(bundle)
-        if bundle.request.fields is not None:
+        if hasattr(bundle.request,'fields') and bundle.request.fields is not None:
             bundle.data = dict((k,v) for k,v in bundle.data.items() if k in bundle.request.fields)
-        if bundle.request.excludes is not None:
+        if hasattr(bundle.request,'excludes') and bundle.request.excludes is not None:
             bundle.data = dict((k,v) for k,v in bundle.data.items() if k not in bundle.request.excludes)
 
         return remove_internationalization_fields(bundle)
