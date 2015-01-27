@@ -117,7 +117,7 @@ class CommonMetaApi:
                  }
     ordering = ['date', 'title', 'popular_count']
     max_limit = None
-    #paginator_class = Paginator
+    default_post_excludes = None
 
 class CommonModelApi(ModelResource, PostQueryFilteringMixin):
     keywords = fields.ToManyField(TagResource, 'keywords', null=True)
@@ -133,6 +133,11 @@ class CommonModelApi(ModelResource, PostQueryFilteringMixin):
 
     def dehydrate(self, bundle):
         bundle = super(CommonModelApi, self).dehydrate(bundle)
+        if bundle.request.fields is not None:
+            bundle.data = dict((k,v) for k,v in bundle.data.items() if k in bundle.request.fields)
+        if bundle.request.excludes is not None:
+            bundle.data = dict((k,v) for k,v in bundle.data.items() if k not in bundle.request.excludes)
+
         return remove_internationalization_fields(bundle)
 
     def dehydrate_metadata(self, bundle):
@@ -164,6 +169,12 @@ class CommonModelApi(ModelResource, PostQueryFilteringMixin):
     def build_filters(self, filters={}):
         orm_filters = {}
 
+        if 'fields' in filters:
+            orm_filters['fields'] = filters.pop('fields')
+
+        if 'excludes' in filters:
+            orm_filters['excludes'] = filters.pop('excludes')
+
         if 'app' in filters:
             orm_filters['app'] = filters.pop('app')
 
@@ -194,6 +205,20 @@ class CommonModelApi(ModelResource, PostQueryFilteringMixin):
 
     def apply_filters(self, request, applicable_filters):
         request.eav_filters = {}
+        
+        if 'fields' in applicable_filters:
+            request.fields = applicable_filters.pop('fields')[0].split(',')
+        else:
+            request.fields = None
+
+        if 'excludes' in applicable_filters:
+            request.excludes = applicable_filters.pop('excludes')[0].split(',')
+        else:
+            if request.fields is None:
+                request.excludes = self.Meta.default_post_excludes
+            else:
+                request.excludes = None
+
 
         if 'app' in applicable_filters:
             app = applicable_filters.pop('app')[0]
@@ -837,7 +862,10 @@ class LayerResource(MultipartResource, CommonModelApi):
         queryset = Layer.objects.all().distinct().order_by('-date')
         resource_name = 'layers'
         excludes = ['csw_anytext', 'metadata_xml', 'layer_type']
+
         allowed_methods = ['get','post', 'put']
+
+        default_post_excludes = ['concave_hull']
 
         filtering = {'title': ALL,
                  'keywords': ALL_WITH_RELATIONS,
@@ -937,7 +965,6 @@ class LayerResource(MultipartResource, CommonModelApi):
                 time_part = now.strftime("%H:%M:%S")
         bundle.request.POST['date_0'] = date_part
         bundle.request.POST['date_1'] = time_part
-
         form = LayerForm(bundle.request.POST, instance=layer)
         if form.is_valid():
             form.save()
@@ -960,7 +987,6 @@ class LayerResource(MultipartResource, CommonModelApi):
             raise BadRequest(result['errors'])
 
     def _set_attributes(self, bundle, layer):
-
         attrs = json.loads(bundle.data.get('attributes', '{}'))
         if not attrs:
             raise BadRequest('Attributes mapping required')
@@ -1029,7 +1055,6 @@ class LayerResource(MultipartResource, CommonModelApi):
         return remove_internationalization_fields(bundle)
 
     def apply_filters(self, request, applicable_filters):
-
         to_remove = set()
         for flt,v in applicable_filters.items():
             if flt.startswith('title'):

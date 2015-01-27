@@ -2,3 +2,4 @@ cherrypy
 mako
 requests
 simplejson
+sh
