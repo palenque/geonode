@@ -221,6 +221,8 @@ class AppResource(ModelResource, PostQueryFilteringMixin):
     def dehydrate_developer(self, bundle):
         return bundle.obj.get_managers()[0].full_name
     
+    def dehydrate_detail_url(self, bundle):
+        return reverse('app_detail', args=[bundle.obj.slug])
 
     def build_filters(self, filters={}):
         """adds filtering by group functionality"""
