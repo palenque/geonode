@@ -741,6 +741,24 @@ class LayerResource(MultipartResource, CommonModelApi):
 
         extra_actions = extra_actions + [
             {
+                "name": 'table',
+                "http_method": "GET",
+                "resource_type": "",
+                "summary": "Get layer data",
+                "fields": {
+                    "limit": {
+                        "type": "integer",
+                        "required": False,
+                        "description": "Limit"
+                    },
+                    "offset": {
+                        "type": "integer",
+                        "required": False,
+                        "description": "Offset"
+                    }                
+                }
+            },
+            {
                 "name": '',
                 "http_method": "POST",
                 "resource_type": "list",
@@ -833,6 +851,52 @@ class LayerResource(MultipartResource, CommonModelApi):
         post_query_filtering = {
             'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
         }
+
+    def prepend_urls(self):
+        urls = [
+            url(
+                r"^(?P<resource_name>%s)/(?P<resource_id>\d+)/table%s$" % (
+                    self._meta.resource_name, trailing_slash()
+                ),
+                self.wrap_view('table'), 
+                name="api_layer_table"
+            )           
+        ]
+
+        return urls
+
+    def table(self, request, resource_id, **kwargs):
+        '''query the table.'''
+
+        self.method_check(request, allowed=['get'])
+        self.is_authenticated(request)
+        self.throttle_check(request)
+
+        layer = Layer.objects.get(id=resource_id)
+
+        cursor = connections['datastore'].cursor()
+        fields = [a.attribute for a in Layer.objects.get(id=resource_id).attribute_set.all() if a.attribute.lower() != 'the_geom']
+
+        # FIXME: hacer seguro
+        cursor.execute(
+            'select %s from %s  order by "%s" limit %s offset %s;' % (
+                ', '.join(['"%s"' % f for f in fields]),
+                layer.name, 
+                fields[0],
+                request.GET.get('limit', '50'),
+                request.GET.get('offset', '0')
+            ) 
+        )
+
+        results = []
+        for row in cursor.fetchall():
+            results.append(dict(zip(fields, row)))
+
+        to_be_serialized = self.alter_list_data_to_serialize(
+            request,
+            results
+        )
+        return self.create_response(request, to_be_serialized)
 
     def _set_default_metadata(self, bundle, layer, update=False):
         now = dt.datetime.now()
