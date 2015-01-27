@@ -914,7 +914,7 @@ signals.post_save.connect(post_save_layer_type, sender=LayerType)
 signals.pre_delete.connect(pre_delete_layer, sender=Layer)
 signals.post_delete.connect(post_delete_layer, sender=Layer)
 signals.post_save.connect(share, sender=Layer)
-signals.post_delete.connect(unshare, sender=Layer)
+#signals.post_delete.connect(unshare, sender=Layer)
 
 from eav.registry import EavConfig
 class EavConfigClass(EavConfig):
