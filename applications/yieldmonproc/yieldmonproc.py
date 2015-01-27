@@ -8,13 +8,25 @@ from mako.lookup import TemplateLookup
 import urllib
 import urlparse
 import subprocess
+import sh
+
+
+class Saga_cmd(object):
+    def __getattr__(self, attr):
+        def subcmd(*args, **kwargs):
+            args = [attr] + list(args)
+            for k,v in kwargs.items():
+                args.extend(['-%s' % k,'"%s"' % v])
+            return sh.saga_cmd(*args)
+        return subcmd
+saga_cmd = Saga_cmd()
 
 class YieldMonitorProcessing(object):
     lookup = TemplateLookup(directories=[os.path.join(os.path.dirname(__file__),'templates')])
     palenque_url = 'http://localhost:8000'
     palenque_api_url = palenque_url + '/api'
     username = 'yieldmonproc'
-    api_key = 'bd51709e7c2a867e6debb058fbc99e321253e02e'
+    api_key = '07c3e6d390556fb11393ed793aecaebbc5d7a321'
 
     @cherrypy.expose
     def index(self):
@@ -56,19 +68,38 @@ class YieldMonitorProcessing(object):
         ans=dict(status='ok',objects=objs)
         return ans
 
-    def download(self, url):
+    def process_layer(self, typename):
+	fname_in = '%s.shp' % typename
+	fname_out = '%s_rasterized.tiff' % typename
+	pwd = str(sh.pwd()).strip()
+        try:
+            sh.cd('/tmp/layer')
+            sh.rm("-rf",sh.glob('*'))
+            sh.unzip('../layer.zip')
+	    saga_cmd.shapes_points("Points Filter", POINTS=fname_in, FIELD="MASA_HUMEDO", FILTER="tmp1.shp", RADIUS=100, MINNUM=25, MAXNUM=200, METHOD=4, PERCENT=15)
+	    saga_cmd.shapes_points("Points Filter", POINTS="tmp1.shp", FIELD="MASA_HUMEDO", FILTER="tmp2.shp", RADIUS=100, MINNUM=25, MAXNUM=200, METHOD=5, PERCENT=90)
+    	    saga_cmd.grid_gridding("Shapes to Grid", INPUT="tmp2.shp", FIELD="MASA_HUMEDO", MULTIPLE=4, LINE_TYPE=0, GRID_TYPE=3, USER_SIZE=0.0001, TARGET=0, USER_GRID="tmp3.sgrd")
+	    saga_cmd.grid_tools("Close Gaps", INPUT="tmp3.sgrd", RESULT="tmp4.sgrd")
+	    saga_cmd.shapes_points("Convex Hull", SHAPES="tmp2.shp", HULLS="tmphull.shp", POLYPOINTS=0)
+	    saga_cmd.shapes_grid("Clip Grid with Polygon", INPUT="tmp4.sgrd", OUTPUT="tmp5.sgrd", POLYGONS="tmphull.shp")
+	    saga_cmd.grid_filter("Gaussian Filter", INPUT="tmp5.sgrd", RESULT="tmp6", SIGMA=3, MODE=1, RADIUS=50)
+
+	    sh.gdal_translate("-of", "gtiff", "tmp6.sdat", fname_out)
+        finally:
+	    sh.cd(pwd)
+	return '/tmp/layer/%s' % fname_out
+
+
+    def download(self, url, typename):
         if not os.path.exists('/tmp/layer'):
             os.makedirs('/tmp/layer')
-        subprocess.call(['rm','/tmp/layer/*'])
 
         q = urlparse.urlparse(url)
         q = q._replace(netloc='%s:%s@%s' % (self.username,self.api_key,q.netloc))
         url = urlparse.urlunparse(q)
-        urllib.urlretrieve(url, "/tmp/layer/layer.zip")
-        subprocess.call(['unzip','/tmp/layer/layer.zip'])
+        urllib.urlretrieve(url, "/tmp/layer.zip")
 
-        # dirname = os.path.dirname(__file__)
-        # subprocess.call(os.path.join(dirname,'process_'
+        return self.process_layer(typename)
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -81,15 +112,14 @@ class YieldMonitorProcessing(object):
             return ans
         layer = simplejson.loads(resp.text)
 
-        # # # download the data
-        # # shape_url = (x for x in layer['links'] if x['mime'] == "SHAPE-ZIP").next()
-        # # print shape_url['url']
-        # # self.download(shape_url['url'])
-        # # return "OK"
+        # download the data
+        shape_url = (x for x in layer['links'] if x['mime'] == "SHAPE-ZIP").next()
+        print shape_url['url']
+        fname_out = self.download(shape_url['url'], layer['typename'].split(':')[-1])
 
         # upload new layer
         params = {'username': self.username, 'api_key': self.api_key}
-        files = {'base_file': open('out.tiff')}
+        files = {'base_file': (fname_out,open(fname_out))}
         metadata = layer['metadata']        
         data = {
             'charset': 'UTF-8', 
@@ -125,7 +155,7 @@ class YieldMonitorProcessing(object):
         return ans
 
 
-cherrypy.config.update({'server.socket_host': '127.0.0.1',
+cherrypy.config.update({'server.socket_host': '0.0.0.0',
                         'server.socket_port': 3000,
                        })
 

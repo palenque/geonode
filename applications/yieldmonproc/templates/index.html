@@ -111,6 +111,10 @@
 											$(this).text("wait").addClass("disabled");
 											$.post('/process',{resource_uri: $(this).data('uri'), username: "${username}"})
 												.success(function(ev) {
+													if(ev.status == 'ok')
+														cls="glyphicon-ok";
+													else
+														cls="glyphicon-remove";
 													$(target).html("");
 													$(target).append(
 														$("<span>").addClass("glyphicon").addClass("glyphicon-ok")
