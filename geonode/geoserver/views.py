@@ -18,6 +18,7 @@ from django.utils.translation import ugettext as _
 
 from guardian.shortcuts import get_objects_for_user
 
+from geonode.people.models import Profile
 from geonode.layers.forms import LayerStyleUploadForm
 from geonode.layers.models import Layer
 from geonode.layers.views import _resolve_layer, _PERMISSION_MSG_MODIFY
@@ -394,6 +395,23 @@ def resolve_user(request):
     return HttpResponse(json.dumps(resp))
 
 
+def api_key_authenticate(**credentials):
+    """
+    If the given credentials are valid, return a User object.
+    """
+    try:
+        user = Profile.objects.get(username=credentials['username'])
+        if user.api_key.key != credentials['api_key']:
+            return None
+
+        # Annotate the user object with the path of the backend.
+        # user.backend = "%s.%s" % (backend.__module__, backend.__class__.__name__)
+        return user            
+
+    except Profile.DoesNotExist:
+        return None
+
+
 def layer_acls(request):
     """
     returns json-encoded lists of layer identifiers that
@@ -407,7 +425,9 @@ def layer_acls(request):
     if 'HTTP_AUTHORIZATION' in request.META:
         try:
             username, password = _get_basic_auth_info(request)
-            acl_user = authenticate(username=username, password=password)
+            acl_user = api_key_authenticate(username=username, api_key=password)
+            if acl_user is None:
+                acl_user = authenticate(username=username, password=password)
 
             # Nope, is it the special geoserver user?
             if (acl_user is None and

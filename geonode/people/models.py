@@ -112,7 +112,7 @@ class Profile(AbstractUser):
         return GroupProfile.objects.filter(groupmember__user=self)
 
     def apps_list_all(self):
-        return [x.app for x in self.appmember_set.filter(role='manager')]
+        return [x.app for x in self.appmember_set.filter(role='member')]
 
     def keyword_list(self):
         """

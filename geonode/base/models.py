@@ -720,6 +720,14 @@ def resourcebase_post_save(instance, *args, **kwargs):
         detail_url=instance.get_absolute_url())
     instance.set_missing_info()
 
+    # Add permissions to the owner and the creator
+    res = instance.get_self_resource()
+    for perm in ADMIN_PERMISSIONS:
+        assign_perm(perm, instance.owner, res)
+        if instance.owner != instance.creator:
+            assign_perm(perm, instance.creator, res)
+
+
 
 def rating_post_save(instance, *args, **kwargs):
     """
@@ -779,19 +787,7 @@ class InternalLink(models.Model):
     target = models.ForeignKey(ResourceBase, related_name='internal_links_backward_set')
     name = models.CharField(max_length=255, help_text=_('For example "rasterized"'))
 
-def resourcebase_post_save(instance, *args, **kwargs):
-    """
-    Set permissions to owner and creator
-    """
-    res = instance.get_self_resource()
-    for perm in ADMIN_PERMISSIONS:
-        assign_perm(perm, instance.owner, res)
-        if instance.owner != instance.creator:
-            assign_perm(perm, instance.creator, res)
-
-
 signals.post_save.connect(rating_post_save, sender=OverallRating)
 signals.post_save.connect(share, sender=TaggedItem)
 signals.post_delete.connect(unshare, sender=TaggedItem)
-signals.post_save.connect(resourcebase_post_save, sender=ResourceBase)
 

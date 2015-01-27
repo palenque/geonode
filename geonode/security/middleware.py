@@ -46,16 +46,16 @@ class LoginRequiredMiddleware(object):
                         request_path=request.path))
 
 
-class ApiKeyAuthentication(object):
+# class ApiKeyAuthentication(object):
 
-    def authenticate(self, username=None, password=None):
-        try:
-            user = Profile.objects.get(username=username)
-        except:
-            return None
+#     def authenticate(self, username=None, password=None):
+#         try:
+#             user = Profile.objects.get(username=username)
+#         except:
+#             return None
 
-        if user.api_key.key != password:
-            return None
+#         if user.api_key.key != password:
+#             return None
 
-        return user
+#         return user
 
