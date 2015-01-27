@@ -8,8 +8,11 @@
 
 {% block body %}
     <div class="block">
-      <div class="col-md-10">
+      <div class="col-md-12">
         <h2 class="page-title">{% trans "Create an App" %}</h2>
+      </div>
+      <div class="col-md-2"></div>
+      <div class="col-md-8">
         {% if errors %}
           <div id="errors">
             {% for error in errors %}
@@ -17,7 +20,11 @@
             {% endfor %}
           </div>
         {% endif %}
-        <div>
+      </div>
+      <div class="col-md-2"></div>
+
+      <div class="col-md-2"></div>
+      <div class="col-md-8">
         <form class="uniForm" id="form" method="POST" action="" enctype="multipart/form-data">
         {% csrf_token %}
         <fieldset>
@@ -27,9 +34,8 @@
                 <input type="submit" class="btn btn-primary" value="{% trans 'Create' %}"/>
             </div>
         </fieldset>
-    </form>
-            </div>
-        </div>
+        </form>
+      </div>
     </div>
     
 {% endblock %}
