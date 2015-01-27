@@ -50,7 +50,7 @@ urlpatterns = patterns('',
 
                        # Static pages
                        url(r'^/?$',
-                           TemplateView.as_view(template_name='index.html'),
+                           TemplateView.as_view(template_name='index_public.html'),
                            name='home'),
                        url(r'^help/$',
                            TemplateView.as_view(template_name='help.html'),

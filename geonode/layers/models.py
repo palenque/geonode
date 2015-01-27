@@ -539,13 +539,13 @@ class Layer(ResourceBase):
         return self.__class__.__name__
 
     def update_concave_hull(self):
-
-        cursor = connections['datastore'].cursor()
-        cursor.execute(
-            '''SELECT st_asgeojson(st_concavehull(st_collect(the_geom),0.99)) 
-               FROM %s;''' % self.name)
-        self.concave_hull = cursor.fetchone()[0]
-        self.save()
+        if self.is_vector():
+            cursor = connections['datastore'].cursor()
+            cursor.execute(
+                '''SELECT st_asgeojson(st_concavehull(st_collect(the_geom),0.99)) 
+                   FROM %s;''' % self.name)
+            self.concave_hull = cursor.fetchone()[0]
+            self.save()
 
 
 class Layer_Styles(models.Model):

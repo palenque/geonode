@@ -21,9 +21,6 @@
  -->    
 
     <div class="row">
-    {% with custom_filters='layers/_layer_filter.html' %}
-    </div>
-    <div class="row">
       <div class="col-md-12 filter" style="font-size:11px;">      
         {% if custom_sort_filter %}
           {% include custom_sort_filter %}
@@ -32,6 +29,7 @@
         {% endif %}
       </div>    
     </div>    
+
     <div class="row">
       <div class="col-md-12" >
         <div class="selections">
@@ -40,33 +38,7 @@
             <a href="." id="clear-search" class="pull-right">{% trans "Clear all filters" %}</a>
           </h5>
         </div>
-        {% if custom_filters %}
-          {% include custom_filters %}
-        {% else %}
-          {% if 'text' in include_filters %}
-            {% include "search/_text_filter.html" %}
-          {% endif %}
-        <div id="slide-pane" >
-          {% if ',type,' in include_filters %}
-            {% include "search/_type_filters.html" %}
-          {% endif %}
-          {% if ',category,' in include_filters %}
-            {% include "search/_category_filter.html" %}
-          {% endif %}
-          {% if ',keyword,' in include_filters %}
-            {% include "search/_keyword_filter.html" %}
-          {% endif %}
-          {% if ',date,' in include_filters %}
-            {% include "search/_date_filter.html" %}
-          {% endif %}
-          {% if custom_filters %}
-            {% include custom_filters %}
-          {% endif %}
-          {% if ',extent,' in include_filters %}
-            {% include "search/_extent_filter.html" %}
-          {% endif %}
-        </div>
-        {% endif %}
+        {% include 'layers/_layer_filter.html' %}
       </div>
 
     </div>     
@@ -97,8 +69,6 @@
     {% endif %}
   </div>
 
-
-  {% endwith %}
   {% endwith %}
 
 {% endblock %}

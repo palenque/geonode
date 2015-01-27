@@ -517,11 +517,6 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
             the_layer.save()
 
         # XXX
-        # the_layer.layer_type._precalculate_metadata_fields(the_layer)        
-        # the_layer.save()
-        # XXX
-
-        # XXX
         the_layer.update_concave_hull()
         # XXX
 
