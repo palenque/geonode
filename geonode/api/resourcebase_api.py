@@ -1028,6 +1028,17 @@ class LayerResource(MultipartResource, CommonModelApi):
         bundle = super(CommonModelApi, self).dehydrate(bundle)
         return remove_internationalization_fields(bundle)
 
+    def apply_filters(self, request, applicable_filters):
+
+        to_remove = set()
+        for flt,v in applicable_filters.items():
+            if flt.startswith('title'):
+                applicable_filters['resourcebase_ptr__%s' % flt] = v
+                to_remove.add(flt)
+        for flt in to_remove: applicable_filters.pop(flt)
+
+        return super(LayerResource, self).apply_filters(request, applicable_filters)
+
     def obj_update(self, bundle, pk, **kwargs):
         '''Update metadata.
 
