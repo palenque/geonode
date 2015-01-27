@@ -349,12 +349,34 @@
       module.load_filter('creators', $http, $scope, $location);
     }, true);
 
+    /*
     $scope.$watch('results', function(){
       var map_scope = angular.element($(".leaflet_map")).scope();
       if(map_scope) {
         map_scope.draw_hulls($scope.results);
       }
     }, true);
+    */
+
+    $scope.$watch('query', function(){
+      var map_scope = angular.element($(".leaflet_map")).scope();
+      if(map_scope) {
+        var q = jQuery.extend(true, {}, $scope.query);
+        delete q.extent;
+        delete q.limit;
+        delete q.offset;
+        q.fields = "concave_hull";
+
+        if(JSON.stringify($scope.query_no_extent) != JSON.stringify(q)) {
+          var url = $scope.url || Configs.url;
+          $http.get(url, {params: q}).success(function(data){
+            map_scope.draw_hulls(data.objects);
+          });
+          $scope.query_no_extent = q;
+        }
+      }
+    }, true);
+
 
     $scope.toggle_nav = function($event){    
       var e = $event;
