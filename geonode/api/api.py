@@ -215,8 +215,8 @@ class AppResource(ModelResource, PostQueryFilteringMixin):
     def dehydrate_manager_count(self, bundle):
         return bundle.obj.get_managers().count()
 
-    # def dehydrate_detail_url(self, bundle):
-    #     return reverse('app_detail', args=[bundle.obj.slug])
+    def dehydrate_detail_url(self, bundle):
+        return reverse('app_detail', args=[bundle.obj.slug])
 
     def dehydrate_developer(self, bundle):
         return bundle.obj.get_managers()[0].full_name
