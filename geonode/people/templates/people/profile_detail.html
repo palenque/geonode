@@ -6,18 +6,22 @@
 
 {% block title %} {% trans "Profile of " %}{{ profile.first_name|default_if_none:profile.username }}{% endblock %}
 
-{% block body_class %}people explore{% endblock %}
+{% block body_class %}apps explore{% endblock %}
 
 {% block body %}
 <div class="row">
   <div class="col-md-12">
     <h2 class="page-title">{{ profile.name_long }}</h2>
   </div>
+</div>
+<div class="row">
+
   <div class="col-md-2">
     {% avatar profile 140 %}
   </div>
+
   <div class="col-md-6">
-    <dl class="dl-horizontal profile-details">
+    <dl class="">
      {% if profile.position %}
      <dt><i class="fa fa-user"></i></dt>
      <dd>{{ profile.position }}</dd>
@@ -63,7 +67,7 @@
       </dl>
   </div>
 
-  <div class="col-md-4">
+  <div class="col-md-2">
     {% if user == profile %}
       <ul class="list-group">
         <li class="list-group-item"><a href="{% url "profile_edit" user.username %}">{% trans "Edit profile" %}</a></li>
@@ -93,58 +97,76 @@
 </div>
 
 {% if user.is_authenticated %}
+<div class="row">
+<div class="col-md-2"></div>
 <div class="col-md-8">
-  <h3>Profile</h3>
+  <h3>{% trans "Profile" %}</h3>
   {{ profile.profile }}
+</div>
 </div>
 {% endif %}
 
 {% if user.is_authenticated and user == profile %}
+<div class="row">
+<div class="col-md-2"></div>
 <div class="col-md-8">
   <h3>API Key</h3>
   {{ profile.api_key.key }}
+</div>
 </div>
 {% endif %}
 
 {% if user.is_authenticated %}
 {% if profile.profile == 'developer' %}
-
+<div class="row">
+<div class="col-md-2"></div>
 <div class="col-md-8">
-  <h3>Applications</h3>
-  {% for app in profile.apps_list_all %}
+  <h3>{% trans "Applications" %}</h3>
+  {% for app in profile.apps %}
     {% if user.is_authenticated and user == profile %}
     <article>
+      <hr>
       <div class="row">
       <div ng-if="app.logo != ''" class="col-md-3">
-        <a href="{{ app.detail_url }}" ><img ng-src="{{ app.logo }}" alt="{{ app.title }}" class="group-logo" /></a>
+        <a href="{% url "app_detail" app.slug %}" >
+          {% if app.logo %}
+            <img width="100px" class="thumbnail" src="{{ app.logo.url }}" alt="{{ app.title|default:app.slug }}"/>
+          {% else %}
+          {{ app.title|default:app.slug }}
+          {% endif %}
+        </a>
       </div>
       <div class="col-md-9">
         <h5>
-          <i class="fa fa-cubes"></i> <a href="{{ app.detail_url }}">{{ app.title }}</a>
+          <i class="fa fa-cubes"></i> <a href="{% url "app_detail" app.slug %}">{{ app.title }}</a>
           <a href="{{ app.email }}" target="_blank"><i class="fa fa-external-link"></i></a>
         </h5>
-        <p>API Key: {{ app.get_alter_ego.api_key.key}}</p>
+        <p><span style="font-weight:bold;">API Key:</span> {{ app.get_alter_ego.api_key.key}}</p>
       </div>
       </div>
     </article>
     {% endif %}
   {% endfor %}
 </div>
+</div>
 {% endif %}
 {% endif %}
 
 {% if user.is_authenticated %}
 
+<div class="row">
+<div class="col-md-2"></div>
 <div class="col-md-8">
-  <h3>Groups</h3>
+  <h3>{% trans "Groups" %}</h3>
   {% if user == profile %}
     {% for group in profile.group_list_all %}
       <article ng-repeat="group in results">
+        <hr>
         <div class="row">
-           <div ng-if="group.logo != ''" class="col-md-2">
-             <a href="{{ group.get_absolute_url }}" ><img src="/uploaded/{{ group.logo }}" alt="{{ group.title }}" class="group-logo" /></a>
+           <div ng-if="group.logo != ''" class="col-md-3">
+             <a href="{{ group.get_absolute_url }}" ><img  class="thumbnail" width="100px" src="/uploaded/{{ group.logo }}" alt="{{ group.title }}" class="group-logo" /></a>
            </div>
-           <div class="col-md-10">
+           <div class="col-md-9">
              <h5>
                <i class="fa fa-group"></i> <a href="{{ group.get_absolute_url }}">{{ group.title }}</a>
                {% if group.email %} <a href="mailto:{{ group.email }}"><i class="fa fa-envelope-o"></i></a>{% endif %}
@@ -157,11 +179,12 @@
   {% else %}
     {% for group in profile.group_list_public %}
       <article ng-repeat="group in results">
+        <hr>
         <div class="row">
-           <div ng-if="group.logo != ''" class="col-md-2">
-             <a href="{{ group.get_absolute_url }}" ><img src="/uploaded/{{ group.logo }}" alt="{{ group.title }}" class="group-logo" /></a>
+           <div ng-if="group.logo != ''" class="col-md-3">
+             <a href="{{ group.get_absolute_url }}" ><img class="thumbnail" width="100px" src="/uploaded/{{ group.logo }}" alt="{{ group.title }}" class="group-logo" /></a>
            </div>
-           <div class="col-md-10">
+           <div class="col-md-9">
              <h5>
                <i class="fa fa-group"></i> <a href="{{ group.get_absolute_url }}">{{ group.title }}</a>
                {% if group.email %} <a href="mailto:{{ group.email }}"><i class="fa fa-envelope-o"></i></a>{% endif %}
@@ -173,11 +196,12 @@
     {% endfor %}
   {% endif %} 
 </div>
+</div>
 {% endif %}
 
 {% comment %}
 <div class="col-md-8">
-  <h3>Resources</h3>
+  <h3>{% trans "Resources" %}</h3>
   {% include "people/_profile_filters.html" %}
 </div>
 

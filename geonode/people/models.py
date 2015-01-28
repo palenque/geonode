@@ -32,6 +32,8 @@ from geonode.groups.models import GroupProfile
 from .utils import format_address
 from .enumerations import PROFILE_VALUES
 
+from avatar.models import Avatar
+
 class Profile(AbstractUser):
 
     """Fully featured Geonode user"""
@@ -87,6 +89,20 @@ class Profile(AbstractUser):
         'commonly used word(s) or formalised word(s) or phrase(s) used to describe the subject \
             (space or comma-separated'))
 
+
+    def save_avatar(self, logo):
+        'Sets an avatar'
+
+        self.avatar_set.all().delete()
+        if logo:
+            avatar = Avatar(
+                user = self,
+                primary = True,
+            )
+            image_file = logo
+            avatar.avatar.save(image_file.name, image_file)
+            avatar.save()
+
     @property
     def full_name(self):
         if self.first_name or self.last_name:
@@ -113,6 +129,11 @@ class Profile(AbstractUser):
 
     def apps_list_all(self):
         return [x.app for x in self.appmember_set.filter(role='member')]
+
+    #XXX: check
+    @property
+    def apps(self):
+        return [x.app for x in self.appmember_set.all()]
 
     def keyword_list(self):
         """
@@ -155,3 +176,4 @@ def profile_post_save(instance, sender, **kwargs):
 
 
 signals.post_save.connect(profile_post_save, sender=Profile)
+

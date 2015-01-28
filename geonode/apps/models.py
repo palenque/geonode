@@ -325,4 +325,10 @@ def group_pre_delete(instance, sender, **kwargs):
         raise Exception('Deletion of the anonymous group is\
          not permitted as will break the geonode permissions system')
 
+
+def update_alter_ego_logo(instance, sender, **kwargs):
+    instance.get_alter_ego().save_avatar(instance.logo)
+
+
+signals.post_save.connect(update_alter_ego_logo, sender=App)
 signals.pre_delete.connect(group_pre_delete, sender=Group)
