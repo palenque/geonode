@@ -26,6 +26,7 @@ from django.views.generic import TemplateView
 
 import geonode.proxy.urls
 from geonode.api.urls import api
+import geonode.views
 from geonode.people.forms import UserCreationForm
 
 from geonode.people.views import SignUpView
@@ -50,7 +51,8 @@ urlpatterns = patterns('',
 
                        # Static pages
                        url(r'^/?$',
-                           TemplateView.as_view(template_name='index_public.html'),
+                           #TemplateView.as_view(template_name='index_public.html'),
+                           'geonode.views.index',
                            name='home'),
                        url(r'^help/$',
                            TemplateView.as_view(template_name='help.html'),

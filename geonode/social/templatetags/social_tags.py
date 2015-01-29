@@ -70,5 +70,7 @@ def activity_item(action, **kwargs):
         timestamp=action.timestamp,
         username=username,
         verb=verb,
+
+        template=kwargs.get('template')
     )
     return ctx

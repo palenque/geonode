@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.db import models, IntegrityError
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import signals
+from actstream.models import Action
 
 from taggit.managers import TaggableManager
 from guardian.shortcuts import get_objects_for_group, remove_perm, assign_perm
@@ -37,6 +38,7 @@ class App(models.Model):
     short_description = models.TextField(_('Short Description'), blank=True, null=True)
     thumbnail = models.FileField(_('Thumbnail'), upload_to="people_group", null=True, blank=True)
     category = models.ForeignKey('AppCategory', null=True, blank=True)
+    widget_url = models.URLField(null=True, blank=True)
 
     # TODO: improve
     rating = models.IntegerField(_('Rating'), null=True, blank=True)
@@ -152,6 +154,9 @@ class App(models.Model):
             return user.is_authenticated() and self.user_is_member(user)
         else:
             return True
+
+    def get_action_list(self):
+        return Action.objects.filter(actor_object_id=self.get_alter_ego().id)
 
     def can_invite(self, user):
         if not user.is_authenticated():

@@ -1,5 +1,6 @@
 {% load i18n announcements_tags %}
 
+{% comment %}
 {% announcements as site_wide_announcements %}
 {% if site_wide_announcements %}
 <div id="site_wide_announcements">
@@ -15,3 +16,4 @@
     {% endfor %}
 </div>
 {% endif %}
+{% endcomment %}

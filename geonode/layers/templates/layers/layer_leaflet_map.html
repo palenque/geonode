@@ -49,6 +49,21 @@
             map.addLayer(tile_layer);
         }
 
+        {% for link in resource.internal_links_forward_set.all %}
+            {% if link.target.class == Layer %}
+                var layer = L.tileLayer("{{ link.target.get_tiles_url|safe }}");
+                map.layerscontrol.addOverlay(layer,"{{ link.target.title }}");
+                map.addLayer(layer);
+            {% endif %}
+        {% endfor %}
+        {% for link in resource.internal_links_backward_set.all %}
+            {% if link.source.class == Layer %}
+                var layer = L.tileLayer("{{ link.source.get_tiles_url|safe }}");
+                map.layerscontrol.addOverlay(layer,"{{ link.source.title }}");
+                map.addLayer(layer);
+            {% endif %}
+        {% endfor %}
+
         angular.element($('#preview_map')).scope().load_public_layers(map);
 
         map.on('moveend', function(e) {

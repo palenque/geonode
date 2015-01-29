@@ -1,58 +1,127 @@
 {% extends "site_base.html" %}
-{% load i18n %}
-{% load staticfiles %}
-{% load base_tags %}
+{% load i18n markdown_deux_tags %}
+{% load staticfiles activity_tags social_tags %}
+{% load base_tags announcements_tags %}
 
 {% block title %} {% trans "Welcome!" %} - {{ block.super }} {% endblock %}
 
 {% block body_class %}home{% endblock %}
 
+    {% block footer %}
+    <footer class="footer">
+      <div class="container">
+        <div class="row">
+          <div class=" pull-right">
+            <label>{% trans "Language" %}</label>
+            {% if csrf_token != "NOTPROVIDED" %}
+            {% get_current_language as LANGUAGE %}
+            <form class="form-inline" action="/i18n/setlang/" method="post">
+            {% csrf_token %}
+              <select name="language" onchange="javascript:form.submit()">
+                {% for lang in LANGUAGES %}
+                <option value="{{ lang.0 }}" {% ifequal LANGUAGE_CODE lang.0 %} selected="selected"{% endifequal %}>
+                  {{ lang.1 }}
+                </option>
+                {% endfor %}
+              </select>
+            </form>
+          {% endif %}
+          </div> <!-- /.pull-right -->
+        </div>
+      </div> <!-- /.container -->
+    </footer>
+    {% endblock footer %}
+
+
 {% block middle %}
 
   {% block hero %}
-  <div class="jumbotron">
-    <div class="container">
-      <h1>{% trans "Welcome" %}</h1>
-      <p>{% blocktrans %}Palenque es una plataforma para potenciar iniciativas de producción y utilización de grandes volúmenes de datos relacionados con la acitividad agrícola y el manejo de los recursos naturales.{% endblocktrans %}</p>
-      <span>{% trans 'Need help?' %} <a href="http://docs.geonode.org/en/latest/tutorials/users/quickstart/index.html">{% trans 'Getting Started' %}</a></span>
-    </div>
-  </div>
-  {% endblock %}
+  {% endblock %}  
 
   {% block mainbody %}
   <div class="container">
     <div class="row">
-    {% with facet_type='home' %}
-     {% facets as facets %}
-      <div class="col-md-4">
-        <p class="text-center"><i class="fa fa-square-o fa-5x rotate-45"></i></p>
-        <h2 class="text-center">{{ facets.layer|default:"No" }} Layer{{ facets.layer|pluralize }}</h2>
+      <h2>{% trans "Novedades" %}</h2>
+      {% announcements as site_announcements %}
+      {% for announcement in site_announcements %}
+        <div class="col-md-5">
+          <div class="panel panel-info">
+            <div class="panel-heading">
+              <h3 class="panel-title">{{announcement.title}}</h3>
+            </div>
+            <div class="panel-body">
+              {{announcement.content|safe}}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
 
-        <p class="text-center">{% trans "Click to search for geospatial data published by other users, organizations and public sources. Download data in standard formats." %}</p> 
-        <p class="text-center"><a class="btn btn-default" href="{% url "layer_browse" %}" role="button">{% trans "Explore Layers" %} &raquo;</a></p>
-      </div>
-      <div class="col-md-4">
-        <p class="text-center"><i class="fa fa-map-marker fa-5x"></i></p>
-        <h2 class="text-center">{{ facets.map|default:"No" }} Map{{ facets.map|pluralize }}</h2>
-        <p class="text-center">{% trans "Data is available for browsing, aggregating and styling to generate maps which can be shared publicly or restricted to specific users only." %}</p>
-        <p class="text-center"><a class="btn btn-default" href="{% url "maps_browse" %}" role="button">{% trans "Create maps" %} &raquo;</a></p>
-      </div>
-      <div class="col-md-4">
-        <p class="text-center"><i class="fa fa-cloud-upload fa-5x"></i></p>
-        <h2 class="text-center">{{ facets.user|default:"No" }} User{{ facets.user|pluralize }}</h2>
-        <p class="text-center">{% trans "GeoNode allows registered users to easily upload geospatial data in several formats including shapefile and GeoTiff." %}</p>
-        <p class="text-center"><a class="btn btn-default" href="{% url "layer_upload" %}" role="button">{% trans "Share data" %} &raquo;</a></p>
-      </div>
-    {% endwith %}
+      <div class="col-md-5">
+        <div class="panel panel-info">
+          <div class="panel-heading">
+            <h3 class="panel-title">Nuevas capas públicas</h3>
+          </div>
+          <div class="panel-body">
+
+              {% for layer in new_public_layers %}
+                <div class="col-md-4">
+                  <a href="{{layer.detail_url}}">
+                    <img class="img-thumbnail" src="{{layer.thumbnail_url}}"/>
+                  </a>
+                    <h5>{{layer.title|truncatechars:18}}</h5>
+                    {% if item.category.gn_description %}
+                    <div>{{ item.category.gn_description }}&nbsp;</div>
+                    {% endif %}
+                    <span>
+                      <i class="fa fa-bank"></i>
+                      {{ layer.creator.username }}
+                    </span>
+                    <br/>
+                    <span><i class="fa fa-calendar-o"></i>{{ layer.date|date:'d M y' }}</span> 
+                    
+                </div>
+              {% endfor %}
+            
+          </div>
+        </div>
+      </div>      
     </div>
-  </div>
-  {% verbatim %}
-  <div ng-app="featured">
-    <div ng-repeat="item in featured">
-      <!--{{ item.title }}-->
+
+    <div class="row">
+      <h2>Mis aplicaciones</h2>    
+      {% for app in request.user.apps_list_all %}
+        <div class="col-md-5">
+        <div class="panel panel-success">
+          <div class="panel-heading">
+              <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>&nbsp;
+              {{app.title}}</h3>
+          </div>
+          <div class="panel-body">
+          <div class="col-md-7">
+          {% if app.widget_url %}
+            <iframe frameborder="0" src="{{app.widget_url}}"></iframe>
+          {% else %}
+            <p>No hay novedades</p>
+          {% endif %}
+          </div>
+          <div class="col-md-5 label label-success">
+            Actividades
+          </div>
+          <div class="col-md-5" style="height:200px; overflow-y:auto">
+            {% for action in app.get_action_list.all %}
+              {% activity_item action template="social/_activity_item_small.html" %}
+            {% empty %}
+              <p>{% trans "No actions yet" %}</p>
+            {% endfor %}
+          </div>
+
+          </div>
+        </div>
+        </div>
+      {% endfor %}
     </div>
+
   </div>
-  {% endverbatim %}
   {% endblock %}
   
 {% endblock %}

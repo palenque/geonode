@@ -1,0 +1,31 @@
+<html>
+<header>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+	<style>
+	
+	</style>
+</header>
+<body>
+
+
+<div>
+	<br/>
+	<img width="150" src="http://farmlogs.com/images/home/soil-layer.png" class="layer">
+	<br/>
+
+<% cnt = len(filter(lambda x:not x['processed'], data['objects'])) %>
+<% s = '' if cnt == 1 else 's' %>
+% if cnt > 0:
+<p>Ten&eacute;s <label class='badge'>${cnt}</label> capa${s} lista${s} para procesar</p>
+% else:
+<p>No ten&eacute;s capas sin procesar</p>
+% endif
+
+	<img style="position:relative; top:-140px" width="150" src="http://farmlogs.com/images/home/yield-layer.png" class="layer">
+
+
+</div>
+
+</body>
