@@ -249,6 +249,8 @@
     {% if request.user %}
     <script type="text/javascript">
       $(document).ready(function() {
+        if($("#my_applications").length == 0) return;
+        
         $.get("/api/apps",{member: '{{request.user}}'})
           .success(function(data) {
             if(data.objects.length == 0) {

@@ -1,17 +1,11 @@
 {% load i18n %}
 
-{% if template %}
-{% include template %}
-{% else %}
 
-<li>
-  <div class="activity-item">
-    <p>
-      <span class="icon-activity {{ activity_class|default:'activity' }}"></span>
+  <div class="activity-item" style="padding-bottom: 0px; padding-top:15px; padding-right:0px">
+      <span class="icon-activity {{ activity_class|default:'activity' }}" style="margin-right:5px"></span>
       {% if object %}
       <span class="thumb-activity"><img src="{{ object.thumbnail_url }}"></span>
       {% endif %}
-      <a href="{{ actor.get_absolute_url }}">{{ username }}</a>
 
       {{ verb|safe }}
 
@@ -28,9 +22,5 @@
         {{ preposition|default:"to" }}
         <a href="{{ target.get_absolute_url }}">{{ target }}</a>
       {% endif %}
-    </p>
-    <p class="activity-timestamp">{{ timestamp|timesince }} {% trans "ago" %}</p>
+    <p style="font-size:9px" class="xxactivity-timestamp" style="font=">Hace {{ timestamp|timesince }}</p>
   </div>
-</li>
-
-{% endif %}

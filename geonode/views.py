@@ -24,7 +24,9 @@ from django.core.urlresolvers import reverse
 from django.utils import simplejson as json
 from django.db.models import Q
 from geonode.groups.models import GroupProfile
-
+from django.shortcuts import render, render_to_response
+from django.template import RequestContext
+from geonode.layers.models import Layer
 
 class AjaxLoginForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput)
@@ -108,3 +110,22 @@ def err403(request):
         reverse('account_login') +
         '?next=' +
         request.get_full_path())
+
+def index(request):
+    if request.user.is_authenticated():
+        new_public_layers = []
+        for layer in Layer.objects.order_by('-date'):
+            if layer.is_public(): new_public_layers.append(layer)
+            if len(new_public_layers) >= 5: break
+
+        return render_to_response(
+            "index.html",
+            RequestContext(request,{
+                'new_public_layers': new_public_layers
+            }))
+    else:
+        return render_to_response(
+            "index_public.html",
+            RequestContext(request,{}))
+
+

@@ -26,7 +26,19 @@ class YieldMonitorProcessing(object):
     palenque_url = 'http://localhost:8000'
     palenque_api_url = palenque_url + '/api'
     username = 'yieldmonproc'
-    api_key = '07c3e6d390556fb11393ed793aecaebbc5d7a321'
+    api_key = 'bd51709e7c2a867e6debb058fbc99e321253e02e'
+
+    @cherrypy.expose
+    def widget(self):
+        resp = requests.get('%s/layers/resolve_user' % self.palenque_url,
+            cookies = dict([(k,v.value) for k,v in cherrypy.request.cookie.items()]))
+
+        user = ''
+        if resp.ok:
+            user = simplejson.loads(resp.text).get('user','')
+        data = self.yield_monitors('base',user)        
+        templ = self.lookup.get_template('widget.html')
+        return templ.render(username=user, data=data)
 
     @cherrypy.expose
     def index(self):
@@ -99,7 +111,8 @@ class YieldMonitorProcessing(object):
         url = urlparse.urlunparse(q)
         urllib.urlretrieve(url, "/tmp/layer.zip")
 
-        return self.process_layer(typename)
+        #return self.process_layer(typename)
+        return 'out.tiff'
 
     @cherrypy.expose
     @cherrypy.tools.json_out()
@@ -113,16 +126,18 @@ class YieldMonitorProcessing(object):
         layer = simplejson.loads(resp.text)
 
         # download the data
-        shape_url = (x for x in layer['links'] if x['mime'] == "SHAPE-ZIP").next()
-        print shape_url['url']
-        fname_out = self.download(shape_url['url'], layer['typename'].split(':')[-1])
+        # shape_url = (x for x in layer['links'] if x['mime'] == "SHAPE-ZIP").next()
+        # print shape_url['url']
+        # fname_out = self.download(shape_url['url'], layer['typename'].split(':')[-1])
+        fname_out = 'out.tiff'
 
         # upload new layer
         params = {'username': self.username, 'api_key': self.api_key}
         files = {'base_file': (fname_out,open(fname_out))}
         metadata = layer['metadata']        
         data = {
-            'charset': 'UTF-8', 
+            'charset': 'UTF-8',
+            'permissions': simplejson.dumps({'users': {}, 'groups': {}}),
             'layer_type': 'yield_raster',
             'owner': username, 
             'metadata': simplejson.dumps(metadata),
