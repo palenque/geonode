@@ -53,7 +53,7 @@
         {% if request.LANGUAGE_CODE == 'es' %}"language": i18n,{% endif %}
       "columns": [
         {% for a in resource.tabular_attribute_set.all %}
-        {'data': '{{a}}', 'title': '{{a}}'} {% if not forloop.last %},{% endif %}
+        {'data': '{{a.attribute}}', 'title': '{{a}}'} {% if not forloop.last %},{% endif %}
         {% endfor %}
       ]
     });

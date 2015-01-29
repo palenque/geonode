@@ -445,7 +445,7 @@ def insert_data(sender, instance, created, create_table=True, **kwargs):
         kw['quoting'] = True
         kw['quotechar'] = instance.quotechar.encode('utf8')
         args.append('-q')
-        args.append(instance.quote.encode('utf8'))
+        args.append(instance.quotechar.encode('utf8'))
 
     if instance.delimiter:
         kw['delimiter'] = '\t' if instance.delimiter == '\\t' else instance.delimiter.encode('utf8')

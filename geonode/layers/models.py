@@ -125,6 +125,10 @@ class LayerType(models.Model):
         cursor = connections['datastore'].cursor()
 
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
+            
+            if not attr.field:
+                continue
+            
             attr_type = AttributeType.objects.get(id=attr.field)
             
             if attr_type.is_precalculated:
@@ -188,25 +192,29 @@ class LayerType(models.Model):
 
         cursor = connections['datastore'].cursor()
 
-        # borra campos y atributos no completados
-        # for attr in layer.attribute_set.exclude(attribute='the_geom'):
-        #     if not attr.field:
-        #         try:
-        #             cursor.execute(
-        #                 'ALTER TABLE %s DROP COLUMN "%s";' % (
-        #                     layer.name, attr.attribute
-        #                 )
-        #             )
-        #         except Exception as e:
-        #             logging.exception('Error droping field "%s".' % attr.attribute)
-        #             raise Exception(
-        #                 'Error droping field "%s". ' % attr.attribute + \
-        #                 'Please check field associations.'
-        #             )
-        #         attr.delete()
+        # borra campos y atributos no conservados
+        for attr in layer.attribute_set.exclude(attribute='the_geom'):
+            if not attr.field and not attr.preserved:
+                try:
+                    cursor.execute(
+                        'ALTER TABLE %s DROP COLUMN "%s";' % (
+                            layer.name, attr.attribute
+                        )
+                    )
+                except Exception as e:
+                    logging.exception('Error droping field "%s".' % attr.attribute)
+                    raise Exception(
+                        'Error droping field "%s". ' % attr.attribute + \
+                        'Please check field associations.'
+                    )
+                attr.delete()
 
         # renombra demas atributos y campos
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
+            
+            if not attr.field:
+                continue
+            
             attr_type = AttributeType.objects.get(id=attr.field)
             if not attr_type.is_precalculated and attr.attribute != attr_type.name:
                 try:
@@ -253,6 +261,10 @@ class LayerType(models.Model):
 
         # convierte unidades de los campos precalculados
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
+
+            if not attr.field:
+                continue
+
             attr_type = AttributeType.objects.get(id=attr.field)
 
             if attr_type.is_precalculated:
@@ -635,6 +647,10 @@ class Attribute(models.Model, PermissionLevelMixin):
         _('visible?'),
         help_text=_('specifies if the attribute should be displayed in identify results'),
         default=True)
+    preserved = models.BooleanField(
+        _('Preserve'),
+        help_text=_('specifies if the attribute should be kept after mapping'),
+        default=True)    
     display_order = models.IntegerField(
         _('display order'),
         help_text=_('specifies the order in which attribute should be displayed in identify results'),

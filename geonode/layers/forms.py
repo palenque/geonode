@@ -319,6 +319,9 @@ class LayerAttributeForm(forms.ModelForm):
 
     class Meta:
         model = Attribute
+        labels = {
+            'preserved': ''
+        }
         exclude = (
             'attribute_type',
             'count',

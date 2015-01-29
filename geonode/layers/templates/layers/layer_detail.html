@@ -63,7 +63,7 @@
       "columns": [
         {% for a in resource.attribute_set.all %}
         {% if a.attribute != "the_geom" %}
-        {'data': '{{a|upper}}', 'title': '{{a}}'} {% if not forloop.last %},{% endif %}
+        {'data': '{{a.attribute|upper}}', 'title': '{{a}}'} {% if not forloop.last %},{% endif %}
         {% endif %}
         {% endfor %}
       ]
@@ -74,6 +74,7 @@
 {% endblock %}
 
 {% block body_class %}layers{% endblock %}
+        
 
 {% block body_outer %}
 {% get_obj_perms request.user for resource.get_self_resource as "resource_perms" %}
@@ -384,6 +385,7 @@
         <p>{% trans "There is no resources related to this layer." %}</p>
       {% endif %}
     </li>
+
 
     {% comment %}
     {% if user.is_authenticated %}

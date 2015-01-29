@@ -13,7 +13,7 @@
 
 {% block title %}{{ layer.typename }} — {{ block.super }}{% endblock %}
 
-{% block body_class %}data{% endblock %}
+{% block body_class %}layers data{% endblock %}
 
 {% block body_outer %}  
 
@@ -71,6 +71,7 @@
           <th >{% trans "Attribute" %}</th>
           <th >{% trans "Association" %}</th>
           <th >{% trans "Unit" %}</th>
+          <th >{% trans "Preserve" %}</th>
       </tr>
       <tbody>
         {% for form in attribute_form.forms %}
@@ -82,6 +83,7 @@
           <td><div style="display:none">{{form.id}}</div>{% bootstrap_field form.attribute layout='inline' %}</td>
           <td>{% bootstrap_field form.field layout='inline' %} </td>
           <td> {% bootstrap_field form.magnitude layout='inline' %} </td>
+          <td> {% bootstrap_field form.preserved layout='inline' %} </td>
         </tr>
         {% endif %}
         {% endfor %}
