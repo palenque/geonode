@@ -81,7 +81,7 @@ def app_detail(request, slug):
     profile = get_object_or_404(Profile, username=request.user.username)
     user_objects = profile.owned_resource.distinct()
 
-    action_list = Action.objects.filter(target_object_id__in=[x.id for x in user_objects])[:15]
+    action_list = Action.objects.filter(actor_object_id=alter_ego.id)[:15]
 
     keywords = app.keyword_list
     keyword_labels = set()

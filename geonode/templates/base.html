@@ -262,8 +262,23 @@
             else {
               for(i in data.objects) {
                 var obj = data.objects[i];
-                var article = $("<article style='width:120px;padding-left:0px;padding-right:5px;'>")
+                var article = $("<article style='width:135px;padding-left:0px;padding-right:5px;'>")
                   .addClass("col-md-3")
+                  .append($("<a>")
+                    .attr("href",obj.detail_url)
+                    .attr("target","_self")
+                    .css("position","relative")
+                    .css("top","35px")
+                    .css("left","100px")
+                    .append($("<i>")
+                      .css("color","black")
+                      .addClass("fa fa-circle fa-2x"))
+                    .append($("<i>")
+                      .css("color","white")
+                      .css("position","relative")
+                      .css("top","-5px")
+                      .css("left","-26px")
+                      .addClass("fa fa-cog")))
                   .append($("<a>")
                     .addClass("thumbnail")
                     .attr("href",obj.email)
@@ -273,8 +288,10 @@
                       .attr("width","100px")
                       .css("height","100px"))
                     .append($("<div>")
+                      .css("font-size","12px")
                       .addClass("caption")
-                      .text(obj.title.substring(0,10))));
+                      .text(obj.title.substring(0,20))));
+
                 $("#my_applications").append(article);
               }
             }

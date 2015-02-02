@@ -11,6 +11,8 @@ from django.conf import settings
 from django.contrib.staticfiles.templatetags import staticfiles
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
+
 from django.db.models import signals
 
 from mptt.models import MPTTModel, TreeForeignKey
@@ -359,6 +361,16 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
     detail_url = models.CharField(verbose_name=_('Detail URL'), max_length=255, null=True, blank=True)
     rating = models.IntegerField(verbose_name=_('Rating'), default=0, null=True)
 
+    is_public = models.BooleanField()
+
+    def clean(self):
+        import ipdb; ipdb.set_trace()
+        if self.is_public is None:
+            anonymous = Group.objects.get(name='anonymous')
+            perms = get_groups_with_perms(self.get_self_resource(),attach_perms=True)
+            self.is_public = 'view_resourcebase' in perms.get(anonymous,[])
+
+
     def transfer_owner(self, user, app):
         '''Replaces the owner of this resource.
         '''
@@ -480,10 +492,10 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
         self.center_x = center_x
         self.center_y = center_y
 
-    def is_public(self):
-        anonymous = Group.objects.get(name='anonymous')
-        perms = get_groups_with_perms(self.get_self_resource(),attach_perms=True)
-        return 'view_resourcebase' in perms.get(anonymous,[])
+    # def is_public(self):
+    #     anonymous = Group.objects.get(name='anonymous')
+    #     perms = get_groups_with_perms(self.get_self_resource(),attach_perms=True)
+    #     return 'view_resourcebase' in perms.get(anonymous,[])
 
     def download_links(self):
         """assemble download links for pycsw"""
@@ -781,7 +793,6 @@ def unshare(instance, **kwargs):
         ):
             remove_perm('view_resourcebase', alter_ego, resource)
 
-
 class InternalLink(models.Model):
     source = models.ForeignKey(ResourceBase, related_name='internal_links_forward_set')
     target = models.ForeignKey(ResourceBase, related_name='internal_links_backward_set')
@@ -790,4 +801,3 @@ class InternalLink(models.Model):
 signals.post_save.connect(rating_post_save, sender=OverallRating)
 signals.post_save.connect(share, sender=TaggedItem)
 signals.post_delete.connect(unshare, sender=TaggedItem)
-

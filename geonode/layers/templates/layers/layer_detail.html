@@ -54,20 +54,22 @@
     }
 
 
-    $('#data-preview').dataTable( {
-        "ajax": {
-            "url": "/api/layers/{{resource.id}}/table/?limit=30",
-            "dataSrc": ""
-        },
-        {% if request.LANGUAGE_CODE == 'es' %}"language": i18n,{% endif %}
-      "columns": [
-        {% for a in resource.attribute_set.all %}
-        {% if a.attribute != "the_geom" %}
-        {'data': '{{a.attribute|upper}}', 'title': '{{a}}'} {% if not forloop.last %},{% endif %}
-        {% endif %}
-        {% endfor %}
-      ]
-    });
+    {% if resource.storeType == "dataStore" %}
+      $('#data-preview').dataTable( {
+          "ajax": {
+              "url": "/api/layers/{{resource.id}}/table/?limit=30",
+              "dataSrc": ""
+          },
+          {% if request.LANGUAGE_CODE == 'es' %}"language": i18n,{% endif %}
+        "columns": [
+          {% for a in resource.attribute_set.all %}
+          {% if a.attribute != "the_geom" %}
+          {'data': '{{a.attribute|upper}}', 'title': '{{a}}'} {% if not forloop.last %},{% endif %}
+          {% endif %}
+          {% endfor %}
+        ]
+      });
+    {% endif %}
   } )
 </script>
 
@@ -89,7 +91,9 @@
 
     <ul class="nav nav-tabs">
       <li class="active"><a href="#map" data-toggle="tab"><i class="fa fa-info-circle"></i>{% trans "Map" %}</a></li>
+      {% if resource.storeType == "dataStore" %}
       <li><a href="#table" data-toggle="tab"><i class="fa fa-bars"></i>{% trans "Table" %}</a></li>
+      {% endif %}
     </ul>
     
     <div class="tab-content">
@@ -98,13 +102,15 @@
           <div id="preview_map" ng-controller="MapController"></div>
         </div>
       </article>
+      {% if resource.storeType == "dataStore" %}      
       <article id="table" class="tab-pane">
         <div class="row">
         <div class="col-md-12" style="overflow:auto;font-size: 9px;">
-        <table id="data-preview" class="display" cellspacing="0" width="100%"></table>  
+          <table id="data-preview" class="display" cellspacing="0" width="100%"></table>
         </div>
         </div>
       </article>      
+      {% endif %}
     </div>
 
     <div class="layer-actions">
@@ -502,6 +508,7 @@
 
   layer_id = {{resource.id}};
   permissions = JSON.parse('{{permissions_json|safe}}');
+  applications = {{applications}};
   owner = '{{resource.owner.username}}';
   creator = '{{resource.creator.username}}';
 

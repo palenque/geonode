@@ -50,33 +50,33 @@
 
     <p class="col-md-offset-0" ng-if="(profile_list|filter:{profile:'user'}).length == 0">
       {% trans "This resource is not shared with any user" %}
-      <br/><i class="fa fa-4x fa-plus-square" style="color:green"></i>
+      <br/>
+      {% verbatim %}
+      <a href="#" ng-click="add_permission_dialog($event,'user')"><i class="fa fa-2x fa-plus-square" style="color:green"></i></a>
+      {% endverbatim %}
     </p>
 
     {% verbatim %}
-    <div class="col-md-offset-0" ng-if="(profile_list | filter:{profile:'user'}).length > 0">
-      <article ng-repeat="profile in profile_list | filter:{profile:'user'} ">
-          <div class="col-md-2">
+    <div id="users" class="col-md-offset-0" ng-if="usernames.user.length > 0">
+      <article ng-repeat="username in usernames.user">
+          <div class="col-md-2" ng-if="profiles[username].enabled">
 
-            <a ng-if="can_change" style="position:relative; top:10px" ng-click="toggle_permission($event,profile.username)" href="#">
-
-              <i ng-if="!disabled_user(profile.username)" style="color:black" class="fa fa-times-circle fa-2x"></i>
-              
-              <i ng-if="disabled_user(profile.username)" style="color:green" class="fa fa-plus-circle fa-2x"></i>
+            <a ng-if="can_change" style="position:relative; top:10px" ng-click="remove_permission($event,username)" href="#">
+              <i style="color:black" class="fa fa-times-circle fa-2x"></i>
             </a>
 
-
-            <a class="thumbnail" href="{{url_app}}{{profile.username}}" ng-style="disabled_user(profile.username)? {'background-color':'rgba(0,0,0,0.4)'} : {}">
-              <img width="50px" ng-src="{{ profile.avatar_100 }}"/>
-              <small align="center" class="caption">{{ profile.username }}</small>
+            <a class="thumbnail" href="{{url_app}}{{username}}" ng-style="disabled_user(username)? {'background-color':'rgba(0,0,0,0.4)'} : {}">
+              <img width="50px" ng-src="{{ profiles[username].avatar }}"/>
+              <small align="center" class="caption">{{ username }}</small>
             </a>
           </div>
-
       </article>
 
       <article>
-          <div class="col-md-2" style="position:relative; top:40px">
-              <i class="fa fa-4x fa-plus-square" style="color:green"></i>      
+          <div class="col-md-2" ng-style="empty.user? {}: {position:'relative', top:'40px'}">
+              <a href="#" ng-click="add_permission_dialog($event,'user')">
+                <i class="fa fa-2x fa-plus-square" style="color:green"></i>      
+              </a>
           </div>
       </article>
 
@@ -84,59 +84,72 @@
     {% endverbatim %}
   </div> 
 
-  <div class="row">
-    <h4>{% trans "Organizations" %}</h4> 
 
-    <p class="col-md-offset-0" ng-if="(profile_list|filter:{profile:'organization'}).length == 0">
+  <div class="row">
+    <h4>{% trans "Organizations" %}</h4>
+
+    <p class="col-md-offset-0" ng-if="(profile_list|filter:{profile:'user'}).length == 0">
       {% trans "This resource is not shared with any organization" %}
       <br/>
-      <i class="fa fa-4x fa-plus-square" style="color:green"></i>
+      {% verbatim %}
+      <a href="#" ng-click="add_permission_dialog($event,'user')"><i class="fa fa-2x fa-plus-square" style="color:green"></i></a>
+      {% endverbatim %}
     </p>
 
-
     {% verbatim %}
-    <div class="col-md-offset-0" ng-if="(profile_list | filter:{profile:'organization'}).length > 0">
-      <article ng-repeat="profile in profile_list | filter:{profile:'organization'} ">
-          <div class="col-md-2">          
-            <a class="thumbnail" href="{{url_app}}{{profile.username}}">
-              <img width="50px" ng-src="{{ profile.avatar_100 }}"/>
-              <small align="center" class="caption">{{ profile.username }}</small>
+    <div class="col-md-offset-0" ng-if="usernames.organization.length > 0">
+      <article ng-repeat="username in usernames.organization">
+          <div class="col-md-2" ng-if="profiles[username].enabled">
+
+            <a ng-if="can_change" style="position:relative; top:10px" ng-click="remove_permission($event,username)" href="#">
+              <i style="color:black" class="fa fa-times-circle fa-2x"></i>
+            </a>
+
+            <a class="thumbnail" href="{{url_app}}{{username}}">
+              <img width="50px" ng-src="{{ profiles[username].avatar }}"/>
+              <small align="center" class="caption">{{ username }}</small>
             </a>
           </div>
       </article>
+
+      <article>
+          <div class="col-md-2" 
+            ng-style="empty.organization? {}: {position:'relative', top:'40px'}">
+              <a href="#" ng-click="add_permission_dialog($event,'organization')">
+                <i class="fa fa-2x fa-plus-square" style="color:green"></i>      
+              </a>
+          </div>
+      </article>
+
     </div>
     {% endverbatim %}
-  </div>   
+  </div> 
 
   <div class="row">
-    <h4>{% trans "Applications" %}</h4> 
-
-    <p class="col-md-offset-0" ng-if="(profile_list|filter:{profile:'application'}).length == 0">
-      {% trans "This resource is not shared with any application" %}
-    </p>
+    <h4>{% trans "Applications" %}</h4>
 
     {% verbatim %}
-    <div class="col-md-offset-0" ng-if="(profile_list | filter:{profile:'application'}).length > 0">
-      <article ng-repeat="profile in profile_list | filter:{profile:'application',id:applications} ">
+    <div class="col-md-offset-0" ng-if="usernames.application.length > 0">
+      <article ng-repeat="username in usernames.application">
           <div class="col-md-2">
 
-            <a ng-if="can_change" style="position:relative; top:10px" ng-click="toggle_permission($event,profile.username)" href="#">
-
-              <i ng-if="!disabled_user(profile.username)" style="color:black" class="fa fa-times-circle fa-2x"></i>
-              
-              <i ng-if="disabled_user(profile.username)" style="color:green" class="fa fa-plus-circle fa-2x"></i>
+            <a ng-if="can_change" style="position:relative; top:10px" ng-click="toggle_permission($event,username)" href="#">
+              <i style="color:green" class="fa fa-plus-circle fa-2x" ng-if="!profiles[username].enabled"></i>
+              <i style="color:black" class="fa fa-times-circle fa-2x" ng-if="profiles[username].enabled"></i>
             </a>
 
-            <a class="thumbnail" href="{{url_app}}{{profile.username}}" ng-style="disabled_user(profile.username)? {'background-color':'rgba(0,0,0,0.4)'} : {}">
-              <img width="50px" ng-src="{{ profile.avatar_100 }}"/>
-              <small align="center" class="caption">{{ profile.username }}</small>          
+            <a class="thumbnail" href="{{url_app}}{{username}}" 
+               ng-style="(!profiles[username].enabled)? {'background-color':'rgba(0,0,0,0.4)'} : {}">
+              <img width="50px" ng-src="{{ profiles[username].avatar }}"/>
+              <small align="center" class="caption">{{ username }}</small>
             </a>
           </div>
-
       </article>
     </div>
     {% endverbatim %}
   </div> 
+
+
 
   {% endif %}
 
@@ -157,7 +170,40 @@
   {% endif %}
   {% endcomment %}
 
+
+
+<div class="modal fade" id="_permissions" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <form id="permission_form" accept-charset="UTF-8" method="post" class="modal-form" action="{% url "resource_permissions" resource.id %}">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h4 class="modal-title" id="myModalLabel">{% trans "Agregar permisos" %}</h4>
+        </div>
+        {% verbatim %}
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-offset-1">
+              <article ng-repeat="username in usernames[modal_profile]">
+                  <div class="col-md-3" ng-if="!profiles[username].enabled">
+                    <a class="thumbnail" ng-click="add_permission($event,username)" href="#">
+                    <img style="width:80px" ng-src="{{profiles[username].avatar}}" class="img-thumbnail"/><br/>
+                    <span>{{ username }}</span>
+                    </a>
+                  </div>
+              </article>
+            </div>
+          </div> 
+        </div>
+        {% endverbatim %}
+        <div class="modal-footer">
+          <a href="#" class="btn btn-default" data-dismiss="modal">{% trans "Cancel" %}</a>
+          <!-- <a href="#" class="btn btn-primary" data-dismiss="modal" id="perms_submit">{% trans "Apply Changes" %}</a> -->
+        </div>
+      </div>
+    </div>
+  </form>
 </div>
 
 
-
+</div>

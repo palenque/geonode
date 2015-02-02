@@ -146,6 +146,7 @@ class PermissionLevelMixin(object):
             hasattr(self.owner, 'profile') and 
             self.owner.profile == PROFILE.ORGANIZATION
         ):
+            self.is_public = True
             if 'users' not in perm_spec:
                 perm_spec['users'] = {}
 

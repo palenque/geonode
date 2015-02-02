@@ -170,7 +170,7 @@
 		            });
 
 		          var cat = "";
-		          if(obj.category) cat = obj.category.description;
+		          if(obj.category) cat = obj.category.gn_description;
 
 		          control.addOverlay(layer, obj.title, cat);
 		        }

@@ -114,6 +114,7 @@ class CommonMetaApi:
                  'creator': ALL_WITH_RELATIONS,
                  'date': ALL,
                  'csw_type': ALL,
+                 'is_public': ALL
                  }
     ordering = ['date', 'title', 'popular_count']
     max_limit = None
@@ -128,7 +129,6 @@ class CommonModelApi(ModelResource, PostQueryFilteringMixin):
         full=True)
     owner = fields.ToOneField(ProfileResource, 'owner', full=True)
     creator = fields.ToOneField(ProfileResource, 'creator', full=True, null=True)
-    permission_class = fields.CharField(null=True)
     metadata = fields.DictField(null=True)
 
     def dehydrate(self, bundle):
@@ -145,17 +145,6 @@ class CommonModelApi(ModelResource, PostQueryFilteringMixin):
             return bundle.obj.eav.get_values_dict()
         else:
             return {}
-
-    def dehydrate_permission_class(self, bundle):
-        if type(bundle.obj.is_public) == bool:
-            return bundle.obj
-        else:
-            return ""
-        if bundle.obj.is_public():
-            return "public"
-        else:
-            # TODO: shared missing
-            return "owned"
 
     def apply_eav_filters(self, objects, bundle):
         for flt,vals in bundle.request.eav_filters.items():
@@ -622,7 +611,7 @@ class CommonModelApi(ModelResource, PostQueryFilteringMixin):
     #                 objdata['category_description'] = obj.category.gn_description if obj.category is not None else ''
     #                 objdata['creator_username'] = obj.creator.username
 
-    #             if obj.is_public():
+    #             if obj.is_public:
     #                 objdata['permission_class'] = "public"
     #             elif request.user == obj.owner:
     #                 objdata['permission_class'] = "owned"
@@ -717,9 +706,6 @@ class ResourceBaseResource(CommonModelApi):
         resource_name = 'base'
         excludes = ['csw_anytext', 'metadata_xml']
         authorization = GeoNodeAuthorization()
-        post_query_filtering = {
-            'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
-        }
 
 class FeaturedResourceBaseResource(CommonModelApi):
 
@@ -754,7 +740,7 @@ class LayerResource(MultipartResource, CommonModelApi):
 
     """Layer API"""
 
-    layer_type = fields.ForeignKey(LayerTypeResource, 'layer_type', full=True)
+    layer_type = fields.ForeignKey(LayerTypeResource, 'layer_type', full=False)
     links = fields.ToManyField(LinkResource, 'link_set', full=True)
     internal_links_forward = fields.ToManyField(
         'geonode.api.resourcebase_api.InternalLinkResource','internal_links_forward_set', null=True, full=True)
@@ -867,18 +853,9 @@ class LayerResource(MultipartResource, CommonModelApi):
 
         default_post_excludes = ['concave_hull']
 
-        filtering = {'title': ALL,
-                 'keywords': ALL_WITH_RELATIONS,
-                 'category': ALL_WITH_RELATIONS,
-                 'owner': ALL_WITH_RELATIONS,
-                 'creator': ALL_WITH_RELATIONS,
-                 'layer_type': ALL_WITH_RELATIONS,
-                 'date': ALL,
-                 }
-
-        post_query_filtering = {
-            'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
-        }
+        filtering = dict(CommonMetaApi.filtering.items() + [
+                 ('layer_type', ALL_WITH_RELATIONS)
+                 ])
 
     def prepend_urls(self):
         urls = [
@@ -1152,9 +1129,6 @@ class DocumentResource(CommonModelApi):
             }
         queryset = Document.objects.distinct().order_by('-date')
         resource_name = 'documents'
-        post_query_filtering = {
-            'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
-        }        
 
 class TabularTypeResource(ModelResource):
 
@@ -1300,9 +1274,6 @@ class TabularResource(MultipartResource, CommonModelApi):
         queryset = Tabular.objects.distinct().order_by('-date')
         resource_name = 'tabular'
         allowed_methods = ['get','post']
-        post_query_filtering = {
-            'is_public': lambda vals: lambda res: res.is_public() in map(str2bool,vals)
-        }
 
     def prepend_urls(self):
         urls = [

@@ -115,7 +115,7 @@ def index(request):
     if request.user.is_authenticated():
         new_public_layers = []
         for layer in Layer.objects.order_by('-date'):
-            if layer.is_public(): new_public_layers.append(layer)
+            if layer.is_public: new_public_layers.append(layer)
             if len(new_public_layers) >= 5: break
 
         return render_to_response(
