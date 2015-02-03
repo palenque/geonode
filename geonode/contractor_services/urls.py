@@ -2,17 +2,14 @@ from django.conf.urls import patterns, url
 from django.views.generic import TemplateView
 from django.contrib.auth.decorators import login_required
 from geonode.apps.views import AppListView
-
 # from .views import GroupDetailView, GroupActivityView
 # from .views import AppDetailView
 
 urlpatterns = patterns('geonode.apps.views',
-                       # url(r'^$',
-                       #     login_required(TemplateView.as_view(template_name='apps/app_list.html')),
-                       #     name="app_list"),                      
                        url(r'^$',
                            login_required(AppListView.as_view(template_name='apps/app_list.html')),
-                           name="app_list"),                      
+                           name="contractor_service_list"),
+
                        url(r"^member/(?P<app_id>[-\d+]+)/(?P<username>[^/]*)/$",
                            "member_detail",
                            name="app_member_detail"),                       
@@ -21,7 +18,8 @@ urlpatterns = patterns('geonode.apps.views',
                            name="app_resource_share"),                       
                        url(r'^create/$',
                            'app_create',
-                           name="app_create"),
+                           name="contractor_service_create",
+                           kwargs={'is_service':True}),
                        url(r'^(?P<slug>[-\w]+)/$',
                             'app_detail',
                             name='app_detail'),

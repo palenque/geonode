@@ -9,7 +9,6 @@
 
 	module.controller('ProfileListController', function($injector, $scope, $location, $http, Configs){
 
-
   	$.get("/api/profiles")
   	  .success(function(data) {
   			$scope.profile_list = data.objects;
@@ -19,6 +18,8 @@
 
         for(i in data.objects) {
           var obj = data.objects[i];
+          if(obj.profile == 'application' && applications.indexOf(obj.id)<0) continue;
+          
           if($scope.usernames[obj.profile]) $scope.usernames[obj.profile].push(obj.username);
           var enabled = permissions.users[obj.username] != null && permissions.users[obj.username].length > 0;
           $scope.profiles[obj.username] = {profile: obj.profile, avatar: obj.avatar_100, enabled: enabled}
@@ -26,6 +27,7 @@
         $scope.permissions = permissions;
         $scope.applications = applications;
         $scope.update_empty();
+        $scope.$apply();
   		});
 
 

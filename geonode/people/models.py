@@ -19,6 +19,7 @@
 #########################################################################
 
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import ugettext as _
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import AbstractUser
@@ -110,6 +111,19 @@ class Profile(AbstractUser):
         else:
             return self.username
 
+    @property
+    def profile_icon_class(self):
+        if self.profile == PROFILE.APP:
+            return 'fa-cubes'
+        elif self.profile == PROFILE.ORGANIZATION:
+            return 'fa-bank'
+        elif self.profile == PROFILE.DEVELOPER:
+            return 'fa-lightbulb-o' 
+        elif self.profile == PROFILE.CONTRACTOR:
+            return 'fa-briefcase' 
+        else:
+            return 'fa-user'
+
     def get_absolute_url(self):
         return reverse('profile_detail', args=[self.username, ])
 
@@ -129,6 +143,21 @@ class Profile(AbstractUser):
 
     def apps_list_all(self):
         return [x.app for x in self.appmember_set.filter(role='member')]
+
+    def own_apps_list_all(self):
+        return [x.app for x in self.appmember_set.filter(role='manager')]
+
+    def get_action_list_for_app(self, app):
+        from actstream.models import Action
+        from geonode.base.models import ResourceBase
+        developer = app.get_managers()[0]
+        alter_ego = app.get_alter_ego()
+        objects = ResourceBase.objects.filter(owner=self).all()
+        return Action.objects \
+            .filter(actor_object_id__in=[developer.id,alter_ego.id]) \
+            .filter(
+                Q(target_object_id=self.id) | 
+                Q(action_object_object_id__in=[x.id for x in objects])).all()
 
     #XXX: check
     @property
@@ -168,11 +197,11 @@ def profile_post_save(instance, sender, **kwargs):
     anon_group, c = Group.objects.get_or_create(name='anonymous')
     instance.groups.add(anon_group)
     # keep in sync Profile email address with Account email address
-    if instance.email not in [u'', '', None] and not kwargs.get('raw', False):
-        emailaddress, created = instance.emailaddress_set.get_or_create(user=instance, primary=True)
-        if created or not emailaddress.email == instance.email:
-            emailaddress.email = instance.email
-            emailaddress.save()
+    # if instance.email not in [u'', '', None] and not kwargs.get('raw', False):
+    #     emailaddress, created = instance.emailaddress_set.get_or_create(user=instance, primary=True)
+    #     if created or not emailaddress.email == instance.email:
+    #         emailaddress.email = instance.email
+    #         emailaddress.save()
 
 
 signals.post_save.connect(profile_post_save, sender=Profile)

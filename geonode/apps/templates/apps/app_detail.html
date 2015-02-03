@@ -6,7 +6,8 @@
 
 {% block title %}{{ object.title|default:object.slug }} — {{ block.super }}{% endblock %}
 
-{% block body_class %}apps{% endblock %}
+{% block body_class %}{%if object.is_service%}contractor_services{%else%}apps{%endif%}{% endblock %}
+
 
 {% block body_outer %}
 <div class="row">
@@ -16,9 +17,11 @@
         <img width="40px" src="{{ object.logo.url }}" alt="{{ object.title }}"/>
       {% endif %}
       {{ object.title|default:object.slug }}
+      {% if object.email %}
       <a target="_blank" href="{{ object.email }}">
         <i class="fa fa-external-link"></i>
       </a>
+      {% endif %}
     </h2>
     <br/>
   </div>
@@ -103,9 +106,9 @@
   <div class="col-md-3">
     <ul class="list-group">
       {% if is_manager %}
-      <li class="list-group-item"><a href="{% url "app_update" object.slug %}">{% trans "Edit App Details" %}</a></li>
+      <li class="list-group-item"><a href="{% url "app_update" object.slug %}">{% trans "Edit "|add:thing|add:" details" %}</a></li>
       <!-- <li class="list-group-item"><a href="{ url "app_members" object.slug }">{% trans "Manage App Members" %}</a></li> -->
-      <li class="list-group-item"><a href="{% url "app_remove" object.slug %}">{% trans "Delete this App" %}</a></li>
+      <li class="list-group-item"><a href="{% url "app_remove" object.slug %}">{% trans "Delete this "|add:thing %}</a></li>
       {% endif %}
 
       {% if is_member and not is_manager%}
@@ -116,11 +119,11 @@
       <li class="list-group-item">
         <p>
           {% blocktrans  %}
-            This app is public.<br/>
-            Anyone may use this app.
+            This {{thing}} is public.<br/>
+            Anyone may use this {{thing}}.
           {% endblocktrans %}
             <br/>
-            <a class="btn btn-default btn-md btn-block" href="{% url "app_member_link" object.slug request.user.username %}">{% trans "Link this app" %}</a>            
+            <a class="btn btn-default btn-md btn-block" href="{% url "app_member_link" object.slug request.user.username %}">{% trans "Link this "|add:thing %}</a>
             {% comment %}
             <form class="uniForm" method="POST" action="{% url "app_join" object.slug %}">
               {% csrf_token %}
@@ -140,7 +143,7 @@
       
       <li class="list-group-item">
         <h4>{% trans "Permissions" %}</h4>
-        {% trans "This app needs access to the following resources:" %}
+        {% trans "This "|add:thing|add:" needs access to the following resources:" %}
         <ul>
           {% for keyword in keywords %}
             <li>{{keyword}}</li>
@@ -148,7 +151,7 @@
         </ul>
       </li>
 
-      {% if is_manager %}
+      {% if is_manager and not object.is_service %}
       <li class="list-group-item">
         <h4>API Key</h4>
         <small>{{object.get_alter_ego.api_key.key}}</small>
@@ -156,7 +159,7 @@
       {% endif %}
 
       <li class="list-group-item">
-        <h4>{% trans "Developer" %}</h4>
+        <h4>{% if object.is_service %}{% trans "Contratista" %}{%else%}{% trans "Developer" %}{%endif%}</h4>
         {% for manager in object.get_managers %}
         {% with manager as profile %}
           {% include "people/_profile_about_item.html" %}
@@ -178,6 +181,7 @@
   <script type="text/javascript">
 
     SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='base' %}'+ '?app='+ '{{ object.slug }}';
+    FIXED_FILTERS = {};
     SEARCH_QUERY = {is_public:0};
     CLIENT_RESULTS_LIMIT = 10;
 

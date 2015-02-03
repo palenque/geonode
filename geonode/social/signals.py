@@ -68,7 +68,8 @@ def activity_post_modify_object(sender, instance, created=None, **kwargs):
 
     verb = None
     obj_type = instance.__class__._meta.object_name.lower()
-    action_settings = defaultdict(lambda: dict(actor=getattr(instance, "owner", None),
+
+    action_settings = defaultdict(lambda: dict(actor=getattr(instance, "creator", None),
                                                action_object=instance,
                                                created_verb=_('created'),
                                                deleted_verb=_('deleted'),

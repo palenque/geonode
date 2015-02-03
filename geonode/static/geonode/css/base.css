@@ -115,6 +115,9 @@ body.people li#nav_people a {
 body.apps li#nav_apps a {
   color: white;
 }
+body.contractor_services li#nav_contractor_services a {
+  color: white;
+}
 body.groups li#nav_groups a {
   color: white;
 }

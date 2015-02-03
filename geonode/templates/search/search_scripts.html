@@ -38,12 +38,14 @@
 
   var module = angular.module('search', ['main_search']);
   module.constant('Configs', {
-    url: SEARCH_URL
+    url: SEARCH_URL,
+    fixed_filters: FIXED_FILTERS
   });
 
   var deps = ['search','map','profile_list'];
   {% if include_spatial == 'true' %}
   deps.push('leaflet-directive');
   {% endif %}
+  
   angular.bootstrap(document, deps);
 </script>

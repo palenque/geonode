@@ -82,7 +82,7 @@
       } 
 
       else if(filter == 'developers') {
-        $http.get(PROFILES_ENDPOINT, {params: {profile: 'developer'}}).success(function(data){
+        $http.get(PROFILES_ENDPOINT, {params: {profile__in: ['developer','contractor']}}).success(function(data){
             if($location.search().hasOwnProperty('developer')){
                 data.objects = module.set_initial_filters_from_query(data.objects,
                     $location.search()['developer__in'], 'developer');
@@ -251,6 +251,9 @@
       $scope.is_public = data.is_public == "1";
 
       var url = $scope.url || Configs.url;
+      
+      if(Configs.fixed_filters)
+        $.extend(data,Configs.fixed_filters);
 
       $http.get(url, {params: data || {}}).success(function(data){
 

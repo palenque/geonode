@@ -20,11 +20,13 @@
 
 from django.utils import simplejson as json
 from django.core.exceptions import PermissionDenied
-from geonode.utils import resolve_object
+from django.contrib.auth import get_user_model
 from django.http import HttpResponse
+from actstream.models import Action
 
+from geonode.utils import resolve_object
 from geonode.base.models import ResourceBase
-
+ 
 
 def _perms_info(obj):
     info = obj.get_all_level_info()
@@ -58,7 +60,30 @@ def resource_permissions(request, resource_id):
 
     if request.method == 'POST':
         permission_spec = json.loads(request.body)
+        old_permission_spec = resource.get_all_level_info()
+
+        for user in permission_spec['users']:
+            user = get_user_model().objects.get(username=user)
+            if user not in old_permission_spec['users']:
+                action = Action(
+                    actor=request.user, 
+                    action_object=resource,
+                    target=user,
+                    verb='permission_granted')
+                action.save()
+            else:
+                old_permission_spec['users'].pop(user)
+
         resource.set_permissions(permission_spec)
+
+        for user in old_permission_spec['users']:
+            action = Action(
+                actor=request.user, 
+                action_object=resource,
+                target=user,
+                verb='permission_revoked')
+            action.save()
+
 
         return HttpResponse(
             json.dumps({'success': True}),

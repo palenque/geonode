@@ -2,7 +2,7 @@
 {% load i18n %}
 
 {% block title %}{{ app.title }} — {{ block.super }}{% endblock %}
-{% block body_class %}apps member remove{% endblock %}
+{% block body_class %}{%if app.is_service%}contractor_services{%else%}apps{%endif%} member remove{% endblock %}
 
 {% block footer %}{% endblock %}
 
@@ -11,14 +11,14 @@
   <div class="col-md-8">
     <form action="{% url "app_member_link" app.slug request.user.username %}" method="POST">
       <h2>{% trans app.title %}</h2>
-      <h4>{% trans "This app needs access to the following resources:" %}</h4>
+      <h4>{% trans "This "|add:thing|add:" needs access to the following resources:" %}</h4>
       <ul>
         {% for kw in keywords %}
           <li>{{kw}}</li>
         {% endfor %}
       </ul>
       <br/> 
-      <h4>{% trans "Are you sure you want to link the app?" %}</h4>
+      <h4>{% trans "Are you sure you want to link this "|add:thing|add:"?" %}</h4>
       {% csrf_token %}
       <input type="hidden" value="{{ app.slug }}" />
       <div class="form-actions">

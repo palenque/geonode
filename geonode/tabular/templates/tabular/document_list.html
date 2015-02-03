@@ -29,6 +29,7 @@
       {% else %}
           SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='tabular' %}';
       {% endif %}
+    FIXED_FILTERS = {};      
     FILTER_TYPE = 'tabular';
   </script>
   {% with include_spatial='true' %}

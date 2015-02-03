@@ -57,6 +57,7 @@ class PROFILE:
     DEVELOPER = 'developer'
     ADMIN = 'admin'
     APP = 'application'
+    CONTRACTOR = 'contractor'
 
 PROFILE_VALUES = (
     (PROFILE.USER, _('user')),
@@ -64,4 +65,6 @@ PROFILE_VALUES = (
     (PROFILE.DEVELOPER, _('developer')),
     (PROFILE.ADMIN, _('administrator')),
     (PROFILE.APP, _('application')),
+    (PROFILE.CONTRACTOR, _('contractor')),
+
 )

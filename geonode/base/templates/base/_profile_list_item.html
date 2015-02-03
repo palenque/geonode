@@ -47,16 +47,13 @@
   -->
   <div class="row">
     <h4>{% trans "Users" %}</h4>
-
+    {% verbatim %}
     <p class="col-md-offset-0" ng-if="(profile_list|filter:{profile:'user'}).length == 0">
-      {% trans "This resource is not shared with any user" %}
+      {%endverbatim%}{% trans "This resource is not shared with any user" %}{%verbatim%}
       <br/>
-      {% verbatim %}
       <a href="#" ng-click="add_permission_dialog($event,'user')"><i class="fa fa-2x fa-plus-square" style="color:green"></i></a>
-      {% endverbatim %}
     </p>
 
-    {% verbatim %}
     <div id="users" class="col-md-offset-0" ng-if="usernames.user.length > 0">
       <article ng-repeat="username in usernames.user">
           <div class="col-md-2" ng-if="profiles[username].enabled">
@@ -126,7 +123,7 @@
   </div> 
 
   <div class="row">
-    <h4>{% trans "Applications" %}</h4>
+    <h4>{% trans "Aplicaciones y servicios" %}</h4>
 
     {% verbatim %}
     <div class="col-md-offset-0" ng-if="usernames.application.length > 0">

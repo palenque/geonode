@@ -1118,15 +1118,9 @@ class MapResource(CommonModelApi):
 class DocumentResource(CommonModelApi):
 
     class Meta(CommonMetaApi):
-        filtering = {
-            'title': ALL,
-            'keywords': ALL_WITH_RELATIONS,
-            'category': ALL_WITH_RELATIONS,
-            'owner': ALL_WITH_RELATIONS,
-            'date': ALL,
-            'doc_type': ALL,
-            'creator': ALL_WITH_RELATIONS
-            }
+        filtering = dict(CommonMetaApi.filtering.items() + [
+            ('doc_type',ALL)])
+
         queryset = Document.objects.distinct().order_by('-date')
         resource_name = 'documents'
 

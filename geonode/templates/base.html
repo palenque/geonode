@@ -41,26 +41,15 @@
             <li id="nav_layers">
               <a href="{% url "layer_browse" %}">{% trans "Layers" %}</a>
             </li>
-            {% comment %}
-            <li id="nav_maps">
-              <a href="{% url "maps_browse" %}">{% trans "Maps" %}</a>
-            </li>
-            {% endcomment %}
-
             <li id="nav_documents">
               <a href="{% url "document_browse" %}">{% trans "Documents" %}</a>
             </li>
             <li id="nav_tabular">
               <a href="{% url "tabular_browse" %}">{% trans "Tables" %}</a>
             </li>
-            {% comment %}
-            <li id="nav_people">
-              <a href="{% url "profile_browse" %}">{% trans "People" %}</a>
+            <li id="nav_contractor_services">
+              <a href="{% url "contractor_service_list" %}">{% trans "Services" %}</a>
             </li>
-            <li id="nav_groups">
-              <a href="{% url "group_list" %}">{% trans "Groups" %}</a>
-            </li>
-            {% endcomment %}
             <li id="nav_apps">
               <a href="{% url "app_list" %}">{% trans "Apps" %}</a>
             </li>            
@@ -251,7 +240,7 @@
       $(document).ready(function() {
         if($("#my_applications").length == 0) return;
         
-        $.get("/api/apps",{member: '{{request.user}}'})
+        $.get("/api/apps",{member: '{{request.user}}', is_service:'0'})
           .success(function(data) {
             if(data.objects.length == 0) {
               var msg = $("<p>")
@@ -297,15 +286,6 @@
             }
           });
         });
-/*
-              <article>
-                <div class="col-md-3">
-                  <a href="{{url_profile}}{{profile.username}}">
-                  <img width="70px" ng-src="{{ profile.avatar_100 }}"/></a><br/>
-                  <i class="fa fa-user"></i><span>{{ profile.username }}</span>      
-                </div>
-              </article>
-*/
     </script>
 
     {% endif %}

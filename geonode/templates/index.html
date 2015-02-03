@@ -1,7 +1,7 @@
 {% extends "site_base.html" %}
 {% load i18n markdown_deux_tags %}
 {% load staticfiles activity_tags social_tags %}
-{% load base_tags announcements_tags %}
+{% load base_tags announcements_tags avatar_tags %}
 
 {% block title %} {% trans "Welcome!" %} - {{ block.super }} {% endblock %}
 
@@ -88,12 +88,12 @@
     </div>
 
     <div class="row">
-      <h2>Mis aplicaciones</h2>    
-      {% for app in request.user.apps_list_all %}
+      <h2>{% trans "Mis aplicaciones" %}</h2>    
+      {% for app in apps %}
         <div class="col-md-5">
         <div class="panel panel-success">
           <div class="panel-heading">
-            <a href="{{app.email_url}}">
+            <a href="{{app.email}}" target="_blank">
               <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>
               &nbsp;
               {{app.title}}
@@ -124,10 +124,83 @@
           </div>
         </div>
         </div>
+      {% empty %}
+          ¿Qué esperás para empezar a usar aplicaciones?<br/>
+          Consultá las aplicaciones disponibles en la sección <b><a href=\"{% url 'app_list' %}\">Aplicaciones</a></b>
       {% endfor %}
     </div>
 
+    {% if request.user.profile == 'contractor' %}
+      <h2>{% trans "Mis servicios" %}</h2>        
+      {% for app in services %}
+        <div class="col-md-4">
+        <div class="panel panel-success">
+          <div class="panel-heading">
+            <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>
+            &nbsp;
+            {{app.title}}
+            &nbsp;
+            </h3>
+          </div>
+          <div class="panel-body">
+          <div class="label label-success">
+            Usuarios
+          </div>
+          <div style="margin-top:20px; height:200px; overflow-y:auto">
+            {% for member in app.appmember_set.all %}
+              {% if member.role == 'member' %}
+                    <div class="col-md-3">
+                      <a class="thumbnail" href="{{member.user.get_absolute_url}}">
+                        <img width="80px" src="{%avatar_url member.user%}"/>
+                        <small align="center" class="caption">{{member.user.full_name}}</small>
+                      </a>
+                    </div>
+                
+              {% endif %}
+            {% endfor %}
+          </div>
+          </div>
+        </div>
+        </div>
+      {% empty %}
+          No creaste todavía ningún servicio. 
+          Podés crear alguno desde la sección <b><a href="{% url 'contractor_service_list' %}">Servicios</a></b>        
+      {% endfor %}
+    {% else %}
+    <div class="row">
+      <h2>{% trans "Mis servicios" %}</h2>
+      {% for app in services %}
+        <div class="col-md-4">
+        <div class="panel panel-success">
+          <div class="panel-heading">
+            <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>
+            &nbsp;
+            {{app.title}}
+            &nbsp;
+            </h3>\
+          </div>
+          <div class="panel-body">
+          <div class="label label-success">
+            Actividades
+          </div>
+          <div style="height:200px; overflow-y:auto" class="col-md-12">
+            {% for action in app.actions %}
+              {% activity_item action template="social/_activity_item_small.html" %}            
+            {% empty %}
+              <p>{% trans "No actions yet" %}</p>
+            {% endfor %}
+          </div>
+
+          </div>
+        </div>
+        </div>
+      {% empty %}
+          No tenés contratado ningún servicio.
+          Consultá los servicios disponibles en la sección <b><a href=\"{% url 'contractor_service_list' %}\">Servicios</a></b>
+      {% endfor %}
+    </div>
   </div>
+  {% endif %}
   {% endblock %}
   
 {% endblock %}

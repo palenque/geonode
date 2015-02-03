@@ -63,7 +63,8 @@ def document_detail(request, docid):
 
     Document.objects.filter(id=document.id).update(popular_count=F('popular_count') + 1)
 
-    applications = [x.get_alter_ego().id for x in App.objects.filter(appmember__role='member',appmember__user=request.user).all()]
+    #applications = [x.get_alter_ego().id for x in App.objects.filter(appmember__role='member',appmember__user=request.user).all()]
+    applications = []
 
     return render_to_response(
         "documents/document_detail.html",

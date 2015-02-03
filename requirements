@@ -49,6 +49,6 @@ OWSLib >=0.7.2, <=0.8.7
 pycsw >=1.6.4, <=1.8.2
 django-haystack==2.1.0
 pyelasticsearch==0.6.1
-Markdown==2.5.2
 django-tastypie-swagger==0.1.2
 django-cors-headers
+pip install django-markdown-deux

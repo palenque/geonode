@@ -198,18 +198,17 @@ class AppResource(ModelResource, PostQueryFilteringMixin):
             'name': ALL,
             'category': ALL_WITH_RELATIONS,
             'developer': ALL,
+            'is_service': ALL,
         }
         ordering = ['title', 'last_modified']
-        post_query_filtering = {
-            'developer': lambda vals: lambda app: app.get_managers()[0].username in vals
-        }
 
     detail_url = fields.CharField()
     member_count = fields.IntegerField()
     manager_count = fields.IntegerField()
     developer = fields.CharField()
     category = fields.ToOneField('geonode.api.api.AppCategoryResource', 'category', null=True)
-    
+    keywords = fields.ToManyField(TagResource, 'keywords', null=True, full=True)
+
     def dehydrate_member_count(self, bundle):
         return bundle.obj.member_queryset().filter(role='member').count()
 
@@ -220,7 +219,10 @@ class AppResource(ModelResource, PostQueryFilteringMixin):
         return reverse('app_detail', args=[bundle.obj.slug])
 
     def dehydrate_developer(self, bundle):
-        return bundle.obj.get_managers()[0].full_name
+        managers = bundle.obj.get_managers()
+        if managers is not None and len(managers) > 0:
+            return managers[0].full_name
+
     
     def dehydrate_detail_url(self, bundle):
         return reverse('app_detail', args=[bundle.obj.slug])
@@ -229,11 +231,12 @@ class AppResource(ModelResource, PostQueryFilteringMixin):
         """adds filtering by group functionality"""
 
         orm_filters = self.build_post_query_filters(filters)
+
+        for flt in ['member','developer']:
+            if flt in filters:
+                orm_filters[flt] = filters.pop(flt)
+
         orm_filters.update(super(AppResource, self).build_filters(filters))
-
-        if 'member' in filters:
-            orm_filters['member'] = filters['member']
-
         return orm_filters
 
     def apply_filters(self, request, applicable_filters):
@@ -251,13 +254,13 @@ class AppResource(ModelResource, PostQueryFilteringMixin):
 
         if member is not None:
             semi_filtered = semi_filtered.filter(
-                appmember__user__username=member, 
+                appmember__user__username__in=member, 
                 appmember__role='member'
             )
 
         if developer is not None:
             semi_filtered = semi_filtered.filter(
-                appmember__user__username=developer, 
+                appmember__user__username__in=developer, 
                 appmember__role='manager'
             )
 

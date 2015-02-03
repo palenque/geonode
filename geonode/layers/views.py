@@ -110,9 +110,18 @@ def _resolve_layer(request, typename, permission='base.view_resourcebase',
 @login_required
 def layer_upload(request, template='upload/layer_upload.html'):
     if request.method == 'GET':
+        creator_candidates = [request.user]
+        owner_candidates = [request.user]
+        for app in request.user.own_apps_list_all():
+            creator_candidates.append(app.get_alter_ego())
+            owner_candidates.extend(app.get_members())
+        
         ctx = {
             'charsets': CHARSETS,
-            'layer_types': LayerType.objects.all()
+            'layer_types': LayerType.objects.all(),
+            'owner_candidates': owner_candidates,
+            'creator_candidates': creator_candidates
+
         }
         return render_to_response(template,
                                   RequestContext(request, ctx))

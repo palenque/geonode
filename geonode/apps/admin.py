@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from geonode.apps.models import AppMember, App #, GroupInvitation
+from geonode.apps.models import AppMember, App, AppCategory
 
 
 class AppMemberInline(admin.TabularInline):
@@ -14,5 +14,5 @@ class AppAdmin(admin.ModelAdmin):
     # exclude = ['group', ]
 
 admin.site.register(App, AppAdmin)
-
+admin.site.register(AppCategory)
 # admin.site.register(GroupInvitation)

@@ -43,7 +43,9 @@
     <div class="documents-actions">
       <ul class="nav nav-tabs">
         <li class="active"><a href="#info" data-toggle="tab"><i class="fa fa-info-circle"></i>{% trans "Info" %}</a></li>
+        {% if can_change or resource.owner == request.user %}
         <li><a id="permissions-btn" href="#permissions" data-toggle="tab"><i class="fa fa-lock"></i>{% trans "Permissions" %}</a></li>  
+        {% endif %}
         <li><a href="#links" data-toggle="tab"><i class="fa fa-link"></i>{% trans "Links" %}</a></li>  
         {% comment %}        
         {% if SOCIAL_BUTTONS %}
@@ -58,6 +60,7 @@
     <div class="tab-content">
       {% include "base/resourcebase_info_panel.html" %}
 
+      {% if can_change or resource.owner == request.user %}
       <article id="permissions" class="tab-pane">
         <div class="row">
           <div class="col-md-12">
@@ -65,12 +68,15 @@
           </div>
         </div>      
       </article>
+      {% endif %}
 
       {% block social_links %}
         {% include "social_links.html" %}
       {% endblock %}
 
+      {% comment %}
       {% include "_permissions_form.html" %}
+      {% endcomment %}
 
       {% include "base/resourcebase_links_panel.html" %}
       <!--
@@ -231,11 +237,12 @@
     </script>
     {% include "_permissions_form_js.html" %}
 
-  <script>
+  <script>  
     layer_id = {{resource.id}};
     permissions = JSON.parse('{{permissions_json|safe}}');
     owner = '{{resource.owner.username}}';
     creator = '{{resource.creator.username}}';
+    applications = [];
 
     permissions = JSON.parse('{{permissions_json|safe}}');
     users = [];
@@ -243,10 +250,8 @@
       if(permissions.users[i].indexOf("change_resourcebase_permissions")<0)
         users.push(i);
     }
-    for(var i in permissions.apps) {
-      users.push(i);
-    }  
     SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='profiles' %}'+ '?username__in='+ users.join(',');
+    FIXED_FILTERS = {};
   </script>
 
   {% with include_spatial='false' %}

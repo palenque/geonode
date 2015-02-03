@@ -12,7 +12,6 @@ from actstream.models import Action
 from taggit.managers import TaggableManager
 from guardian.shortcuts import get_objects_for_group, remove_perm, assign_perm
 
-
 class App(models.Model):
     # GROUP_CHOICES = [
     #     ("public", _("Public")),
@@ -33,7 +32,7 @@ class App(models.Model):
     # group = models.OneToOneField(Group)
     title = models.CharField(_('Title'), max_length=50)
     slug = models.SlugField(_('Slug'), unique=True)
-    logo = models.FileField(_('Logo'), upload_to="people_group", blank=True)
+    logo = models.FileField(_('Logo'), upload_to="people_group", blank=False, null=False)
     description = models.TextField(_('Description'))    # markdown
     short_description = models.TextField(_('Short Description'), blank=True, null=True)
     thumbnail = models.FileField(_('Thumbnail'), upload_to="people_group", null=True, blank=True)
@@ -59,6 +58,8 @@ class App(models.Model):
     #     choices=GROUP_CHOICES,
     #     help_text=access_help_text)
     last_modified = models.DateTimeField(auto_now=True)
+
+    is_service = models.BooleanField()
 
     # def save(self, *args, **kwargs):
     #     group, created = Group.objects.get_or_create(name=self.slug)
@@ -182,8 +183,10 @@ class App(models.Model):
         AppMember.objects.get(app=self, user=user).delete()
 
     def join(self, user, **kwargs):
-        'Joins an user to this app as a member.'
+        from geonode.layers.models import Layer
+        from geonode.tabular.models import Tabular
 
+        'Joins an user to this app as a member.'
         if user == user.get_anonymous():
             raise ValueError("The invited user cannot be anonymous")
 
@@ -193,11 +196,17 @@ class App(models.Model):
         # los recursos que necesita la app
 
         manager = self.get_managers()[0]
-        for resource in user.resourcebase_set.filter(
-            keywords__name__in=self.keyword_list()
-        ).distinct():
-            assign_perm('view_resourcebase', manager, resource)
+        for resource in user.resourcebase_set.all():
+            keywords = set(resource.keyword_list())
 
+            try: keywords.add(resource.layer.layer_type.name)
+            except Layer.DoesNotExist: pass
+
+            try: keywords.add(resource.tabular.tabular_type.name)
+            except Tabular.DoesNotExist: pass
+
+            if len(keywords.intersection(self.keyword_list())) > 0:
+                assign_perm('view_resourcebase', manager, resource)
 
 
         # user.groups.add(self.group)
@@ -252,6 +261,7 @@ class AppMember(models.Model):
 class AppCategory(models.Model):
     identifier = models.CharField(max_length=255)
     description = models.TextField(null=False, blank=False)
+    is_service = models.BooleanField()
 
     def __unicode__(self):
         return self.description
@@ -332,7 +342,8 @@ def group_pre_delete(instance, sender, **kwargs):
 
 
 def update_alter_ego_logo(instance, sender, **kwargs):
-    instance.get_alter_ego().save_avatar(instance.logo)
+    if instance.get_alter_ego() is not None:
+        instance.get_alter_ego().save_avatar(instance.logo)
 
 
 signals.post_save.connect(update_alter_ego_logo, sender=App)

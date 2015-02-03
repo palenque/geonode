@@ -9,7 +9,7 @@
     <h5>
       <img src="{{ app.logo }}" width="20px" ng-if="app.logo"/>
       <i ng-if="!app.logo" class="fa fa-cubes"></i> <a href="{{ app.detail_url }}">{{ app.title }}</a>
-      <a href="{{ app.email }}" ng-if="app.email != ''" target="_blank"><i class="fa fa-external-link"></i></a>
+      <a href="{{ app.email }}" ng-if="app.email != null && app.email != ''" target="_blank"><i class="fa fa-external-link"></i></a>
     </h5>
 
     <p ng-if="app.short_description.length > 0">{{ app.short_description }}</p>

@@ -113,6 +113,18 @@ def err403(request):
 
 def index(request):
     if request.user.is_authenticated():
+        apps = []
+        services = []
+        if request.user.profile == 'developer' or request.user.profile == 'contractor':
+            app_list = request.user.own_apps_list_all() 
+        else:
+            app_list = request.user.apps_list_all()
+
+        for app in app_list:
+            if app.is_service: services.append(app)
+            else: apps.append(app)
+            app.actions = request.user.get_action_list_for_app(app)
+
         new_public_layers = []
         for layer in Layer.objects.order_by('-date'):
             if layer.is_public: new_public_layers.append(layer)
@@ -121,7 +133,9 @@ def index(request):
         return render_to_response(
             "index.html",
             RequestContext(request,{
-                'new_public_layers': new_public_layers
+                'new_public_layers': new_public_layers,
+                'apps': apps,
+                'services': services
             }))
     else:
         return render_to_response(

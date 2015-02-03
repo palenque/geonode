@@ -880,7 +880,6 @@ def post_save_layer_type(instance, *args, **kwargs):
 
 def share(instance, created=False, update_fields=None, **kwargs):
     "Shares the tagged object with the app alter-ego"
-    
     owner = instance.owner
     resource = instance.resourcebase_ptr
 

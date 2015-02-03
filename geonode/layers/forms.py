@@ -97,6 +97,7 @@ class LayerForm(TranslationModelForm):
     regions.widget.attrs = {"size": 20}
 
     owner = forms.CharField(required=False)
+    creator = forms.CharField(required=False)
 
     class Meta:
         model = Layer
@@ -150,10 +151,20 @@ class LayerForm(TranslationModelForm):
                         'data-html': 'true'})
 
     def clean_owner(self):
-        if len(self.cleaned_data['owner']) > 0:
-            return Profile.objects.get(username=self.cleaned_data['owner'])
+        id = self.cleaned_data['owner'] 
+        if len(id) > 0:
+            if id.isdigit(): return Profile.objects.get(id=int(id))
+            else: return Profile.objects.get(username=id)
         else:
             return self.cleaned_data['owner']
+
+    def clean_creator(self):
+        id = self.cleaned_data['creator'] 
+        if len(id) > 0:
+            if id.isdigit(): return Profile.objects.get(id=int(id))
+            else: return Profile.objects.get(username=id)
+        else:
+            return self.cleaned_data['creator']
 
 
 class LayerUploadForm(forms.Form):
@@ -235,6 +246,7 @@ class NewLayerUploadForm(LayerUploadForm):
         required=False, queryset=LayerType.objects.all()
     )
     owner = forms.CharField(required=False)
+    creator = forms.CharField(required=False)
 
     spatial_files = (
         "base_file",
@@ -251,10 +263,20 @@ class NewLayerUploadForm(LayerUploadForm):
             return self.cleaned_data['layer_type']
 
     def clean_owner(self):
-        if len(self.cleaned_data['owner']) > 0:
-            return Profile.objects.get(username=self.cleaned_data['owner'])
+        id = self.cleaned_data['owner'] 
+        if len(id) > 0:
+            if id.isdigit(): return Profile.objects.get(id=int(id))
+            else: return Profile.objects.get(username=id)
         else:
             return self.cleaned_data['owner']
+
+    def clean_creator(self):
+        id = self.cleaned_data['creator'] 
+        if len(id) > 0:
+            if id.isdigit(): return Profile.objects.get(id=int(id))
+            else: return Profile.objects.get(username=id)
+        else:
+            return self.cleaned_data['creator']
 
 class LayerDescriptionForm(forms.Form):
     title = forms.CharField(300)

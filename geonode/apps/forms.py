@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from django.contrib.auth import get_user_model
 
-from geonode.apps.models import App
+from geonode.apps.models import App, AppCategory
 
 
 class AppForm(forms.ModelForm):
@@ -17,8 +17,29 @@ class AppForm(forms.ModelForm):
         required=False)
 
     email = forms.URLField(
-        label='Public URL'
+        label='URL'
         )
+
+    is_service = forms.BooleanField(
+        widget=forms.HiddenInput()
+    )
+
+    def __init__(self, *args, **kwargs):
+
+        if 'is_service' in kwargs:
+            is_service = kwargs.pop('is_service') 
+        elif 'instance' in kwargs:
+            is_service = kwargs['instance'].is_service
+        else:
+            is_service = False
+            
+        kwargs['initial'] = kwargs.get('initial',{})
+        kwargs['initial']['is_service'] = is_service
+        super(AppForm, self).__init__(*args, **kwargs)
+        self.fields['category'].queryset = AppCategory.objects.filter(is_service=is_service)
+        if is_service:
+            del self.fields['email']
+            del self.fields['widget_url']
 
     def clean_slug(self):
         if App.objects.filter(
@@ -47,6 +68,8 @@ class AppForm(forms.ModelForm):
     class Meta:
         model = App
         # exclude = ['group']
+
+
 
 
 class AppUpdateForm(forms.ModelForm):

@@ -9,8 +9,7 @@ from django.shortcuts import render, render_to_response, get_object_or_404, redi
 from django.template import RequestContext
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
-from django.views.generic import ListView
-
+from django.views.generic import ListView,TemplateView
 
 from actstream.models import Action
 from guardian.shortcuts import assign_perm, remove_perm
@@ -26,16 +25,16 @@ from geonode.documents.models import Document
 from geonode.tabular.models import Tabular, TabularType
 
 @login_required
-def app_create(request):
+def app_create(request, is_service=False):
     if request.method == "POST":
-        form = AppForm(request.POST, request.FILES)
+        form = AppForm(request.POST, request.FILES, is_service=is_service)
         if form.is_valid():
             app = form.save(commit=False)
             app.save()
             form.save_m2m()
             app.join(request.user, role="manager")
             
-            app_user = Profile(username=app.slug, profile='application')
+            app_user = Profile(username=app.slug[:25], profile='application', organization=app.title)
             app_user.save()
             app.join(app_user, role="alter_ego")
 
@@ -43,11 +42,11 @@ def app_create(request):
                 reverse("app_detail", args=[app.slug])
             )
     else:
-        form = AppForm()
+        form = AppForm(is_service=is_service)
 
     return render_to_response("apps/app_create.html", {
         "form": form,
-    }, context_instance=RequestContext(request))
+    }, context_instance=RequestContext(request,{'is_service':is_service}))
 
 
 @login_required
@@ -99,7 +98,7 @@ def app_detail(request, slug):
     context['description'] = markdown.markdown(app.description)
     context['action_list'] = action_list
     context['keywords'] = keyword_labels
-
+    context['thing'] = 'service' if app.is_service else 'app'
     context['profile'] = profile
     context['object_list'] = user_objects.get_real_instances()
     context['permissions'] = [
@@ -350,7 +349,12 @@ def app_member_link(request, slug, username):
 
     if request.method == 'GET':
         return render_to_response(
-            "apps/app_member_link.html", RequestContext(request, {"app": app, "keywords": keyword_labels}))
+            "apps/app_member_link.html", RequestContext(request, {
+                "app": app, 
+                "keywords": keyword_labels,
+                "thing": "service" if app.is_service else "app"
+
+            }))
 
     elif request.method == 'POST':
 
@@ -450,3 +454,10 @@ def app_remove(request, slug):
 #         context = super(GroupActivityView, self).get_context_data(**kwargs)
 #         context['group'] = self.group
 #         return context
+
+class AppListView(TemplateView):
+    def get_context_data(self, **kwargs):
+        ans = super(AppListView,self).get_context_data(**kwargs)
+        ans['is_service'] = self.request.path.startswith('/contractor_services/')
+        return ans
+

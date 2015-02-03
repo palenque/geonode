@@ -82,6 +82,7 @@
       {% else %}
           SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='layers' %}';
       {% endif %}
+    FIXED_FILTERS = {};
     FILTER_TYPE = 'layer';
   </script>
   {% with include_spatial='true' %}

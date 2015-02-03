@@ -4,17 +4,19 @@
 
 {% block title %} {% trans "Explore Apps" %} - {{ block.super }} {% endblock %}
 
-{% block body_class %}apps{% endblock %}
+{% block body_class %}{%if is_service%}contractor_services{%else%}apps{%endif%}{% endblock %}
 
 {% block body %}
-
+  
+  {% if request.user.profile == 'developer' and not is_service %}
   <div class="col-md-12">
-    {% if request.user.profile == 'developer' %}
     <a href="{% url "app_create" %}" class="btn btn-primary pull-right">{% trans "Create App" %}</a>
-    {% endif %}
-    <!-- <h2 class="page-title">{% trans "Explore Apps" %}</h2> -->
   </div>
-
+  {% elif request.user.profile == 'contractor' and is_service %}
+  <div class="col-md-12">
+    <a href="{% url "contractor_service_create" %}" class="btn btn-primary pull-right">{% trans "Create Service" %}</a>
+  </div>  
+  {% endif %}
 
   <div class="col-md-12">
     <div class="col-md-2"></div>
@@ -39,6 +41,9 @@
 {% block extra_script %}
   <script type="text/javascript">
   SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='apps' %}'
+  FIXED_FILTERS = {
+    is_service: '{{is_service}}' == 'True'?'1':'0'
+  };
   </script>
   {% with include_spatial='false' %}
   {% include 'search/search_scripts.html' %}

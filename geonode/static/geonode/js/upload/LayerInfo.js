@@ -184,6 +184,8 @@ define(function (require, exports) {
         }
         form_data.append('charset', $('#charset').val());
         form_data.append('layer_type', $('#layer-type').val());
+        if($('#owner')) form_data.append('owner', $('#owner').val());
+        if($('#creator')) form_data.append('creator', $('#creator').val());
         return form_data;
     };
 

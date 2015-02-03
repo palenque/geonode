@@ -361,10 +361,9 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
     detail_url = models.CharField(verbose_name=_('Detail URL'), max_length=255, null=True, blank=True)
     rating = models.IntegerField(verbose_name=_('Rating'), default=0, null=True)
 
-    is_public = models.BooleanField()
+    is_public = models.BooleanField(default=False)
 
     def clean(self):
-        import ipdb; ipdb.set_trace()
         if self.is_public is None:
             anonymous = Group.objects.get(name='anonymous')
             perms = get_groups_with_perms(self.get_self_resource(),attach_perms=True)

@@ -63,6 +63,25 @@
       <div id="file-queue"></div>
     </section>
 
+    {% if request.user.profile == 'developer' or request.user.profile == 'contractor' %}
+      <section class="layer-type form-group">
+
+        <p>{% trans "Para el usuario" %}</p>
+        <select id="owner" class="form-control">
+          {% for pt in owner_candidates %}
+            <option value="{{pt.id}}" {% if pt.id == request.user.id %}selected="selected"{% endif %}>{{ pt }}</option>
+          {% endfor %}
+        </select>
+
+        <p>{% trans "En nombre de" %}</p>
+        <select id="creator" class="form-control">
+          {% for pt in creator_candidates %}
+            <option value="{{pt.id}}" {% if pt.id == request.user.id %}selected="selected"{% endif %}>{{ pt }}</option>
+          {% endfor %}
+        </select>
+      </section>
+    {% endif %}
+
     <section class="layer-type form-group">
       <p>{% trans "Layer type" %}</p>
       <select id="layer-type" class="form-control">

@@ -31,6 +31,7 @@
 {% block extra_script %}
   <script type="text/javascript">
   SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='groups' %}'
+  FIXED_FILTERS = {};
   </script>
   {% with include_spatial='false' %}
   {% include 'search/search_scripts.html' %}
