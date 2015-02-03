@@ -197,6 +197,7 @@ class AppResource(ModelResource, PostQueryFilteringMixin):
         filtering = {
             'name': ALL,
             'category': ALL_WITH_RELATIONS,
+            'developer': ALL,
         }
         ordering = ['title', 'last_modified']
         post_query_filtering = {
@@ -240,6 +241,7 @@ class AppResource(ModelResource, PostQueryFilteringMixin):
 
         self.process_post_query_filters(request, applicable_filters)
         member = applicable_filters.pop('member', None)
+        developer = applicable_filters.pop('developer', None)
 
         semi_filtered = super(
             AppResource,
@@ -252,7 +254,13 @@ class AppResource(ModelResource, PostQueryFilteringMixin):
                 appmember__user__username=member, 
                 appmember__role='member'
             )
-        
+
+        if developer is not None:
+            semi_filtered = semi_filtered.filter(
+                appmember__user__username=developer, 
+                appmember__role='manager'
+            )
+
         return semi_filtered
 
     def obj_get_list(self, **kwargs):

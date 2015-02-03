@@ -4,7 +4,7 @@
   <ul class="nav closed" id="developers">
     {% verbatim %}
       <li ng-repeat="profile in developers">
-        <a data-value="{{ profile.username }}" data-filter="developer__username__in" 
+        <a data-value="{{ profile.username }}" data-filter="developer" 
          ng-click="multiple_choice_listener($event)" class="category.active">{{ profile.username }}
           <!-- <span class="badge pull-right"></span> -->
         </a>
