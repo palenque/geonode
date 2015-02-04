@@ -69,14 +69,14 @@
         <p>{% trans "Para el usuario" %}</p>
         <select id="owner" class="form-control">
           {% for pt in owner_candidates %}
-            <option value="{{pt.id}}" {% if pt.id == request.user.id %}selected="selected"{% endif %}>{{ pt }}</option>
+            <option value="{{pt.id}}" {% if pt.id == request.user.id %}selected="selected"{% endif %}>{{ pt.full_name }}</option>
           {% endfor %}
         </select>
 
         <p>{% trans "En nombre de" %}</p>
         <select id="creator" class="form-control">
           {% for pt in creator_candidates %}
-            <option value="{{pt.id}}" {% if pt.id == request.user.id %}selected="selected"{% endif %}>{{ pt }}</option>
+            <option value="{{pt.id}}" {% if pt.id == request.user.id %}selected="selected"{% endif %}>{{ pt.full_name }}</option>
           {% endfor %}
         </select>
       </section>

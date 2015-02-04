@@ -362,6 +362,7 @@
     */
 
     $scope.$watch('query', function(){
+      if($scope.query.is_public == '1') return;
       var map_scope = angular.element($(".leaflet_map")).scope();
       if(map_scope) {
         var q = jQuery.extend(true, {}, $scope.query);

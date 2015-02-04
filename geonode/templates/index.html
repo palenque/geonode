@@ -126,7 +126,7 @@
         </div>
       {% empty %}
           ¿Qué esperás para empezar a usar aplicaciones?<br/>
-          Consultá las aplicaciones disponibles en la sección <b><a href=\"{% url 'app_list' %}\">Aplicaciones</a></b>
+          Consultá las aplicaciones disponibles en la sección <b><a href="{% url 'app_list' %}">Aplicaciones</a></b>
       {% endfor %}
     </div>
 
@@ -195,8 +195,8 @@
         </div>
         </div>
       {% empty %}
-          No tenés contratado ningún servicio.
-          Consultá los servicios disponibles en la sección <b><a href=\"{% url 'contractor_service_list' %}\">Servicios</a></b>
+          No tenés contratado ningún servicio.<br/>
+          Consultá los servicios disponibles en la sección <b><a href="{% url 'contractor_service_list' %}">Servicios</a></b>
       {% endfor %}
     </div>
   </div>

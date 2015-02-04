@@ -189,12 +189,11 @@ class LayerType(models.Model):
 
     def _rename_fields(self, layer):
         'Renames fiels in the layer table.'
-
         cursor = connections['datastore'].cursor()
 
         # borra campos y atributos no conservados
         for attr in layer.attribute_set.exclude(attribute='the_geom'):
-            if not attr.field and not attr.preserved:
+            if not attr.preserved:
                 try:
                     cursor.execute(
                         'ALTER TABLE %s DROP COLUMN "%s";' % (
