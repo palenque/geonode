@@ -64,7 +64,7 @@
         "columns": [
           {% for a in resource.attribute_set.all %}
           {% if a.attribute != "the_geom" %}
-          {'data': '{{a.attribute|upper}}', 'title': '{{a}}'} {% if not forloop.last %},{% endif %}
+          {'data': '{{a.attribute}}', 'title': '{{a}}'} {% if not forloop.last %},{% endif %}
           {% endif %}
           {% endfor %}
         ]
@@ -90,7 +90,7 @@
   <div class="col-md-9">
 
     <ul class="nav nav-tabs">
-      <li class="active"><a href="#map" data-toggle="tab"><i class="fa fa-info-circle"></i>{% trans "Map" %}</a></li>
+      <li class="active"><a href="#map" data-toggle="tab"><i class="fa fa-map-marker"></i>{% trans "Map" %}</a></li>
       {% if resource.storeType == "dataStore" %}
       <li><a href="#table" data-toggle="tab"><i class="fa fa-bars"></i>{% trans "Table" %}</a></li>
       {% endif %}

@@ -9,6 +9,7 @@ import urllib
 import urlparse
 import subprocess
 import sh
+import dateutil.parser
 
 
 class Saga_cmd(object):
@@ -23,10 +24,14 @@ saga_cmd = Saga_cmd()
 
 class YieldMonitorProcessing(object):
     lookup = TemplateLookup(directories=[os.path.join(os.path.dirname(__file__),'templates')])
-    palenque_url = 'http://localhost:8000'
     palenque_api_url = palenque_url + '/api'
     username = 'yieldmonproc'
+    # diego
+    palenque_url = 'http://localhost:8000'
     api_key = 'bd51709e7c2a867e6debb058fbc99e321253e02e'
+    #production
+    #palenque_url = 'http://localhost'
+    #api_key = '07c3e6d390556fb11393ed793aecaebbc5d7a321'
 
     @cherrypy.expose
     def widget(self):
@@ -59,7 +64,7 @@ class YieldMonitorProcessing(object):
         if type != 'base': 
             ans = dict(status='error', message='invalid layer type: %s' % type)
             return ans
-        layer_type = 'monitor'
+        layer_type = 'yield'
         resp = requests.get('%s/layers' % self.palenque_api_url, 
             params=dict(owner__username=username, layer_type__name=layer_type, api_key=self.api_key, username=self.username))
         if not resp.ok:
@@ -72,9 +77,9 @@ class YieldMonitorProcessing(object):
         for obj in data['objects']:
             objs.append(dict(
                 uri=obj['resource_uri'],
-                product=obj['supplemental_information'], #category_description'],
+                product=obj['metadata'].get('producto','Not specified'), #category_description'],
                 abstract='Rasterización a partir del campo masa_humedo',
-                date=obj['date'],
+                date=dateutil.parser.parse(obj['date']).strftime('%d/%m/%y'),
                 processed=any(x for x in obj['internal_links_forward'] if x['name'] == 'rasterized'),
                 title=obj['title']))
         ans=dict(status='ok',objects=objs)
@@ -126,10 +131,9 @@ class YieldMonitorProcessing(object):
         layer = simplejson.loads(resp.text)
 
         # download the data
-        # shape_url = (x for x in layer['links'] if x['mime'] == "SHAPE-ZIP").next()
-        # print shape_url['url']
-        # fname_out = self.download(shape_url['url'], layer['typename'].split(':')[-1])
-        fname_out = 'out.tiff'
+        shape_url = (x for x in layer['links'] if x['mime'] == "SHAPE-ZIP").next()
+        print shape_url['url']
+        fname_out = self.download(shape_url['url'], layer['typename'].split(':')[-1])
 
         # upload new layer
         params = {'username': self.username, 'api_key': self.api_key}
@@ -142,7 +146,7 @@ class YieldMonitorProcessing(object):
             'owner': username, 
             'metadata': simplejson.dumps(metadata),
             'attributes': simplejson.dumps(
-                [{"attribute":"GRAY_INDEX","mapping":"MASA_HUMEDO","magnitude":"kg"}])
+                [{"attribute":"GRAY_INDEX","mapping":"masa_humedo","magnitude":"kg"}])
         }
         headers = {'Accept-Language':'en'}
         url = '%s/layers/' % self.palenque_api_url
