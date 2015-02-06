@@ -27,7 +27,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from geonode.people.models import Profile
 from geonode.base.models import ContactRole
-from .enumerations import PROFILE_VALUES
+from .enumerations import RESTRICTED_PROFILE_VALUES
 
 import account.forms
 
@@ -44,7 +44,7 @@ class SignUpForm(account.forms.SignupForm):
     
     profile = forms.ChoiceField(
         label=_('Profile'), 
-        choices=PROFILE_VALUES, 
+        choices=RESTRICTED_PROFILE_VALUES, 
         required=True, 
         help_text=_('type of user')
     )

@@ -90,7 +90,7 @@
     <div class="row">
       <h2>{% trans "Mis aplicaciones" %}</h2>    
       {% for app in apps %}
-        <div class="col-md-5">
+        <div class="col-md-6">
         <div class="panel panel-success">
           <div class="panel-heading">
             <a href="{{app.email}}" target="_blank">
@@ -114,7 +114,7 @@
             Actividades
           </div>
           <div class="col-md-5" style="height:200px; overflow-y:auto">
-            {% for action in app.get_action_list.all %}
+            {% for action in app.actions %}
               {% activity_item action template="social/_activity_item_small.html" %}
             {% empty %}
               <p>{% trans "No actions yet" %}</p>
@@ -147,7 +147,7 @@
             Usuarios
           </div>
           <div style="margin-top:20px; height:200px; overflow-y:auto">
-            {% for member in app.appmember_set.all %}
+            {% for member in app.actions %}
               {% if member.role == 'member' %}
                     <div class="col-md-3">
                       <a class="thumbnail" href="{{member.user.get_absolute_url}}">
@@ -177,7 +177,7 @@
             &nbsp;
             {{app.title}}
             &nbsp;
-            </h3>\
+            </h3>
           </div>
           <div class="panel-body">
           <div class="label label-success">

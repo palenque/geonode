@@ -21,6 +21,7 @@
 from django.utils import simplejson as json
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth import get_user_model
+from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponse
 from actstream.models import Action
 
@@ -50,6 +51,7 @@ def resource_permissions(request, resource_id):
         resource = resolve_object(
             request, ResourceBase, {
                 'id': resource_id}, 'base.change_resourcebase_permissions')
+        resource_content_type = ContentType.objects.get_for_model(resource).id
 
     except PermissionDenied:
         # we are handling this in a non-standard way
@@ -67,7 +69,8 @@ def resource_permissions(request, resource_id):
             if user not in old_permission_spec['users']:
                 action = Action(
                     actor=request.user, 
-                    action_object=resource,
+                    action_object_id=resource.id,
+                    action_object_content_type_type=resource_content_type,
                     target=user,
                     verb='permission_granted')
                 action.save()
@@ -79,7 +82,8 @@ def resource_permissions(request, resource_id):
         for user in old_permission_spec['users']:
             action = Action(
                 actor=request.user, 
-                action_object=resource,
+                action_object_id=resource.id,
+                action_object_content_type=resource_content_type,
                 target=user,
                 verb='permission_revoked')
             action.save()

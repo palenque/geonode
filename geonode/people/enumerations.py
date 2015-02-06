@@ -66,5 +66,11 @@ PROFILE_VALUES = (
     (PROFILE.ADMIN, _('administrator')),
     (PROFILE.APP, _('application')),
     (PROFILE.CONTRACTOR, _('contractor')),
+)
 
+RESTRICTED_PROFILE_VALUES = (
+    (PROFILE.USER, _('user')),
+    (PROFILE.ORGANIZATION, _('organization')),
+    (PROFILE.DEVELOPER, _('developer')),
+    (PROFILE.CONTRACTOR, _('contractor')),
 )
