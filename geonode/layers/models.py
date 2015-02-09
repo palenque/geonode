@@ -78,6 +78,7 @@ class LayerType(models.Model):
     calculated_abstract = models.CharField(max_length = 1024, blank=True, null=True)
     default_style = models.ForeignKey('Style', null=True, blank=True)
 
+    table_name = models.CharField(max_length=50, null=True, blank=True)
 
     def _set_default_style(self, layer):
         if self.default_style is None: return
@@ -93,6 +94,16 @@ class LayerType(models.Model):
         # Save to Django
         layer = set_styles(layer, cat)
         #layer.save()
+
+    def add_row(self, layer_name, row):
+        cursor = connections['datastore'].cursor()
+        ks = []; vs = []
+        for k,v in row.items():
+            ks.append(k); vs.append(v)
+        ks.append('layer_name'); vs.append(layer_name)
+        cmd = "INSERT INTO %s (%s) VALUES (%s);" \
+            % self.table_name, ','.join(ks), ','.join(vs)
+        cursor.execute(cmd)
 
     def update_attributes(self, layer):
         'Updates table fields and attributes to mach layer type attributes.'

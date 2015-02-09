@@ -60,7 +60,8 @@ DATABASES = {
         'NAME': 'geonode-imports',
         'USER' : 'geonode',
         'PASSWORD' : 'geonode',
-        'HOST' : '146.148.63.168',
+        'HOST' : 'localhost',
+        #'HOST': '146.148.63.168',
         'PORT' : '5432',
     }
 }
@@ -183,6 +184,7 @@ GEONODE_APPS = (
     'geonode.proxy',
     'geonode.security',
     'geonode.social',
+    'geonode.people',
     'geonode.catalogue',
     'geonode.documents',
     'geonode.api',
@@ -192,7 +194,7 @@ GEONODE_APPS = (
 
     # GeoNode Contrib Apps
 
-    # 'geonode.contrib.dynamic',
+    'geonode.contrib.dynamic',
 
     # GeoServer Apps
     # Geoserver needs to come last because
@@ -218,6 +220,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.humanize',
     'django.contrib.gis',
+    'markdown_deux',
 
     # Third party apps
     'eav',
@@ -457,11 +460,13 @@ CACHE_TIME = 0
 OGC_SERVER = {
     'default': {
         'BACKEND': 'geonode.geoserver',
-        'LOCATION': 'http://146.148.63.168:8080/geoserver/',
+        #'LOCATION': 'http://146.148.63.168:8080/geoserver/',
+        'LOCATION': 'http://localhost:8080/geoserver/',
         # PUBLIC_LOCATION needs to be kept like this because in dev mode
         # the proxy won't work and the integration tests will fail
         # the entire block has to be overridden in the local_settings
-        'PUBLIC_LOCATION': 'http://146.148.63.168:8080/geoserver/',
+        'PUBLIC_LOCATION': 'http://localhost:8080/geoserver/',
+        #'PUBLIC_LOCATION': 'http://146.148.63.168:8080/geoserver/',
         'USER': 'admin',
         'PASSWORD': '4dm1n',
         'MAPFISH_PRINT_ENABLED': True,

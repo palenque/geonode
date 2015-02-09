@@ -1,0 +1,63 @@
+- pasar todo a español
+
+- usuario productor
+	- pantalla principal ???
+
+	- listar datos públicos
+		- geográficos
+			- mostrar
+				- mapa
+				- listado de layers
+			- filtrar por
+				- tipo de layer
+				- creador
+				- fechas
+				- categoría
+
+		- tabulares
+		- documentos
+
+	- listar datos propios
+		- geográficos
+			- mostrar
+				- mapa con los polígonos de cada capa
+				- listado de layers
+					- título
+					- thumbnail
+					- ???
+			- filtrar por
+				- tipo de layer
+				- creador
+				- fechas
+				- campaña ??
+				- producto ??
+				- lote ??
+				- ambiente ??
+			- overlays
+				- capas públicas
+
+		- tabulares
+		- documentos
+
+	- detalle de dato propio
+		- geográfico
+			- mapa
+			- solapas
+				- metadata
+				- atributos
+				- links
+				- permisos
+				- comentarios
+			- overlays
+				- capas públicas
+				- capas relacionadsa
+
+		- tabular
+		- documento
+
+
+- usuario contratista
+
+- usuario desarrollador
+
+- usuario organismo

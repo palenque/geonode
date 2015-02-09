@@ -1,0 +1,341 @@
+[
+{
+    "pk": 6, 
+    "model": "eav.attribute", 
+    "fields": {
+        "description": "", 
+        "created": "2014-11-25T13:26:32.295", 
+        "datatype": "enum", 
+        "enum_group": 3, 
+        "required": false, 
+        "site": 1, 
+        "modified": "2014-11-25T13:26:32.313", 
+        "type": "", 
+        "slug": "producto", 
+        "name": "Producto"
+    }
+},
+{
+    "pk": 7, 
+    "model": "eav.attribute", 
+    "fields": {
+        "description": "", 
+        "created": "2014-11-25T13:27:00.117", 
+        "datatype": "text", 
+        "enum_group": null, 
+        "required": false, 
+        "site": 1, 
+        "modified": "2014-11-25T13:27:00.130", 
+        "type": "", 
+        "slug": "lote", 
+        "name": "Lote"
+    }
+},
+{
+    "pk": 8, 
+    "model": "eav.attribute", 
+    "fields": {
+        "description": "", 
+        "created": "2014-11-25T13:27:17.791", 
+        "datatype": "text", 
+        "enum_group": null, 
+        "required": false, 
+        "site": 1, 
+        "modified": "2014-11-25T13:27:17.803", 
+        "type": "", 
+        "slug": "campana", 
+        "name": "Campa\u00f1a"
+    }
+},
+{
+    "pk": 9, 
+    "model": "eav.attribute", 
+    "fields": {
+        "description": "", 
+        "created": "2014-11-26T10:39:20.119", 
+        "datatype": "text", 
+        "enum_group": null, 
+        "required": false, 
+        "site": 1, 
+        "modified": "2014-11-26T10:39:20.132", 
+        "type": "", 
+        "slug": "fase", 
+        "name": "Fase"
+    }
+},
+{
+    "pk": 10, 
+    "model": "eav.attribute", 
+    "fields": {
+        "description": "", 
+        "created": "2014-12-19T09:21:31.857", 
+        "datatype": "float", 
+        "enum_group": null, 
+        "required": false, 
+        "site": 1, 
+        "modified": "2014-12-19T09:21:31.864", 
+        "type": "", 
+        "slug": "masa-promedio-humeda", 
+        "name": "Masa Promedio (H\u00fameda)"
+    }
+},
+{
+    "pk": 11, 
+    "model": "eav.attribute", 
+    "fields": {
+        "description": "", 
+        "created": "2014-12-19T09:21:57.239", 
+        "datatype": "float", 
+        "enum_group": null, 
+        "required": false, 
+        "site": 1, 
+        "modified": "2014-12-19T09:21:57.245", 
+        "type": "", 
+        "slug": "superficie", 
+        "name": "Superficie"
+    }
+},
+{
+    "pk": 12, 
+    "model": "eav.attribute", 
+    "fields": {
+        "description": "", 
+        "created": "2014-12-19T09:30:15.036", 
+        "datatype": "text", 
+        "enum_group": null, 
+        "required": false, 
+        "site": 1, 
+        "modified": "2014-12-19T09:30:15.042", 
+        "type": "", 
+        "slug": "ambiente", 
+        "name": "Ambiente"
+    }
+},
+{
+    "pk": 13, 
+    "model": "eav.attribute", 
+    "fields": {
+        "description": "", 
+        "created": "2014-12-23T12:37:44.257", 
+        "datatype": "text", 
+        "enum_group": null, 
+        "required": false, 
+        "site": 1, 
+        "modified": "2014-12-23T12:37:44.263", 
+        "type": "", 
+        "slug": "simbolo", 
+        "name": "S\u00edmbolo"
+    }
+},
+{
+    "pk": 3, 
+    "model": "eav.enumgroup", 
+    "fields": {
+        "enums": [
+            9, 
+            8, 
+            10, 
+            11
+        ], 
+        "name": "Producto"
+    }
+},
+{
+    "pk": 8, 
+    "model": "eav.enumvalue", 
+    "fields": {
+        "value": "Soja"
+    }
+},
+{
+    "pk": 9, 
+    "model": "eav.enumvalue", 
+    "fields": {
+        "value": "Cebada"
+    }
+},
+{
+    "pk": 10, 
+    "model": "eav.enumvalue", 
+    "fields": {
+        "value": "Trigo"
+    }
+},
+{
+    "pk": 11, 
+    "model": "eav.enumvalue", 
+    "fields": {
+        "value": "Maiz"
+    }
+},
+{
+    "pk": 3, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 3, 
+        "attribute": 6, 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "sql_magnitude": null
+    }
+},
+{
+    "pk": 4, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 3, 
+        "attribute": 7, 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "sql_magnitude": null
+    }
+},
+{
+    "pk": 5, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 3, 
+        "attribute": 8, 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "sql_magnitude": null
+    }
+},
+{
+    "pk": 6, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 2, 
+        "attribute": 9, 
+        "is_precalculated": false, 
+        "sql_expression": null, 
+        "sql_magnitude": null
+    }
+},
+{
+    "pk": 7, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 3, 
+        "attribute": 10, 
+        "is_precalculated": true, 
+        "sql_expression": "avg(\"MASA_HUMEDO\")", 
+        "sql_magnitude": "kg"
+    }
+},
+{
+    "pk": 8, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 3, 
+        "attribute": 11, 
+        "is_precalculated": true, 
+        "sql_expression": "st_area(st_transform(st_concavehull(st_collect(the_geom),0.99),22185))/10000", 
+        "sql_magnitude": "ha"
+    }
+},
+{
+    "pk": 9, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 3, 
+        "attribute": 12, 
+        "is_precalculated": false, 
+        "sql_expression": "", 
+        "sql_magnitude": ""
+    }
+},
+{
+    "pk": 10, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 4, 
+        "attribute": 12, 
+        "is_precalculated": false, 
+        "sql_expression": "", 
+        "sql_magnitude": ""
+    }
+},
+{
+    "pk": 11, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 4, 
+        "attribute": 8, 
+        "is_precalculated": false, 
+        "sql_expression": "", 
+        "sql_magnitude": ""
+    }
+},
+{
+    "pk": 12, 
+    "model": "layers.metadatatype", 
+    "fields": {
+        "layer_type": 4, 
+        "attribute": 7, 
+        "is_precalculated": false, 
+        "sql_expression": "", 
+        "sql_magnitude": ""
+    }
+},
+{
+    "pk": 1, 
+    "model": "layers.layertype", 
+    "fields": {
+        "description": "Default layer", 
+        "fill_metadata": false, 
+        "calculated_title": null, 
+        "label": "Default", 
+        "is_default": true, 
+        "show_category": true, 
+        "default_style": null, 
+        "calculated_abstract": null, 
+        "name": "default"
+    }
+},
+{
+    "pk": 2, 
+    "model": "layers.layertype", 
+    "fields": {
+        "description": "Suelo", 
+        "fill_metadata": false, 
+        "calculated_title": "", 
+        "label": "Suelo", 
+        "is_default": false, 
+        "show_category": true, 
+        "default_style": null, 
+        "calculated_abstract": "", 
+        "name": "suelo"
+    }
+},
+{
+    "pk": 3, 
+    "model": "layers.layertype", 
+    "fields": {
+        "description": "Monitor de rendimiento (rasterizado)", 
+        "fill_metadata": true, 
+        "calculated_title": "%(lote)s %(ambiente)s (%(campana)s) ", 
+        "label": "Rendimiento", 
+        "is_default": false, 
+        "show_category": true, 
+        "default_style": 144, 
+        "calculated_abstract": "", 
+        "name": "yield"
+    }
+},
+{
+    "pk": 4, 
+    "model": "layers.layertype", 
+    "fields": {
+        "description": "Monitor de rendimiento (rasterizado)", 
+        "fill_metadata": true, 
+        "calculated_title": "%(lote)s %(ambiente)s (%(campana)s) - rasterizado", 
+        "label": "Rendimiento (rasterizado)", 
+        "is_default": false, 
+        "show_category": true, 
+        "default_style": 120, 
+        "calculated_abstract": "", 
+        "name": "yield_raster"
+    }
+}
+]

@@ -49,6 +49,7 @@
             map.addLayer(tile_layer);
         }
 
+        {% comment %}
         {% for link in resource.internal_links_forward_set.all %}
             {% if link.target.class == Layer %}
                 var layer = L.tileLayer("{{ link.target.get_tiles_url|safe }}");
@@ -63,6 +64,7 @@
                 map.addLayer(layer);
             {% endif %}
         {% endfor %}
+        {% endcomment %}
 
         angular.element($('#preview_map')).scope().load_public_layers(map);
 

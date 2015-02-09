@@ -77,6 +77,7 @@ def geoserver_pre_save(instance, sender, **kwargs):
     for key in ['typename', 'store', 'storeType']:
         setattr(instance, key, values[key])
 
+    import ipdb; ipdb.set_trace()
     gs_resource = gs_catalog.get_resource(
         instance.name,
         store=instance.store,
@@ -141,7 +142,6 @@ def geoserver_post_save(instance, sender, **kwargs):
        The way keywords are implemented requires the layer
        to be saved to the database before accessing them.
     """
-
     # XXX
     if instance.metadata_edited: return
     # XXX    

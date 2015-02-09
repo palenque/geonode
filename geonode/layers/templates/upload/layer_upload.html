@@ -80,6 +80,12 @@
           {% endfor %}
         </select>
       </section>
+
+    {% else %}
+      <div style="display:none">
+        <select id="owner"><option value="{{request.user.id}}" selected="selected">{{request.user.username}}</option></select>
+        <select id="creator"><option value="{{request.user.id}}" selected="selected">{{request.user.username}}</option></select>
+      </div>
     {% endif %}
 
     <section class="layer-type form-group">

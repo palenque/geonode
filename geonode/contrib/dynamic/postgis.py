@@ -35,6 +35,9 @@ def get_model_field_name(field):
     # Use underscores instead of semicolons.
     field = field.replace(':', '_')
 
+    # replace double underscores by one
+    field = field.replace('__','_')
+
     # Do not let it be called id
     if field in ('id',):
         field += '_'

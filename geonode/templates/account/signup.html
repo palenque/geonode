@@ -3,19 +3,37 @@
 {% load url from future %}
 {% load i18n %}
 {% load bootstrap_tags %}
-{% load bootstrap3 %}
+{% load bootstrap3 people_tags %}
 
 {% block head_title %}{% trans "Sign up" %}{% endblock %}
 
 {% block body %}
 <div class="row">
-  <div class="col-md-8">
+  <div class="col-md-12">
   {% if REGISTRATION_OPEN %}
     <form id="signup_form" method="post" action="{% url "account_signup" %}" autocapitalize="off" class="form-horizontal"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
       <legend>{% trans "Sign up" %}</legend>
       <fieldset>
       {% csrf_token %}
-      {% bootstrap_form form  %}
+      {% bootstrap_form form %}
+
+
+      <label class="control-label" for="id_profile_0">{% trans "Tipo de usuario" %}</label>
+
+      <div class="form-group">
+      {% for radio in form.profile %}
+        <div class="radio col-md-3">
+          <label>
+            {% profile_icon radio.choice_label 'fa-4x' %}
+            <span class="radio">{{radio.tag}}
+            {{radio.choice_label}}
+            <p><small>{% profile_description radio.choice_label %}</small></p>
+            </span>
+          </label>
+        </div>
+      {% endfor %}
+      </div>
+
       {% if redirect_field_value %}
         <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
       {% endif %}

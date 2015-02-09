@@ -30,7 +30,8 @@ import datetime
 from bs4 import BeautifulSoup
 import geoserver
 import httplib2
-
+import shapefile
+import xml.etree
 
 from urlparse import urlparse
 from urlparse import urlsplit
@@ -931,6 +932,99 @@ def _create_db_featurestore(name, data, overwrite=False, charset="UTF-8"):
         # delete_from_postgis(name)
         raise
 
+def add_elem(dom, elem, tag, text):
+    subelem = dom.makeelement(tag,{})
+    subelem.text = text
+    elem.append(subelem)
+    return elem
+
+def _build_featureType_attributes(model_description, dom):
+    attributes = dom.find('attributes')
+    attributes.clear()
+    return     
+
+    # for fld in model_description.fields.all():
+    #     typ = fld.type.replace('Field','').lower()
+    #     if  typ == 'integer':
+    #             attr_type = 'java.lang.Integer'
+    #     elif typ == 'float':
+    #             attr_type = 'java.lang.Double'
+    #     elif typ == 'char':
+    #             attr_type = 'java.lang.String'
+    #     elif typ == 'point':
+    #             attr_type = 'com.vividsolutions.jts.geom.Geometry'
+    #     else:
+    #         import ipdb; ipdb.set_trace()
+
+    #     elem = dom.makeelement('attribute',{})
+    #     add_elem(dom, elem, 'name', fld.name)
+    #     add_elem(dom, elem, 'minOccurs', '0')
+    #     add_elem(dom, elem, 'maxOccurs', '1')
+    #     add_elem(dom, elem, 'nillable', 'true')
+    #     add_elem(dom, elem, 'binding', attr_type)
+    #     attributes.append(elem)
+
+def _create_db_view_wrapper(layer):
+    def f(name, data, overwrite=False, charset="UTF-8"):
+        return _create_db_view(layer, name, data, overwrite=overwrite, charset=charset)
+    return f
+
+def _create_db_view(layer, name, data, overwrite=False, charset="UTF-8"):
+    cat = gs_catalog
+    dsname = ogc_server_settings.DATASTORE
+
+    try:
+        ds = cat.get_store(dsname)
+    except FailedRequestError:
+        ds = cat.create_datastore(dsname)
+        db = ogc_server_settings.datastore_db
+        db_engine = 'postgis' if \
+            'postgis' in db['ENGINE'] else db['ENGINE']
+        ds.connection_parameters.update(
+            host=db['HOST'],
+            port=db['PORT'],
+            database=db['NAME'],
+            user=db['USER'],
+            passwd=db['PASSWORD'],
+            dbtype=db_engine
+        )
+        cat.save(ds)
+        ds = cat.get_store(dsname)
+
+    try:
+        # modificado para que suba datos solo la primera vez
+        if not cat.get_layer(name):
+            r = cat.get_resource('pepe22_view')
+            r.fetch()
+            vt = r.dom.find('metadata').find('entry[@key="JDBC_VIRTUAL_TABLE"]').find('virtualTable')
+            r.dom.find('title').text = name
+            vt.find('name').text = name
+            vt.find('sql').text = "select * from %s" % name
+            r.dom.find('name').text = name
+            r.dom.find('nativeName').text = name
+
+            _build_featureType_attributes(layer.modeldescription,r.dom)
+            # XXX
+            # r.dom.find('metadata/entry/virtualTable/keyColumn').text = 'id'
+            r.dom.find('metadata/entry/virtualTable/geometry/name').text = 'geom'
+            
+            import ipdb; ipdb.set_trace()
+            headers = { 'Content-Type': 'application/xml', 'Accept': 'application/xml' }
+            upload_url = ds.resource_url
+            data = xml.etree.ElementTree.tostring(r.dom)
+            headers, response = cat.http.request(upload_url, "POST", data, headers)
+
+            #cat.add_data_to_store(ds, name, data, overwrite=overwrite, charset=charset)
+        return ds, cat.get_resource(name, store=ds)
+    except Exception:
+        # FIXME(Ariel): This is not a good idea, today there was a problem
+        # accessing postgis that caused add_data_to_store to fail,
+        # for the same reasons the call to delete_from_postgis below failed too
+        # I am commenting it out and filing it as issue #1058
+        # delete_from_postgis(name)
+        raise
+
+
 
 def geoserver_upload(
         layer,
@@ -989,7 +1083,10 @@ def geoserver_upload(
     if the_layer_type == FeatureType.resource_type:
         logger.debug('Uploading vector layer: [%s]', base_file)
         if ogc_server_settings.DATASTORE:
-            create_store_and_resource = _create_db_featurestore
+            #if layer.layer_type.is_default:
+            #   create_store_and_resource = _create_db_featurestore
+            #else:
+            create_store_and_resource = _create_db_view_wrapper(layer)
         else:
             create_store_and_resource = _create_featurestore
     elif the_layer_type == Coverage.resource_type:
@@ -1046,7 +1143,8 @@ def geoserver_upload(
 
     # Verify the resource was created
     if gs_resource is not None:
-        assert gs_resource.name == name
+        pass
+        #assert gs_resource.name == name
     else:
         msg = ('GeoNode encountered problems when creating layer %s.'
                'It cannot find the Layer that matches this Workspace.'
@@ -1080,28 +1178,28 @@ def geoserver_upload(
 
     # Step 7. Create the style and assign it to the created resource
     # FIXME: Put this in gsconfig.py
-    logger.info('>>> Step 7. Creating style for [%s]' % name)
-    publishing = cat.get_layer(name)
+    # logger.info('>>> Step 7. Creating style for [%s]' % name)
+    # publishing = cat.get_layer(name)
 
-    if 'sld' in files:
-        f = open(files['sld'], 'r')
-        sld = f.read()
-        f.close()
-    else:
-        sld = get_sld_for(publishing)
+    # if 'sld' in files:
+    #     f = open(files['sld'], 'r')
+    #     sld = f.read()
+    #     f.close()
+    # else:
+    #     sld = get_sld_for(publishing)
 
-    if sld is not None:
-        try:
-            cat.create_style(name, sld)
-        except geoserver.catalog.ConflictingDataError as e:
-            msg = ('There was already a style named %s in GeoServer, '
-                   'cannot overwrite: "%s"' % (name, str(e)))
-            logger.warn(msg)
-            e.args = (msg,)
+    # if sld is not None:
+    #     try:
+    #         cat.create_style(name, sld)
+    #     except geoserver.catalog.ConflictingDataError as e:
+    #         msg = ('There was already a style named %s in GeoServer, '
+    #                'cannot overwrite: "%s"' % (name, str(e)))
+    #         logger.warn(msg)
+    #         e.args = (msg,)
 
-        # FIXME: Should we use the fully qualified typename?
-        publishing.default_style = cat.get_style(name)
-        cat.save(publishing)
+    #     # FIXME: Should we use the fully qualified typename?
+    #     publishing.default_style = cat.get_style(name)
+    #     cat.save(publishing)
 
     # Step 10. Create the Django record for the layer
     logger.info('>>> Step 10. Creating Django record for [%s]', name)

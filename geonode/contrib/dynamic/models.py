@@ -20,7 +20,8 @@ DYNAMIC_DATASTORE = 'datastore'
 
 class ModelDescription(models.Model):
     name = models.CharField(max_length=255)
-    layer = models.ForeignKey(Layer, null=True, blank=True)
+    #layer = models.ForeignKey(Layer, null=True, blank=True)
+    layer = models.OneToOneField(Layer, null=True, blank=True)
 
     def get_django_model(self, with_admin=False):
         "Returns a functional Django model based on current data"
@@ -395,6 +396,9 @@ def pre_save_layer(instance, sender, **kwargs):
     TheModel = model_description.get_django_model()
 
     # Use layermapping to load the layer with geodjango
+    
+    print mapping
+
     lm = LayerMapping(TheModel, filename, mapping,
                       encoding=instance.charset,
                       using=DYNAMIC_DATASTORE,

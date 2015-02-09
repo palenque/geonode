@@ -259,6 +259,7 @@ define(function (require, exports) {
     };
 
     LayerInfo.prototype.startPolling = function() {
+        /*
         var self = this;
         if (self.polling) {
             $.ajax({ url: "/upload/progress", type: 'GET', success: function(data){
@@ -266,6 +267,7 @@ define(function (require, exports) {
                 //console.log('polling');
             }, dataType: "json", complete: setTimeout(function() {self.startPolling()}, 3000), timeout: 30000 });
         }
+        */
     };
 
     /** Function to deal with the final step in the upload process 

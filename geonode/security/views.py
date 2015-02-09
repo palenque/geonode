@@ -51,7 +51,7 @@ def resource_permissions(request, resource_id):
         resource = resolve_object(
             request, ResourceBase, {
                 'id': resource_id}, 'base.change_resourcebase_permissions')
-        resource_content_type = ContentType.objects.get_for_model(resource).id
+        resource_content_type = ContentType.objects.get_for_model(resource)
 
     except PermissionDenied:
         # we are handling this in a non-standard way
@@ -69,7 +69,7 @@ def resource_permissions(request, resource_id):
             if user not in old_permission_spec['users']:
                 action = Action(
                     actor=request.user, 
-                    action_object_id=resource.id,
+                    action_object_object_id=resource.id,
                     action_object_content_type_type=resource_content_type,
                     target=user,
                     verb='permission_granted')
@@ -82,7 +82,7 @@ def resource_permissions(request, resource_id):
         for user in old_permission_spec['users']:
             action = Action(
                 actor=request.user, 
-                action_object_id=resource.id,
+                action_object_object_id=resource.id,
                 action_object_content_type=resource_content_type,
                 target=user,
                 verb='permission_revoked')

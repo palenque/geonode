@@ -27,6 +27,7 @@ import re
 import os
 import glob
 import sys
+import shapefile
 
 from osgeo import gdal
 
@@ -319,7 +320,6 @@ def get_bbox(filename):
         bbox_y1 = ext[2][1]
 
     return [bbox_x0, bbox_x1, bbox_y0, bbox_y1]
-
 
 def file_upload(filename, name=None, creator=None, title=None, abstract=None, 
                 skip=True, overwrite=False, keywords=[], charset='UTF-8', 
