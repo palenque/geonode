@@ -8,7 +8,7 @@ from django.db import models, IntegrityError
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import signals
 from actstream.models import Action
-from geonode.layers.models import LayerType
+from geonode.layers.models import LayerType, Layer
 
 from taggit.managers import TaggableManager
 from guardian.shortcuts import get_objects_for_group, remove_perm, assign_perm
@@ -61,6 +61,8 @@ class App(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
 
     is_service = models.BooleanField()
+
+    public_layer_permissions = models.ManyToManyField(Layer)
 
     # def save(self, *args, **kwargs):
     #     group, created = Group.objects.get_or_create(name=self.slug)
@@ -196,21 +198,12 @@ class App(models.Model):
         # asocia todos los recursos del usuario que tienen 
         # los recursos que necesita la app
 
+        layer_types = [x.layer_type for x in self.applayertypepermission_set.all() if x.permission == 'read']
         manager = self.get_managers()[0]
+        alter_ego = self.get_alter_ego()
         for resource in user.resourcebase_set.all():
-            keywords = set(resource.keyword_list())
-
-            try: keywords.add(resource.layer.layer_type.name)
-            except Layer.DoesNotExist: pass
-
-            try: keywords.add(resource.tabular.tabular_type.name)
-            except Tabular.DoesNotExist: pass
-
-            if len(keywords.intersection(self.keyword_list())) > 0:
-                assign_perm('view_resourcebase', manager, resource)
-
-
-        # user.groups.add(self.group)
+            if hasattr(resource,'layer') and resource.layer.layer_type in layer_types:
+                assign_perm('view_resourcebase', alter_ego, resource)
 
     # def invite(self, user, from_user, role="member", send=True):
     #     params = dict(role=role, from_user=from_user)
@@ -241,7 +234,10 @@ class App(models.Model):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('app_detail', (), {'slug': self.slug})
+        if self.is_service:
+            return ('contractor_service_detail', (), {'slug': self.slug})
+        else:
+            return ('app_detail', (), {'slug': self.slug})
 
     @property
     def class_name(self):

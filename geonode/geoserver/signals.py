@@ -459,8 +459,8 @@ def geoserver_post_save(instance, sender, **kwargs):
             link.delete()
 
     # Save layer attributes
-    if instance.layer_type.is_default:
-      set_attributes(instance)
+    # if instance.layer_type.is_default:
+    #   set_attributes(instance)
 
     # Save layer styles
     set_styles(instance, gs_catalog)

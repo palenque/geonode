@@ -587,7 +587,6 @@ def post_layer_mapping(layer, sender, **kwargs):
 
     # Get the new actual Django model.
     TheModel = layer.layer_type.modeldescription.get_django_model(layer)
-    import ipdb; ipdb.set_trace()
     
     lm = LayerMapping(TheModel, filename, mapping,
                       encoding=layer.charset,

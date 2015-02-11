@@ -70,7 +70,7 @@ def resource_permissions(request, resource_id):
                 action = Action(
                     actor=request.user, 
                     action_object_object_id=resource.id,
-                    action_object_content_type_type=resource_content_type,
+                    action_object_content_type=resource_content_type,
                     target=user,
                     verb='permission_granted')
                 action.save()

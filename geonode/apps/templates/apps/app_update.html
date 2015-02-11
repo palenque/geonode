@@ -31,6 +31,49 @@
           <fieldset>
               {% bootstrap_form form  %}
               <div class="form_block">
+                <h3>Permissions</h3>
+
+                <label class="control-label">{% trans "Layer type" %}</label>
+                <div class="form">
+                  <table class="table">
+                    <tr>
+                      <th>{% trans "Name" %}</th>
+                      <th>{% trans "ninguno" %}</th>
+                      <th>{% trans "read" %}</th>
+                      <th>{% trans "create" %}</th>
+                    </tr>
+                    {% for layer_type,perm in layer_type_permissions.items %}
+                    <tr>
+                      <td>{{layer_type.label}}</td>
+                      <td><input type="radio" name="layer_type_permissions_{{layer_type.id}}" value="" 
+                        {%if not perm %}checked{%endif%} ></input></td>
+                      <td><input type="radio" name="layer_type_permissions_{{layer_type.id}}" value="read" 
+                        {%if perm == 'read' %}checked{%endif%} ></input></td>
+                      <td><input type="radio" name="layer_type_permissions_{{layer_type.id}}" value="create" 
+                        {%if perm == 'create' %}checked{%endif%} ></input></td>
+                    </tr>
+                    {% endfor %}
+                  </table>
+
+                </div>
+
+                <label class="control-label">{% trans "Public layers" %}</label>
+                <div class="form">
+                  <select class="form-control" id="select_public_layer">
+                    {% for layer in public_layers %}
+                      <option value="{{layer.id}}">{{layer.title}}</option>
+                    {% endfor %}
+                  </select>
+                  <button type="button" class="btn btn-default" 
+                    onclick="add_public_layer()">{% trans "add" %}</button>                    
+                <table id="public_layers" class="table">
+                </table>
+                </div>
+
+
+              </div>
+              <br/>
+              <div class="form_block">
                   <input type="hidden" name="action" value="create" />
                   <input type="submit" class="btn btn-primary" value="{% trans 'Update' %}"/>
               </div>
@@ -38,6 +81,47 @@
           </form>
         </div>
         </div>
-    </div>
+    </div>              
+
     
+{% endblock %}
+
+{% block extra_script %}
+<script type="text/javascript">
+
+  function add_public_layer() {
+    add_public_layer_values(
+      $("#select_public_layer").val(), 
+      $("#select_public_layer option:checked").text());
+  }
+
+  function add_public_layer_values(id, label) {
+    var elem = $("<tr>");
+    elem
+      .append($("<td>")
+        .append($("<input>")
+          .attr("type","hidden")
+          .attr("name","public_layer_"+id)
+          .val(label))
+        .append($("<span>")
+          .text(label)))
+      .append($("<td>")
+        .append($("<i>")
+          .addClass("fa fa-times")
+          .css("cursor","pointer")
+          .css("margin-left","20px")
+          .click(function(ev) {
+            $(ev.target).parent().parent().remove();
+          })));
+    $("#public_layers").append(elem);
+  };
+
+  {% for layer,selected in public_layers.items %}
+    {% if selected %}
+      add_public_layer_values({{layer.id}},'{{layer.title}}');
+    {% endif %}
+  {% endfor %}
+
+</script>
+
 {% endblock %}

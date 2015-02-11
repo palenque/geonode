@@ -513,12 +513,13 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
     def get_tiles_url(self):
         """Return URL for Z/Y/X mapping clients or None if it does not exist.
         """
-        try:
-            tiles_link = self.link_set.get(name='Tiles')
-        except Link.DoesNotExist:
-            return None
-        else:
-            return tiles_link.url
+        return None        
+        # try:
+        #     tiles_link = self.link_set.get(name='Tiles')
+        # except Link.DoesNotExist:
+        #     return None
+        # else:
+        #     return tiles_link.url
 
     def get_legend(self):
         """Return Link for legend or None if it does not exist.

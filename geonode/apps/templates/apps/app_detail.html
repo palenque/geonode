@@ -143,10 +143,29 @@
       
       <li class="list-group-item">
         <h4>{% trans "Permissions" %}</h4>
-        {% trans "This "|add:thing|add:" needs access to the following resources:" %}
-        <ul>
-          {% for keyword in keywords %}
-            <li>{{keyword}}</li>
+        {% trans "This "|add:thing|add:" needs access to your private resource for the following resource types:" %}
+        <ul class="list-group">
+          {% for perm in object.applayertypepermission_set.all %}
+            <li class="list-group-item" style="padding: 5px 5px">
+              {{perm.layer_type.label}}
+              <span class="pull-right">
+                {% if perm.permission == 'read' %}
+                  <i class="fa fa-eye"></i>
+                {% elif perm.permission == 'create' %}
+                  <i class="fa fa-plus"></i>
+                {% endif %}
+              </span>
+            </li>
+          {% empty %}
+            <p>{% trans "Ningún recurso" %}</p>
+          {% endfor %}
+        </ul>
+        {% trans "This "|add:thing|add:" uses the following public resources:" %}
+        <ul class="list-group">
+          {% for layer in object.public_layer_permissions.all %}
+            <li class="list-group-item" style="padding:5px 5px">
+              <a href="{{layer.detail_url}}">{{layer.title}}</a>
+            </li>
           {% endfor %}
         </ul>
       </li>

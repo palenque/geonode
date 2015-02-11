@@ -24,10 +24,10 @@ saga_cmd = Saga_cmd()
 
 class YieldMonitorProcessing(object):
     lookup = TemplateLookup(directories=[os.path.join(os.path.dirname(__file__),'templates')])
-    palenque_api_url = palenque_url + '/api'
     username = 'yieldmonproc'
     # diego
     palenque_url = 'http://localhost:8000'
+    palenque_api_url = palenque_url + '/api'
     api_key = 'bd51709e7c2a867e6debb058fbc99e321253e02e'
     #production
     #palenque_url = 'http://localhost'

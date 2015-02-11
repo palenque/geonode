@@ -94,7 +94,7 @@
         <div class="panel panel-success">
           {% if request.user.profile == 'developer' %}
           <div class="panel-heading">
-            <a href="{{app.get_absolute_url}}" target="_blank">
+            <a href="{{app.get_absolute_url}}">
               <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>
               &nbsp;
               {{app.title}}
@@ -107,11 +107,11 @@
             Usuarios
           </div>
           <div style="margin-top:20px; height:200px; overflow-y:auto">
-            {% for member in app.actions %}
+            {% for member in app.appmember_set.all %}
               {% if member.role == 'member' %}
                     <div class="col-md-3">
                       <a class="thumbnail" href="{{member.user.get_absolute_url}}">
-                        <img width="80px" src="{%avatar_url member.user%}"/>
+                        <img width="60px" src="{%avatar_url member.user%}"/>
                         <small align="center" class="caption">{{member.user.full_name}}</small>
                       </a>
                     </div>
@@ -176,7 +176,7 @@
             Usuarios
           </div>
           <div style="margin-top:20px; height:200px; overflow-y:auto">
-            {% for member in app.actions %}
+            {% for member in app.appmember_set.all %}
               {% if member.role == 'member' %}
                     <div class="col-md-3">
                       <a class="thumbnail" href="{{member.user.get_absolute_url}}">

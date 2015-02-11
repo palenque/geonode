@@ -19,7 +19,7 @@
 <div class="row">
   <div class="col-md-2"></div>
   <div class="col-md-8">
-<form class="form-horizontal" action="{% url "layer_metadata" layer.service_typename %}" method="POST">
+<form class="form-horizontal" action="{% url "layer_metadata" layer.name %}" method="POST">
     <legend>
       {% blocktrans with layer.typename as layer_title %}
         Editing details for {{ layer_title }}
@@ -31,7 +31,7 @@
         Some of your original metadata may have been lost.{% endblocktrans %}</div>
     {% endif %}
 
-    {% if layer_form.errors or attribute_form.errors or category_form.errors %}
+    {% if layer_form.errors or category_form.errors %}
 	<div style="background-color: pink">{% blocktrans %}Error updating metadata.  Please check the following fields: {% endblocktrans %}
             <ul>
         {% for field in layer_form %}
@@ -39,15 +39,6 @@
                 <li>{{ field.label }}</li>
             {% endif %}
         {% endfor %}
-
-        {% if attribute_form.errors %}
-        <li>{% trans "Attributes" %}</li>
-        	{% for field in attribute_form %}
-            	{% if field.errors %}
-                	<li>{{ field.errors }}</li>
-            	{% endif %}
-        	{% endfor %}
-        {% endif %}
 
         {% if category_form.errors %}
             <li>{{ category_form.errors.as_ul }}</li>
@@ -79,26 +70,6 @@
         {% endautoescape %}
     </fieldset>
 
-    {% comment %}
-    <header>{% trans "Attributes" %}</header>
-    {{ attribute_form.management_form }}
-    <table class="table table-hover  " >
-        <tr>
-            <th >{% trans "Attribute" %}</th>
-            <th >{% trans "Label" %}</th>
-            <th >{% trans "Description" %}</th>
-            <th >{% trans "Display Order" %}</th>
-        </tr>
-        <tbody>
-        {% for form in attribute_form.forms %}
-        {% if form.attribute  %}
-        <tr><td><div style="display:none">{{form.id}}</div> {% bootstrap_field form.attribute layout='inline' %} </td><td>{% bootstrap_field form.attribute_label layout='inline' %} </td><td>{% bootstrap_field form.description layout='inline' %} </td><td>{% bootstrap_field form.display_order layout='inline' %}</td></tr>
-        {% endif %}
-        {% endfor %}
-        </tbody>
-    </table>
-    {% endcomment %}
-    
     <fieldset class="form-controls modal-forms modal hide fade" id="poc_form" >
       <h2>{% trans "Point of Contact" %}</h2>
       {% bootstrap_form poc_form  %}

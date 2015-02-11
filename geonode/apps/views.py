@@ -17,7 +17,7 @@ from guardian.shortcuts import assign_perm, remove_perm
 
 from geonode.base.models import ResourceBase
 from geonode.apps.forms import AppForm, AppUpdateForm
-from geonode.apps.models import App, AppMember
+from geonode.apps.models import App, AppMember, AppLayerTypePermission
 from geonode.people.models import Profile
 from geonode.layers.models import Layer, LayerType
 from geonode.maps.models import Map
@@ -55,21 +55,49 @@ def app_update(request, slug):
     if not app.user_is_role(request.user, role="manager"):
         return HttpResponseForbidden()
 
+    context = {
+        "group": app 
+    }
+
     if request.method == "POST":
         form = AppUpdateForm(request.POST, request.FILES, instance=app)
+        layer_types = {}
+        public_layers = []
+        for k,v in request.POST.items():
+            if k.startswith('layer_type_permissions'):
+                layer_types[int(k.split('_')[-1])] = v
+            if k.startswith('public_layer'):
+                public_layers.append(int(k.split('_')[-1]))
+
         if form.is_valid():
-            app = form.save(commit=False)
-            app.save()
-            form.save_m2m()
+            app = form.save()
+            AppLayerTypePermission.objects.filter(app=app).delete()
+            for layer_type_id,perm in layer_types.items():
+                if len(perm) == 0: continue
+                app.applayertypepermission_set.add(AppLayerTypePermission(
+                    app=app,
+                    layer_type_id=layer_type_id,
+                    permission=perm))
+
+            app.public_layer_permissions.clear()
+            for layer_id in public_layers:
+                app.public_layer_permissions.add(Layer.objects.get(id=layer_id))
+
             return HttpResponseRedirect(
                 reverse("app_detail", args=[app.slug]))
     else:
+        layer_type_permissions = dict((x.layer_type,x.permission) for x in app.applayertypepermission_set.all())
+        layer_type_permissions.update(dict((lt,None) for lt in LayerType.objects.all() 
+            if lt not in layer_type_permissions and not lt.is_default))
+        context['layer_type_permissions'] = layer_type_permissions
+        pl = app.public_layer_permissions.all()
+        context['public_layers'] = dict((l, l in pl) 
+            for l in Layer.objects.filter(is_public=True).all())
         form = AppForm(instance=app)
 
-    return render_to_response("apps/app_update.html", {
-        "form": form,
-        "group": app,
-    }, context_instance=RequestContext(request))
+    context['form'] = form
+    return render_to_response("apps/app_update.html", context,
+        context_instance=RequestContext(request))
 
 
 @login_required
@@ -342,16 +370,23 @@ def app_member_link(request, slug, username):
     app = get_object_or_404(App, slug=slug)
     user = get_object_or_404(get_user_model(), username=username)
 
-    keywords = app.keyword_list
-    keyword_labels = set()
-    keyword_labels.update(x.label for x in LayerType.objects.filter(name__in=keywords).all())
-    keyword_labels.update(x.label for x in TabularType.objects.filter(name__in=keywords).all())
+    read_permissions = []; create_permissions = []
+    for perm in app.applayertypepermission_set.all():
+        if perm.permission == 'read': read_permissions.append(perm.layer_type)
+        elif perm.permission == 'create': create_permissions.append(perm.layer_type)
+
+    # keywords = app.keyword_list
+    # keyword_labels = set()
+    # keyword_labels.update(x.label for x in LayerType.objects.filter(name__in=keywords).all())
+    # keyword_labels.update(x.label for x in TabularType.objects.filter(name__in=keywords).all())
 
     if request.method == 'GET':
         return render_to_response(
             "apps/app_member_link.html", RequestContext(request, {
                 "app": app, 
-                "keywords": keyword_labels,
+                "read_permissions": read_permissions,
+                "create_permissions": create_permissions,
+                # "keywords": keyword_labels,
                 "thing": "service" if app.is_service else "app"
 
             }))

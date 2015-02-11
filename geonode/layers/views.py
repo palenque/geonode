@@ -231,7 +231,7 @@ def layer_upload(request, template='upload/layer_upload.html'):
 @login_required
 def layer_detail(request, layername, template='layers/layer_detail.html'):
     from geonode.apps.models import App
-    
+
     layer = _resolve_layer(
         request,
         layername,
@@ -341,44 +341,26 @@ def layer_default_metadata(request, layername, template='layers/layer_metadata.h
         _PERMISSION_MSG_METADATA
     )
 
-    layer_attribute_set = inlineformset_factory(
-        Layer,
-        Attribute,
-        extra=0,
-        form=LayerAttributeForm,
-    )
-
     topic_category = layer.category
     poc = layer.poc
     metadata_author = layer.metadata_author
 
     if request.method == "POST":
         layer_form = LayerForm(request.POST, instance=layer, prefix="resource")
-        attribute_form = layer_attribute_set(
-            request.POST,
-            instance=layer,
-            prefix="layer_attribute_set",
-            queryset=Attribute.objects.order_by('display_order'))
         category_form = CategoryForm(
             request.POST,
             prefix="category_choice_field",
             initial=int(request.POST["category_choice_field"]) if "category_choice_field" in request.POST else None)
     else:
         layer_form = LayerForm(instance=layer, prefix="resource")
-        attribute_form = layer_attribute_set(
-            instance=layer,
-            prefix="layer_attribute_set",
-            queryset=Attribute.objects.order_by('display_order'))
         category_form = CategoryForm(
             prefix="category_choice_field",
             initial=topic_category.id if topic_category else None
         )
 
-
     if (
         request.method == "POST" and 
         layer_form.is_valid() and 
-        attribute_form.is_valid() and  
         category_form.is_valid()
     ):
 
@@ -411,8 +393,6 @@ def layer_default_metadata(request, layername, template='layers/layer_metadata.h
             id=category_form.cleaned_data['category_choice_field']
         )
 
-        attribute_form.save()
-
         if new_poc is not None and new_author is not None:
             the_layer = layer_form.save()
             the_layer.poc = new_poc
@@ -443,7 +423,6 @@ def layer_default_metadata(request, layername, template='layers/layer_metadata.h
         "layer_form": layer_form,
         "poc_form": poc_form,
         "author_form": author_form,
-        "attribute_form": attribute_form,
         "category_form": category_form,
     }))
 

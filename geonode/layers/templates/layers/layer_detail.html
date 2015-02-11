@@ -70,7 +70,9 @@
             {% endfor %}
           {% else %}
             {% for a in resource.attribute_set.all %}
+            {% if 'geom' not in a.attribute %}
             {'data': '{{a.attribute}}', 'title': '{{a}}'} {% if not forloop.last %},{% endif %}
+            {% endif %}
             {% endfor %}
           {% endif %}          
         ]

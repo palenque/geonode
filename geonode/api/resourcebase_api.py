@@ -887,8 +887,12 @@ class LayerResource(MultipartResource, CommonModelApi):
             table_name = layer.name
 
         cursor = connections['datastore'].cursor()
-        fields = [a.field.name for a in Layer.objects.get(id=resource_id).attribute_set.all()
-            if a.field is not None]
+        if layer.layer_type.is_default:
+            fields = [a.attribute for a in Layer.objects.get(id=resource_id).attribute_set.all()
+                if 'geom' not in a.attribute]
+        else:
+            fields = [a.field.name for a in Layer.objects.get(id=resource_id).attribute_set.all()
+                if a.field is not None]
 
         # FIXME: hacer seguro
         query = 'select %s from %s where %s order by "%s" limit %s offset %s;' % (

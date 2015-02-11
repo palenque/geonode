@@ -67,6 +67,7 @@ class AppForm(forms.ModelForm):
 
     class Meta:
         model = App
+        exclude = ['public_layer_permissions']
         # exclude = ['group']
 
 
@@ -84,8 +85,14 @@ class AppUpdateForm(forms.ModelForm):
                     _("A group already exists with that name."))
         return self.cleaned_data["title"]
 
+    # def __init__(self, *args, **kwargs):
+    #     import ipdb; ipdb.set_trace()
+    #     super(AppUpdateForm, self).__init__(*args, **kwargs)
+    #     self.fields.pop('public_layer_permissions')
+
     class Meta:
         model = App
+        exclude = ['public_layer_permissions']
         # exclude = ['group']
 
 

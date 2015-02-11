@@ -216,16 +216,15 @@ class AppResource(ModelResource, PostQueryFilteringMixin):
         return bundle.obj.get_managers().count()
 
     def dehydrate_detail_url(self, bundle):
-        return reverse('app_detail', args=[bundle.obj.slug])
+        if bundle.obj.is_service:
+            return reverse('contractor_service_detail', args=[bundle.obj.slug])
+        else:
+            return reverse('app_detail', args=[bundle.obj.slug])
 
     def dehydrate_developer(self, bundle):
         managers = bundle.obj.get_managers()
         if managers is not None and len(managers) > 0:
             return managers[0].full_name
-
-    
-    def dehydrate_detail_url(self, bundle):
-        return reverse('app_detail', args=[bundle.obj.slug])
 
     def build_filters(self, filters={}):
         """adds filtering by group functionality"""

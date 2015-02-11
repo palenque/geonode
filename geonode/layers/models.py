@@ -519,7 +519,7 @@ class Layer(ResourceBase):
         return base_files.get()
 
     def get_absolute_url(self):
-        return reverse('layer_detail', args=(self.service_typename,))
+        return reverse('layer_detail', args=(self.name,))
 
     def attribute_config(self):
         # Get custom attribute sort order and labels if any
@@ -534,7 +534,7 @@ class Layer(ResourceBase):
 
     def __str__(self):
         if self.typename is not None:
-            return "%s Layer" % self.service_typename.encode('utf-8')
+            return "%s Layer" % self.name.encode('utf-8')
         elif self.name is not None:
             return "%s Layer" % self.name
         else:
@@ -566,11 +566,16 @@ class Layer(ResourceBase):
 
     def update_concave_hull(self):
         try:
-            if self.is_vector():
+            if self.is_vector():                
                 cursor = connections['datastore'].cursor()
+                if self.layer_type.is_default:
+                    table_name = self.name
+                else:
+                    table_name = "%s WHERE layer_id=%d" % (self.layer_type.table_name,self.id)
+
                 cursor.execute(
                     '''SELECT st_asgeojson(st_concavehull(st_collect(geom),0.99)) 
-                       FROM %s;''' % self.name)
+                       FROM %s;''' % table_name)
                 self.concave_hull = cursor.fetchone()[0]
                 self.save()
         except: pass

@@ -12,11 +12,35 @@
     <form action="{% url "app_member_link" app.slug request.user.username %}" method="POST">
       <h2>{% trans app.title %}</h2>
       <h4>{% trans "This "|add:thing|add:" needs access to the following resources:" %}</h4>
+      <ul class="panel panel-default">
+        <li style="margin-bottom:10px">{% trans "<b>leer</b> capas privadas de los siguientes tipos:" %}
       <ul>
-        {% for kw in keywords %}
-          <li>{{kw}}</li>
-        {% endfor %}
+      {% for layer_type in read_permissions %}
+        <li>{{layer_type.label}}</li>
+      {% empty %}
+        <p>{% trans "(no se requiere ningún recurso)" %}
+      {% endfor %}
+      </ul></li>
+
+      <li style="margin-bottom:10px">{% trans "<b>crear</b> capas privadas de los siguientes tipos:" %}
+      <ul>
+      {% for layer_type in create_permissions %}
+        <li>{{layer_type.label}}</li>
+      {% empty %}
+        <p>{% trans "(no se requiere ningún recurso)" %}
+      {% endfor %}
+      </ul></li>
+
+      <li style="margin-bottom:10px">{% trans "se utilizarán las siguientes capas públicas:" %}
+      <ul>
+      {% for layer in app.public_layer_permissions.all %}
+        <li>{{layer.title}}</li>
+      {% empty %}
+        <p>{% trans "(no se requiere ningún recurso)" %}
+      {% endfor %}
+      </ul></li>
       </ul>
+
       <br/> 
       <h4>{% trans "Are you sure you want to link this "|add:thing|add:"?" %}</h4>
       {% csrf_token %}

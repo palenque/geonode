@@ -3,7 +3,7 @@
 {% load i18n %}
 
 <section class="last">
-  {% with 40 as avatar_size %}
+  {% with 50 as avatar_size %}
     <div class="avatar span1 pull-left">
       {% if profile.profile == 'application' %}
         <a href="{% url "app_detail" profile.username %}">
@@ -17,12 +17,13 @@
     </div>
   {% endwith %}
   <div>
-    <h3>
+    <h4>
     <a href="{{ profile.get_absolute_url }}">{{profile.full_name}}</a>
       {% if not no_user_profile %}
         <div style="font-size:50%">{{profile.profile}}</div>
       {% endif %}
-    </h3>
+    </h4>
+    {% comment %}
     <div class="details">
       <div class="meta">
         <p>
@@ -31,5 +32,6 @@
           {% endif %}</p>
       </div>
     </div>
+    {% endcomment %}
   </div>
 </section>
