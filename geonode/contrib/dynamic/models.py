@@ -11,9 +11,9 @@ from django.contrib.gis import admin
 from django.core.exceptions import ValidationError
 from django import db
 
-from geonode.layers.models import Layer
+from geonode.layers.models import Layer, LayerType
 
-from .postgis import file2pgtable
+from .postgis import file2pgtable, layertype2pgtable
 
 DYNAMIC_DATASTORE = 'datastore'
 
@@ -21,15 +21,15 @@ DYNAMIC_DATASTORE = 'datastore'
 class ModelDescription(models.Model):
     name = models.CharField(max_length=255)
     #layer = models.ForeignKey(Layer, null=True, blank=True)
-    layer = models.OneToOneField(Layer, null=True, blank=True)
+    layer_type = models.OneToOneField(LayerType, null=True, blank=True)
 
-    def get_django_model(self, with_admin=False):
+    def get_django_model(self, layer=None, with_admin=False):
         "Returns a functional Django model based on current data"
         # Get all associated fields into a list ready for dict()
         fields = [(f.name, f.get_django_field()) for f in self.fields.all()]
 
         # Use the create_model function defined above
-        return create_model(self.name, dict(fields),
+        cls = create_model(self.name, dict(fields),
                             app_label='dynamic',
                             module='geonode.contrib.dynamic',
                             options={'db_table': self.name,
@@ -37,6 +37,14 @@ class ModelDescription(models.Model):
                                      },
                             with_admin=with_admin,
                             )
+        cls.layer = layer
+
+        def model_init(self, *args, **kwargs):
+            if layer is not None: kwargs['layer_id'] = layer.id
+            super(type(self),self).__init__(*args, **kwargs)
+        cls.__init__ = model_init
+        return cls
+
 
     def data_objects(self):
         """
@@ -177,7 +185,104 @@ def create_model(
         return model, Admin
 
 
-def generate_model(model_description, mapping, db_key=''):
+# def generate_model(model_description, mapping, db_key=''):
+#     """Uses instrospection to generate a Django model from a database table.
+#     """
+#     connection = db.connections[db_key]
+#     cursor = connection.cursor()
+
+#     table_name = model_description.name
+
+#     try:
+#         relations = connection.introspection.get_relations(cursor, table_name)
+#     except NotImplementedError:
+#         relations = {}
+#     try:
+#         indexes = connection.introspection.get_indexes(cursor, table_name)
+#     except NotImplementedError:
+#         indexes = {}
+#     used_column_names = []  # Holds column names used in the table so far
+#     for i, row in enumerate(connection.introspection.get_table_description(cursor, table_name)):
+#         # Holds Field notes, to be displayed in a Python comment.
+#         comment_notes = []
+#         # Holds Field parameters such as 'db_column'.
+#         extra_params = SortedDict()
+#         column_name = row[0]
+#         is_relation = i in relations
+
+#         att_name, params, notes = normalize_col_name(
+#             column_name,
+#             used_column_names,
+#             is_relation
+#         )
+#         extra_params.update(params)
+#         comment_notes.extend(notes)
+
+#         used_column_names.append(att_name)
+
+#         # Add primary_key and unique, if necessary.
+#         if column_name in indexes:
+#             if indexes[column_name]['primary_key']:
+#                 extra_params['primary_key'] = True
+#             elif indexes[column_name]['unique']:
+#                 extra_params['unique'] = True
+
+#         # Calling `get_field_type` to get the field type string and any
+#         # additional parameters and notes
+#         field_type, field_params, field_notes = get_field_type(
+#             connection, table_name, row)
+#         extra_params.update(field_params)
+#         comment_notes.extend(field_notes)
+
+#         GEOM_FIELDS = {
+#             'GEOMETRYCOLLECTION': 'GeometryCollectionField',
+#             'POINT': 'PointField',
+#             'MULTIPOINT': 'MultiPointField',
+#             'LINESTRING': 'LineStringField',
+#             'MULTILINESTRING': 'MultiLineStringField',
+#             'POLYGON': 'PolygonField',
+#             'MULTIPOLYGON': 'MultiPolygonField',
+#             'GEOMETRY': 'GeometryField',
+#         }
+
+#         geom_type = mapping['geom']
+
+#         # Use the geom_type to override the geometry field.
+#         if field_type == 'GeometryField':
+#             if geom_type in GEOM_FIELDS:
+#                 field_type = GEOM_FIELDS[geom_type]
+
+#         # Change the type of id to AutoField to get auto generated ids.
+#         if att_name == 'id' and extra_params == {'primary_key': True}:
+#             field_type = 'AutoField'
+
+#         # Add 'null' and 'blank', if the 'null_ok' flag was present in the
+#         # table description.
+#         if row[6]:  # If it's NULL...
+#             if field_type == 'BooleanField':
+#                 field_type = 'NullBooleanField'
+#             else:
+#                 extra_params['blank'] = True
+#                 if field_type not in ('TextField', 'CharField'):
+#                     extra_params['null'] = True
+
+#         if any(field_type) and column_name != 'id':
+#             field, __ = Field.objects.get_or_create(
+#                 model=model_description, name=att_name)
+#             field.type = field_type
+#             field.original_name = mapping[column_name]
+
+#             field.save()
+
+#             for name, value in extra_params.items():
+#                 if any(name):
+#                     Setting.objects.get_or_create(
+#                         field=field,
+#                         name=name,
+#                         value=value)
+
+
+def generate_model(model_description, db_key=''):
     """Uses instrospection to generate a Django model from a database table.
     """
     connection = db.connections[db_key]
@@ -237,7 +342,7 @@ def generate_model(model_description, mapping, db_key=''):
             'GEOMETRY': 'GeometryField',
         }
 
-        geom_type = mapping['geom']
+        geom_type = model_description.layer_type.geometry_type
 
         # Use the geom_type to override the geometry field.
         if field_type == 'GeometryField':
@@ -262,7 +367,7 @@ def generate_model(model_description, mapping, db_key=''):
             field, __ = Field.objects.get_or_create(
                 model=model_description, name=att_name)
             field.type = field_type
-            field.original_name = mapping[column_name]
+            field.original_name = column_name
 
             field.save()
 
@@ -272,7 +377,6 @@ def generate_model(model_description, mapping, db_key=''):
                         field=field,
                         name=name,
                         value=value)
-
 
 def normalize_col_name(col_name, used_column_names, is_relation):
     """
@@ -367,52 +471,131 @@ def get_field_type(connection, table_name, row):
     return field_type, field_params, field_notes
 
 
-def pre_save_layer(instance, sender, **kwargs):
+# def pre_save_layer(instance, sender, **kwargs):
+#     """Save to postgis if there is a datastore.
+#     """
+#     # Abort if a postgis DATABASE is not configured.
+#     if DYNAMIC_DATASTORE not in settings.DATABASES:
+#         return
+
+#     # Do not process if there is no table.
+#     base_file = instance.get_base_file()
+#     if base_file is None or base_file.name != 'shp':
+#         return
+
+#     filename = base_file.file.path
+
+#     # Load the table in postgis and get a mapping from fields in the database
+#     # and fields in the Shapefile.
+#     mapping = file2pgtable(filename, instance.name)
+
+#     # Get a dynamic model with the same name as the layer.
+#     model_description, __ = ModelDescription.objects.get_or_create(
+#         name=instance.table_name)
+#     instance.model_description = model_description
+#     instance.save()
+
+#     # Set up the fields with the postgis table
+#     generate_model(model_description, mapping, db_key=DYNAMIC_DATASTORE)
+
+#     # Get the new actual Django model.
+#     TheModel = model_description.get_django_model()
+
+#     # Use layermapping to load the layer with geodjango
+    
+#     print mapping
+
+#     lm = LayerMapping(TheModel, filename, mapping,
+#                       encoding=instance.charset,
+#                       using=DYNAMIC_DATASTORE,
+#                       transform=None
+#                       )
+#     lm.save()
+
+def post_save_layer_type(instance, sender, **kwargs):
     """Save to postgis if there is a datastore.
     """
+
     # Abort if a postgis DATABASE is not configured.
     if DYNAMIC_DATASTORE not in settings.DATABASES:
         return
 
+    # Load the table in postgis and get a mapping from fields in the database
+    # and fields in the Shapefile.
+    layertype2pgtable(instance)
+
+    # Get a dynamic model with the same name as the layer.
+    model_description, __ = ModelDescription.objects.get_or_create(
+        name=instance.table_name)
+    model_description.layer_type = instance
+    model_description.save()
+
+    # Set up the fields with the postgis table
+    generate_model(model_description, db_key=DYNAMIC_DATASTORE)
+
+    # # Get the new actual Django model.
+    # TheModel = model_description.get_django_model()
+
+    # # Use layermapping to load the layer with geodjango
+    
+    # print mapping
+
+    # lm = LayerMapping(TheModel, filename, mapping,
+    #                   encoding=instance.charset,
+    #                   using=DYNAMIC_DATASTORE,
+    #                   transform=None
+    #                   )
+    # lm.save()
+
+
+# def post_save_layer(instance, sender, **kwargs):
+#     """Assign layer instance to the dynamic model.
+#     """
+#     # Assign this layer model to all ModelDescriptions with the same name.
+#     ModelDescription.objects.filter(name=instance.name).update(layer=instance)
+
+
+def post_layer_mapping(layer, sender, **kwargs):
+    """Save to postgis if there is a datastore.
+    """
+
+    # Abort if a postgis DATABASE is not configured.
+    if DYNAMIC_DATASTORE not in settings.DATABASES:
+        return
+
+    # do not process if the layer has no type
+    if layer.layer_type.is_default:
+        return
+
     # Do not process if there is no table.
-    base_file = instance.get_base_file()
+    base_file = layer.get_base_file()
     if base_file is None or base_file.name != 'shp':
         return
 
     filename = base_file.file.path
 
-    # Load the table in postgis and get a mapping from fields in the database
-    # and fields in the Shapefile.
-    mapping = file2pgtable(filename, instance.name)
-
-    # Get a dynamic model with the same name as the layer.
-    model_description, __ = ModelDescription.objects.get_or_create(
-        name=instance.name)
-
-    # Set up the fields with the postgis table
-    generate_model(model_description, mapping, db_key=DYNAMIC_DATASTORE)
+    # get the mapping from the layer
+    mapping = layer.attribute_mapping
+    mapping['geom'] = layer.layer_type.geometry_type
+    
+    # remove all the items of this layer
+    # XXX Improve
+    connection = db.connections['datastore']
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM %s WHERE layer_id=%d" % (layer.layer_type.table_name,layer.id))
+    # XXX Improve
 
     # Get the new actual Django model.
-    TheModel = model_description.get_django_model()
-
-    # Use layermapping to load the layer with geodjango
+    TheModel = layer.layer_type.modeldescription.get_django_model(layer)
+    import ipdb; ipdb.set_trace()
     
-    print mapping
-
     lm = LayerMapping(TheModel, filename, mapping,
-                      encoding=instance.charset,
+                      encoding=layer.charset,
                       using=DYNAMIC_DATASTORE,
                       transform=None
                       )
     lm.save()
 
-
-def post_save_layer(instance, sender, **kwargs):
-    """Assign layer instance to the dynamic model.
-    """
-    # Assign this layer model to all ModelDescriptions with the same name.
-    ModelDescription.objects.filter(name=instance.name).update(layer=instance)
-
-
-models.signals.pre_save.connect(pre_save_layer, sender=Layer)
-models.signals.post_save.connect(post_save_layer, sender=Layer)
+models.signals.post_save.connect(post_save_layer_type, sender=LayerType)
+#models.signals.pre_save.connect(pre_save_layer, sender=Layer)
+#models.signals.post_save.connect(post_save_layer, sender=Layer)

@@ -30,6 +30,7 @@ import sys
 import shapefile
 
 from osgeo import gdal
+from django.contrib.gis.gdal import DataSource
 
 # Django functionality
 from django.contrib.auth import get_user_model
@@ -42,7 +43,7 @@ from django.conf import settings
 # Geonode functionality
 from geonode import GeoNodeException
 from geonode.people.utils import get_valid_user
-from geonode.layers.models import Layer, UploadSession
+from geonode.layers.models import Layer, UploadSession, Attribute
 from geonode.base.models import (Link, ResourceBase, Thumbnail,
                                  SpatialRepresentationType, TopicCategory)
 from geonode.layers.models import shp_exts, csv_exts, vec_exts, cov_exts
@@ -81,7 +82,7 @@ def guess_attribute_match(layer,attribute_form):
             if score < 1.0:
                 attr2 = candidates.pop(cand)
                 form = (x for x in attribute_form.forms if x.initial['attribute'] == attr2).next()
-                form.initial['field'] = attr.id
+                form.initial['field'] = attr
                 if attr.magnitude:
                     form.initial['magnitude'] = \
                         re.sub('^[0-9 \.]+','',u"{:~}".format(units[attr.magnitude])).replace(' ','')
@@ -285,8 +286,27 @@ def get_resolution(filename):
     return resolution
 
 
+def get_attributes(filename):
+    if not is_vector(filename): return {}
+
+    datasource = DataSource(filename)
+    layer = datasource[0]
+
+    feature = layer[0]
+    fields = {}
+    for field in feature:
+        if field.type == 0:  # integer
+            typ = "integer"
+        elif field.type == 2:  # float
+            typ = "double precision"
+        elif field.type == 4:
+            typ = "character varying(%s)" % field.width
+        elif field.type == 8 or field.type == 9 or field.type == 10:
+            typ = "date"
+        fields[field.name] = typ
+    return fields
+
 def get_bbox(filename):
-    from django.contrib.gis.gdal import DataSource
     bbox_x0, bbox_y0, bbox_x1, bbox_y1 = None, None, None, None
 
     if is_vector(filename):
@@ -353,7 +373,7 @@ def file_upload(filename, name=None, creator=None, title=None, abstract=None,
     # Generate a name that is not taken if overwrite is False.
     valid_name = get_valid_layer_name(name, overwrite)
 
-    # Get a bounding box
+    # Get a bounding box and attributes
     bbox_x0, bbox_x1, bbox_y0, bbox_y1 = get_bbox(filename)
 
     defaults = {
@@ -414,6 +434,14 @@ def file_upload(filename, name=None, creator=None, title=None, abstract=None,
     if len(keywords) > 0:
         layer.keywords.add(*keywords)
 
+    # Try to generate the attributes
+    attrs = get_attributes(filename)
+    for k,v in attrs.items():
+        Attribute.objects.get_or_create(
+            layer=layer,
+            attribute=k,
+            defaults=dict(
+                attribute_type=v))
     return layer
 
 

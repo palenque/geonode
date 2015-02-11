@@ -585,6 +585,7 @@ def set_attributes(layer, overwrite=False):
     Retrieve layer attribute names & types from Geoserver,
     then store in GeoNode database using Attribute model
     """
+    import ipdb; ipdb.set_trace()
     attribute_map = []
     server_url = ogc_server_settings.LOCATION if layer.storeType != "remoteStore" else layer.service.base_url
 
@@ -718,16 +719,17 @@ def set_attributes(layer, overwrite=False):
 def set_styles(layer, gs_catalog):
     style_set = []
     gs_layer = gs_catalog.get_layer(layer.name)
-    default_style = gs_layer.default_style
-    layer.default_style = save_style(default_style)
-    style_set.append(layer.default_style)
+    if gs_layer is not None:
+        default_style = gs_layer.default_style
+        layer.default_style = save_style(default_style)
+        style_set.append(layer.default_style)
 
-    alt_styles = gs_layer.styles
+        alt_styles = gs_layer.styles
 
-    for alt_style in alt_styles:
-        style_set.append(save_style(alt_style))
+        for alt_style in alt_styles:
+            style_set.append(save_style(alt_style))
 
-    layer.styles = style_set
+        layer.styles = style_set
     return layer
 
 

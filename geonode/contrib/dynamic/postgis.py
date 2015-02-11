@@ -130,6 +130,44 @@ def merge_geometries(geometries_str, sep='$'):
             pool = pool.union(OGRGeometry(geom))
         return pool.wkt
 
+def layertype2pgtable(layertype, srid=4326):
+    """Create table and fill it from a layer type."""
+    table_name = layertype.table_name
+
+    # création de la requête de création de table
+    geo_type = layertype.geometry_type
+    coord_dim = 2
+
+    # bizarre, mais les couches de polygones MapInfo ne sont pas détectées
+
+    #sql = 'BEGIN;'
+    sql = ''
+
+    # Drop table if exists
+    sql += 'DROP TABLE IF EXISTS %s;' % (layertype.table_name)
+
+    sql += "CREATE TABLE %s(" % (layertype.table_name)
+    first_feature = True
+    # Mapping from postgis table to shapefile fields.
+    fields = []
+    fields.append('id' + " serial NOT NULL PRIMARY KEY")
+    fields.append('layer_id' + " integer NOT NULL")
+    # TODO: Foreign key
+
+    for attr in layertype.attribute_type_set.all():
+        fld = '%s %s' % (attr.name,attr.attribute_type)
+        if attr.required: fld = fld + ' not null'
+        fields.append(fld)
+    sql += ','.join(fields)
+    sql += ');'
+
+    sql += "SELECT AddGeometryColumn('public','%s','geom',%d,'%s',%d);" % \
+           (table_name, srid, geo_type, coord_dim)
+    #sql += 'END;'
+
+    # Running the sql
+    execute(sql)
+
 
 def file2pgtable(infile, table_name, srid=4326):
     """Create table and fill it from file."""

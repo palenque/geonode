@@ -24,7 +24,6 @@ from django.contrib.auth import login
 from django.contrib.auth.models import Group
 
 from geonode.people.enumerations import ROLE_VALUES, PROFILE
-from geonode.apps.models import App
 from guardian.shortcuts import assign_perm, remove_perm, \
     get_groups_with_perms, get_users_with_perms
 
@@ -52,6 +51,8 @@ class PermissionLevelMixin(object):
     LEVEL_NONE = "_none"
 
     def get_all_level_info(self):
+        from geonode.apps.models import App
+        
         resource = self.get_self_resource()
         info = {'users': {}, 'groups': {}}
 

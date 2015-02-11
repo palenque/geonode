@@ -8,6 +8,7 @@ from django.db import models, IntegrityError
 from django.utils.translation import ugettext_lazy as _
 from django.db.models import signals
 from actstream.models import Action
+from geonode.layers.models import LayerType
 
 from taggit.managers import TaggableManager
 from guardian.shortcuts import get_objects_for_group, remove_perm, assign_perm
@@ -246,6 +247,13 @@ class App(models.Model):
     def class_name(self):
         return self.__class__.__name__
 
+class AppLayerTypePermission(models.Model):
+    app = models.ForeignKey(App)
+    layer_type = models.ForeignKey(LayerType)
+    permission = models.CharField(max_length=20, choices=[
+        ("read",_("read")),
+        ("create",_("create"))
+    ])
 
 class AppMember(models.Model):
 

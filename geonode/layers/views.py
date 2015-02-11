@@ -47,7 +47,8 @@ from geonode.base.forms import CategoryForm
 from geonode.layers.models import Layer, Attribute, LayerType, Style
 from geonode.base.enumerations import CHARSETS
 from geonode.base.models import TopicCategory
-from geonode.apps.models import App
+
+from geonode.contrib.dynamic.models import post_layer_mapping
 
 from geonode.utils import default_map_config, llbbox_to_mercator
 from geonode.utils import GXPLayer
@@ -78,31 +79,43 @@ _PERMISSION_MSG_METADATA = _(
 _PERMISSION_MSG_VIEW = _("You are not permitted to view this layer")
 
 
-def _resolve_layer(request, typename, permission='base.view_resourcebase',
+# def _resolve_layer(request, typename, permission='base.view_resourcebase',
+#                    msg=_PERMISSION_MSG_GENERIC, **kwargs):
+#     """
+#     Resolve the layer by the provided typename (which may include service name) and check the optional permission.
+#     """
+#     service_typename = typename.split(":", 1)
+#     service = Service.objects.filter(name=service_typename[0])
+
+#     if service.count() > 0 and service[0].method != "C":
+#         return resolve_object(request,
+#                               Layer,
+#                               {'service': service[0],
+#                                'typename': service_typename[1]},
+#                               permission=permission,
+#                               permission_msg=msg,
+#                               **kwargs)
+#     else:
+#         return resolve_object(request,
+#                               Layer,
+#                               {'typename': typename,
+#                                'service': None},
+#                               permission=permission,
+#                               permission_msg=msg,
+#                               **kwargs)
+
+
+def _resolve_layer(request, name, permission='base.view_resourcebase',
                    msg=_PERMISSION_MSG_GENERIC, **kwargs):
     """
     Resolve the layer by the provided typename (which may include service name) and check the optional permission.
     """
-    service_typename = typename.split(":", 1)
-    service = Service.objects.filter(name=service_typename[0])
-
-    if service.count() > 0 and service[0].method != "C":
-        return resolve_object(request,
-                              Layer,
-                              {'service': service[0],
-                               'typename': service_typename[1]},
-                              permission=permission,
-                              permission_msg=msg,
-                              **kwargs)
-    else:
-        return resolve_object(request,
-                              Layer,
-                              {'typename': typename,
-                               'service': None},
-                              permission=permission,
-                              permission_msg=msg,
-                              **kwargs)
-
+    return resolve_object(request,
+                          Layer,
+                          {'name': name},
+                          permission=permission,
+                          permission_msg=msg,
+                          **kwargs)
 
 # Basic Layer Views #
 
@@ -125,6 +138,7 @@ def layer_upload(request, template='upload/layer_upload.html'):
         }
         return render_to_response(template,
                                   RequestContext(request, ctx))
+    
     elif request.method == 'POST':
         form = NewLayerUploadForm(request.POST, request.FILES)
         tempdir = None
@@ -174,8 +188,8 @@ def layer_upload(request, template='upload/layer_upload.html'):
             else:
                 out['success'] = True
                 out['url'] = reverse(
-                    'layer_detail', args=[
-                        saved_layer.service_typename])
+                    'layer_attribute_mapping', args=[
+                        saved_layer.name])
 
                 permissions = form.cleaned_data["permissions"]
                 if permissions is not None and len(permissions.keys()) > 0:
@@ -216,7 +230,8 @@ def layer_upload(request, template='upload/layer_upload.html'):
 
 @login_required
 def layer_detail(request, layername, template='layers/layer_detail.html'):
-
+    from geonode.apps.models import App
+    
     layer = _resolve_layer(
         request,
         layername,
@@ -229,9 +244,14 @@ def layer_detail(request, layername, template='layers/layer_detail.html'):
 
     # Add required parameters for GXP lazy-loading
     config["srs"] = layer.srid
-    config["title"] = layer.title
+    config["title"] = layer.title 
     config["bbox"] = [float(coord) for coord in bbox] if layer.srid == "EPSG:4326" else llbbox_to_mercator(
         [float(coord) for coord in bbox])
+
+    if layer.layer_type.is_default:
+        typename = layer.typename
+    else:
+        typename = layer.layer_type.name
 
     if layer.storeType == "remoteStore":
         service = layer.service
@@ -247,8 +267,8 @@ def layer_detail(request, layername, template='layers/layer_detail.html'):
             source_params=json.dumps(source_params))
     else:
         maplayer = GXPLayer(
-            name=layer.typename,
-            ows_url=layer.ows_url,
+            name=typename,
+            ows_url=layer.ows_url + 'XXXX',
             layer_params=json.dumps(config))
 
     # Update count for popularity ranking.
@@ -294,22 +314,22 @@ def layer_detail(request, layername, template='layers/layer_detail.html'):
     return render_to_response(template, RequestContext(request, context_dict))
 
 
-def _validate_required_attributes(layer, attribute_form):
-    'Validates required attribute mapping'    
+# def _validate_required_attributes(layer, attribute_form):
+#     'Validates required attribute mapping'    
 
-    fields = [ attr['field'] for attr in attribute_form.cleaned_data if attr['field'] ]
+#     fields = [ attr['field'] for attr in attribute_form.cleaned_data if attr['field'] ]
 
-    is_valid = True
+#     is_valid = True
 
-    for rf, attr in [(str(a.id), a,) for a in layer.layer_type.required_attributes()]:
-        if rf in fields and fields.count(rf) > 1:
-            attribute_form._non_form_errors.append(attr.name + _(': field repeated'))
-            is_valid = False             
-        if rf not in fields:
-            attribute_form._non_form_errors.append(attr.name + _(': association required'))
-            is_valid = False
+#     for rf, attr in [(str(a.id), a,) for a in layer.layer_type.required_attributes()]:
+#         if rf in fields and fields.count(rf) > 1:
+#             attribute_form._non_form_errors.append(attr.name + _(': field repeated'))
+#             is_valid = False             
+#         if rf not in fields:
+#             attribute_form._non_form_errors.append(attr.name + _(': association required'))
+#             is_valid = False
 
-    return is_valid
+#     return is_valid
 
 
 def layer_default_metadata(request, layername, template='layers/layer_metadata.html'):
@@ -402,7 +422,7 @@ def layer_default_metadata(request, layername, template='layers/layer_metadata.h
             the_layer.category = new_category
             the_layer.metadata_edited = True
             the_layer.save()
-            return HttpResponseRedirect(reverse('layer_detail', args=(layer.service_typename,)))
+            return HttpResponseRedirect(reverse('layer_detail', args=(layer.name,)))
 
     if poc is None:
         poc_form = ProfileForm(instance=poc, prefix="poc")
@@ -442,9 +462,7 @@ def set_default_style(layer, style):
     layer = set_styles(layer, cat)
 
 
-def layer_custom_metadata(request, layername, template='layers/layer_custom_metadata.html'):
-
-    from eav.forms import BaseDynamicEntityForm
+def layer_attribute_mapping(request, layername, template='layers/layer_attribute_mapping.html'):
 
     layer = _resolve_layer(
         request,
@@ -458,6 +476,171 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
         Attribute,
         extra=0,
         form=LayerAttributeForm,
+    )
+
+    if request.method == "POST":
+        
+        attribute_form = layer_attribute_set(
+            request.POST,
+            instance=layer,
+            prefix="layer_attribute_set",
+            queryset=Attribute.objects.order_by('display_order'))
+
+        if attribute_form.is_valid():
+            attribute_form.save()
+
+            if not layer.metadata_edited:
+                layer.metadata_edited = True
+                layer.save()
+                next_url = reverse('layer_metadata', args=(layer.name,))
+            else:
+                next_url = reverse('layer_detail', args=(layer.name,))
+
+            post_layer_mapping(attribute_form.instance, Layer)
+
+            return HttpResponseRedirect(next_url)
+
+        else:
+            print attribute_form.errors
+            return render_to_response(template, RequestContext(request, {
+                "layer": layer,
+                "attribute_form": attribute_form,
+            }))
+    else:
+        attribute_form = layer_attribute_set(
+            instance=layer,
+            prefix="layer_attribute_set",
+            queryset=Attribute.objects.order_by('display_order'))
+
+        if not layer.metadata_edited:
+            guess_attribute_match(layer,attribute_form)
+
+        return render_to_response(template, RequestContext(request, {
+            "layer": layer,
+            "attribute_form": attribute_form
+        }))
+
+
+# def layer_custom_metadata(request, layername, template='layers/layer_custom_metadata.html'):
+
+#     from eav.forms import BaseDynamicEntityForm
+
+#     layer = _resolve_layer(
+#         request,
+#         layername,
+#         'base.change_resourcebase',
+#         _PERMISSION_MSG_METADATA
+#     )
+
+#     layer_attribute_set = inlineformset_factory(
+#         Layer,
+#         Attribute,
+#         extra=0,
+#         form=LayerAttributeForm,
+#     )
+
+#     # form con metadata del tipo de capa
+#     class LayerMetadataForm(BaseDynamicEntityForm):
+
+#         def __init__(self, data=None, *args, **kwargs):
+#             super(LayerMetadataForm, self).__init__(data, *args, **kwargs)
+#             readonly_meta_fields = [x.attribute.slug for x in
+#                 layer.layer_type.metadatatype_set.filter(
+#                     is_precalculated=True)]                
+#             meta_fields = [
+#                 a.slug for a in layer.eav.get_all_attributes().filter(
+#                     layer_metadata_type_attribute__in=layer.layer_type.metadatatype_set.all()
+#                 )
+#             ]
+#             for f in self.fields.keys():
+#                 if f not in meta_fields:
+#                     del self.fields[f] 
+#                 if f in readonly_meta_fields:
+#                     self.fields[f].widget.attrs['readonly'] = True
+        
+#         class Meta:
+#             model = Layer
+
+#         def clean(self):
+#             cleaned_data = super(LayerMetadataForm, self).clean()
+#             if self.instance.layer_type.calculated_title:
+#                 try:
+#                     cleaned_data['title'] =  self.instance.layer_type.calculated_title % self.cleaned_data
+#                 except: pass
+
+#             if self.instance.layer_type.calculated_abstract:
+#                 try:
+#                     cleaned_data['abstract'] =  self.instance.layer_type.calculated_abstract % self.cleaned_data
+#                 except: pass                
+#             return cleaned_data
+
+#     if request.method == "POST":
+#         layer_form = LayerMetadataForm(request.POST, instance=layer, prefix="resource")
+#         attribute_form = layer_attribute_set(
+#             request.POST,
+#             instance=layer,
+#             prefix="layer_attribute_set",
+#             queryset=Attribute.objects.order_by('display_order'))
+#     else:
+#         layer_form = LayerMetadataForm(instance=layer, prefix="resource")
+#         attribute_form = layer_attribute_set(
+#             instance=layer,
+#             prefix="layer_attribute_set",
+#             queryset=Attribute.objects.order_by('display_order'))
+        
+#         if not layer.metadata_edited:
+#             guess_attribute_match(layer,attribute_form)
+
+#     if (
+#         request.method == "POST" and 
+#         layer_form.is_valid() and 
+#         (not layer.metadata_edited and attribute_form.is_valid() and _validate_required_attributes(layer, attribute_form)
+#         or layer.metadata_edited)
+#     ):
+
+#         the_layer = layer_form.save()
+
+#         if the_layer.layer_type.default_style is not None:
+#             set_default_style(the_layer, the_layer.layer_type.default_style)
+#             the_layer.save()
+
+#         # XXX
+#         the_layer.update_concave_hull()
+#         # XXX
+
+#         if not layer.metadata_edited:
+#             try:
+#                 with transaction.atomic(using='default'):
+#                     attribute_form.save()
+#                     layer.update_attributes()
+
+#                 the_layer.metadata_edited = True
+#                 the_layer.save()
+#             except Exception as e:
+#                 layer_form._errors[NON_FIELD_ERRORS] = layer_form.error_class([unicode(e)])
+
+#         return HttpResponseRedirect(reverse('layer_detail', args=(layer.service_typename,)))
+
+#     new_attribute_form = layer_attribute_set(
+#         instance=layer,
+#         prefix="layer_attribute_set",
+#         queryset=Attribute.objects.order_by('display_order'))
+
+#     return render_to_response(template, RequestContext(request, {
+#         "layer": layer,
+#         "layer_form": layer_form,
+#         "attribute_form": attribute_form if not layer.metadata_edited else new_attribute_form,
+#     }))
+
+def layer_custom_metadata(request, layername, template='layers/layer_custom_metadata.html'):
+
+    from eav.forms import BaseDynamicEntityForm
+
+    layer = _resolve_layer(
+        request,
+        layername,
+        'base.change_resourcebase',
+        _PERMISSION_MSG_METADATA
     )
 
     # form con metadata del tipo de capa
@@ -497,60 +680,23 @@ def layer_custom_metadata(request, layername, template='layers/layer_custom_meta
 
     if request.method == "POST":
         layer_form = LayerMetadataForm(request.POST, instance=layer, prefix="resource")
-        attribute_form = layer_attribute_set(
-            request.POST,
-            instance=layer,
-            prefix="layer_attribute_set",
-            queryset=Attribute.objects.order_by('display_order'))
     else:
         layer_form = LayerMetadataForm(instance=layer, prefix="resource")
-        attribute_form = layer_attribute_set(
-            instance=layer,
-            prefix="layer_attribute_set",
-            queryset=Attribute.objects.order_by('display_order'))
-        
-        if not layer.metadata_edited:
-            guess_attribute_match(layer,attribute_form)
 
-    if (
-        request.method == "POST" and 
-        layer_form.is_valid() and 
-        (not layer.metadata_edited and attribute_form.is_valid() and _validate_required_attributes(layer, attribute_form)
-        or layer.metadata_edited)
-    ):
+    if request.method == "POST" and layer_form.is_valid():
 
         the_layer = layer_form.save()
+        the_layer.update_attributes()
 
         if the_layer.layer_type.default_style is not None:
             set_default_style(the_layer, the_layer.layer_type.default_style)
-            the_layer.save()
-
-        # XXX
-        the_layer.update_concave_hull()
-        # XXX
-
-        if not layer.metadata_edited:
-            try:
-                with transaction.atomic(using='default'):
-                    attribute_form.save()
-                    layer.update_attributes()
-
-                the_layer.metadata_edited = True
-                the_layer.save()
-            except Exception as e:
-                layer_form._errors[NON_FIELD_ERRORS] = layer_form.error_class([unicode(e)])
-
-        return HttpResponseRedirect(reverse('layer_detail', args=(layer.service_typename,)))
-
-    new_attribute_form = layer_attribute_set(
-        instance=layer,
-        prefix="layer_attribute_set",
-        queryset=Attribute.objects.order_by('display_order'))
+            
+        the_layer.save()
+        return HttpResponseRedirect(reverse('layer_detail', args=(layer.name,)))
 
     return render_to_response(template, RequestContext(request, {
         "layer": layer,
         "layer_form": layer_form,
-        "attribute_form": attribute_form if not layer.metadata_edited else new_attribute_form,
     }))
 
 
@@ -630,7 +776,7 @@ def layer_replace(request, layername, template='layers/layer_replace.html'):
                 out['success'] = True
                 out['url'] = reverse(
                     'layer_detail', args=[
-                        saved_layer.service_typename])
+                        saved_layer.name])
             finally:
                 if tempdir is not None:
                     shutil.rmtree(tempdir)

@@ -20,30 +20,18 @@
 <div class="row">
   <div class="col-md-2"></div>
   <div class="col-md-8">
-<form class="form-horizontal" action="{% url "layer_metadata" layer.name %}" method="POST">
+<form class="form-horizontal" action="{% url "layer_attribute_mapping" layer.name %}" method="POST">
     <legend>
       {% blocktrans with layer.name as layer_title %}
-        Editing details for {{ layer_title }}
+        Mapping attributes for {{ layer_title }}
       {% endblocktrans %}
     </legend>
-    {% if layer.metadata_uploaded %}
-    <div style="background-color: orange;">{% blocktrans %}Note: this layer's orginal metadata was populated by importing a metadata XML file.
-        GeoNode's metadata import supports a subset of ISO, FGDC, and Dublin Core metadata elements.
-        Some of your original metadata may have been lost.{% endblocktrans %}</div>
-    {% endif %}
 
-    {% comment %}
     {% bootstrap_formset_errors attribute_form  %}
-    {% endcomment %}
 
     {% csrf_token %}
-    <div class="form-controls">
-      {% bootstrap_form layer_form  %}
-    </div>
-
-    {% comment %}
     <legend>{% trans "Attributes" %}</legend>
-    {% if not layer_form.instance.metadata_edited %}
+    {% if not layer.metadata_edited %}
       <div class="alert alert-info">{% trans "The associations and units are suggested. Please check them." %}</div>
     {% endif %}
 
@@ -51,10 +39,9 @@
 
     <table class="table table-hover  " >
         <tr>
-          <th >{% trans "Attribute" %}</th>
+          <th>{% trans "Attribute" %}</th>
           <th >{% trans "Association" %}</th>
           <th >{% trans "Unit" %}</th>
-          <th >{% trans "Preserve" %}</th>
       </tr>
       <tbody>
         {% for form in attribute_form.forms %}
@@ -66,25 +53,12 @@
           <td><div style="display:none">{{form.id}}</div>{% bootstrap_field form.attribute layout='inline' %}</td>
           <td>{% bootstrap_field form.field layout='inline' %} </td>
           <td> {% bootstrap_field form.magnitude layout='inline' %} </td>
-          <td> {% bootstrap_field form.preserved layout='inline' %} </td>
         </tr>
         {% endif %}
         {% endfor %}
       </tbody>
     </table>
-    {% endcomment %}
 
-    <fieldset class="form-controls modal-forms modal hide fade" id="poc_form" >
-      <h2>{% trans "Point of Contact" %}</h2>
-      {{ poc_form|as_bootstrap }}
-      <button type='button' class="modal-cloose-btn btn btn-primary">Done</button>
-    </fieldset>
-    <fieldset class="form-controls modal-forms modal hide fade" id="metadata_form">
-      <h2>{% trans "Metadata Provider" %}</h2>
-        {{ author_form|as_bootstrap }}
-        <!-- { bootstrap_form author_form layout='horizontal' } -->
-      <button type='button' class="modal-cloose-btn btn btn-primary">Done</button>
-    </fieldset>
     <div class="form-actions">
       <input type="submit" class="btn btn-primary" value="{% trans "Update" %}"/>
     </div>

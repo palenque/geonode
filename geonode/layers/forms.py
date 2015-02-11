@@ -295,8 +295,10 @@ class LayerAttributeForm(forms.ModelForm):
         if instance.layer.layer_type.is_default:
             self.fields['display_order'].widget.attrs['size'] = 3
         else:
+            # XXX
             for field in ['attribute_label','description','display_order']:
-                self.fields[field].widget = forms.HiddenInput()
+                self.fields.pop(field)
+            #     self.fields[field].widget = forms.HiddenInput()
             self.fields['magnitude'].widget.attrs['maxlength']= 10            
             self.fields['magnitude'].widget.attrs['size']= 10  
             choices = tuple(
@@ -312,32 +314,32 @@ class LayerAttributeForm(forms.ModelForm):
             self.fields['field'].widget = forms.Select(choices=choices)
 
             # deshabilita atributos para capas ya editadas
-            if instance.layer.metadata_edited:
-                for f in self.fields.keys():
-                    self.fields[f].widget.attrs['disabled'] = 'disabled'
+            # if instance.layer.metadata_edited:
+            #     for f in self.fields.keys():
+            #         self.fields[f].widget.attrs['disabled'] = 'disabled'
 
-    def clean_magnitude(self):
+    # def clean_magnitude(self):
 
-        layer_type = self.instance.layer.layer_type
-        if not layer_type.is_default and self.cleaned_data['field']:
-            if layer_type.attribute_type_set.filter(id=self.cleaned_data['field']):
-                attribute_type = AttributeType.objects.get(id=self.cleaned_data['field'])
-                if not self.cleaned_data['magnitude']:
-                    raise forms.ValidationError("Unit not specified. Default is '%s'" \
-                        % units[attribute_type.magnitude])
-                else:
-                    try:
-                        (1 * units[self.cleaned_data['magnitude']]).to(units[attribute_type.magnitude])
-                    except pint.DimensionalityError:
-                        raise forms.ValidationError("Unit not valid. Cannot convert '%s' to '%s'" \
-                            % (self.cleaned_data['magnitude'], units[attribute_type.magnitude].units))
-                    except pint.UndefinedUnitError:
-                        raise forms.ValidationError("Invalid unit: '%s'" \
-                            % self.cleaned_data['magnitude'])
-            else:
-                if self.cleaned_data['magnitude']:
-                    raise forms.ValidationError("This field has no unit.")
-        return self.cleaned_data['magnitude']
+    #     layer_type = self.instance.layer.layer_type
+    #     if not layer_type.is_default and self.cleaned_data['field']:
+    #         if layer_type.attribute_type_set.filter(id=self.cleaned_data['field']):
+    #             attribute_type = AttributeType.objects.get(id=self.cleaned_data['field'])
+    #             if not self.cleaned_data['magnitude']:
+    #                 raise forms.ValidationError("Unit not specified. Default is '%s'" \
+    #                     % units[attribute_type.magnitude])
+    #             else:
+    #                 try:
+    #                     (1 * units[self.cleaned_data['magnitude']]).to(units[attribute_type.magnitude])
+    #                 except pint.DimensionalityError:
+    #                     raise forms.ValidationError("Unit not valid. Cannot convert '%s' to '%s'" \
+    #                         % (self.cleaned_data['magnitude'], units[attribute_type.magnitude].units))
+    #                 except pint.UndefinedUnitError:
+    #                     raise forms.ValidationError("Invalid unit: '%s'" \
+    #                         % self.cleaned_data['magnitude'])
+    #         else:
+    #             if self.cleaned_data['magnitude']:
+    #                 raise forms.ValidationError("This field has no unit.")
+    #     return self.cleaned_data['magnitude']
 
     class Meta:
         model = Attribute

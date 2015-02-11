@@ -877,21 +877,32 @@ class LayerResource(MultipartResource, CommonModelApi):
         self.is_authenticated(request)
         self.throttle_check(request)
 
+        q = request.GET.get('q', '1=1')
+
         layer = Layer.objects.get(id=resource_id)
+        if not layer.layer_type.is_default:
+            q = "(%s) and layer_id = %d" % (q,layer.id)
+            table_name = layer.layer_type.table_name
+        else:
+            table_name = layer.name
 
         cursor = connections['datastore'].cursor()
-        fields = [a.attribute for a in Layer.objects.get(id=resource_id).attribute_set.all() if a.attribute.lower() != 'the_geom']
+        fields = [a.field.name for a in Layer.objects.get(id=resource_id).attribute_set.all()
+            if a.field is not None]
 
         # FIXME: hacer seguro
-        cursor.execute(
-            'select %s from %s  order by "%s" limit %s offset %s;' % (
+        query = 'select %s from %s where %s order by "%s" limit %s offset %s;' % (
                 ', '.join(['"%s"' % f for f in fields]),
-                layer.name, 
+                table_name, 
+                q,
                 fields[0],
                 request.GET.get('limit', '50'),
                 request.GET.get('offset', '0')
-            ) 
         )
+        print query 
+
+        cursor.execute(query)
+        
 
         results = []
         for row in cursor.fetchall():

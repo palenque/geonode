@@ -79,6 +79,7 @@
         {% endautoescape %}
     </fieldset>
 
+    {% comment %}
     <header>{% trans "Attributes" %}</header>
     {{ attribute_form.management_form }}
     <table class="table table-hover  " >
@@ -96,7 +97,8 @@
         {% endfor %}
         </tbody>
     </table>
-
+    {% endcomment %}
+    
     <fieldset class="form-controls modal-forms modal hide fade" id="poc_form" >
       <h2>{% trans "Point of Contact" %}</h2>
       {% bootstrap_form poc_form  %}

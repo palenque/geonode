@@ -39,6 +39,8 @@ urlpatterns = patterns(
     url(r'^(?P<layername>[^/]*)$', 'layer_detail', name="layer_detail"),
     url(r'^(?P<layername>[^/]*)/metadata$', 'layer_metadata',
         name="layer_metadata"),
+    url(r'^(?P<layername>[^/]*)/mapping$', 'layer_attribute_mapping',
+        name="layer_attribute_mapping"),    
     url(r'^(?P<layername>[^/]*)/remove$', 'layer_remove', name="layer_remove"),
     url(r'^(?P<layername>[^/]*)/replace$', 'layer_replace',
         name="layer_replace"),

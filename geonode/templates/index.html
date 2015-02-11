@@ -92,6 +92,35 @@
       {% for app in apps %}
         <div class="col-md-6">
         <div class="panel panel-success">
+          {% if request.user.profile == 'developer' %}
+          <div class="panel-heading">
+            <a href="{{app.get_absolute_url}}" target="_blank">
+              <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>
+              &nbsp;
+              {{app.title}}
+              &nbsp;
+              </h3>
+            </a>
+          </div>    
+          <div class="panel-body">
+          <div class="label label-success">
+            Usuarios
+          </div>
+          <div style="margin-top:20px; height:200px; overflow-y:auto">
+            {% for member in app.actions %}
+              {% if member.role == 'member' %}
+                    <div class="col-md-3">
+                      <a class="thumbnail" href="{{member.user.get_absolute_url}}">
+                        <img width="80px" src="{%avatar_url member.user%}"/>
+                        <small align="center" class="caption">{{member.user.full_name}}</small>
+                      </a>
+                    </div>
+                
+              {% endif %}
+            {% endfor %}
+          </div>
+          </div>                
+          {% else %}
           <div class="panel-heading">
             <a href="{{app.email}}" target="_blank">
               <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>
@@ -120,8 +149,8 @@
               <p>{% trans "No actions yet" %}</p>
             {% endfor %}
           </div>
-
           </div>
+          {% endif %}
         </div>
         </div>
       {% empty %}

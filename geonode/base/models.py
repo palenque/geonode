@@ -20,7 +20,6 @@ from mptt.models import MPTTModel, TreeForeignKey
 from polymorphic import PolymorphicModel, PolymorphicManager
 from agon_ratings.models import OverallRating
 
-from geonode.apps.models import App
 from geonode.base.enumerations import ALL_LANGUAGES, \
     HIERARCHY_LEVELS, UPDATE_FREQUENCIES, \
     DEFAULT_SUPPLEMENTAL_INFORMATION, LINK_TYPES

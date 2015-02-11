@@ -49,9 +49,6 @@ def geoserver_pre_save(instance, sender, **kwargs):
         * Metadata Links,
         * Point of Contact name and url
     """
-    # XXX
-    if instance.metadata_edited: return
-    # XXX
 
     base_file = instance.get_base_file()
 
@@ -77,7 +74,6 @@ def geoserver_pre_save(instance, sender, **kwargs):
     for key in ['typename', 'store', 'storeType']:
         setattr(instance, key, values[key])
 
-    import ipdb; ipdb.set_trace()
     gs_resource = gs_catalog.get_resource(
         instance.name,
         store=instance.store,
@@ -142,39 +138,42 @@ def geoserver_post_save(instance, sender, **kwargs):
        The way keywords are implemented requires the layer
        to be saved to the database before accessing them.
     """
-    # XXX
-    if instance.metadata_edited: return
-    # XXX    
+    # if not instance.layer_type.is_default and not instance.metadata_edited:
+    #   return
 
     if instance.storeType == "remoteStore":
         # Save layer attributes
         set_attributes(instance)
         return
 
-    try:
-        gs_resource = gs_catalog.get_resource(
-            instance.name,
-            store=instance.store,
-            workspace=instance.workspace)
-    except socket_error as serr:
-        if serr.errno != errno.ECONNREFUSED:
-            # Not the error we are looking for, re-raise
-            raise serr
-        # If the connection is refused, take it easy.
-        return
+    if not instance.layer_type.is_default:
+      gs_resource = None
 
-    if gs_resource is None:
-        return
+    else:
 
-    if any(instance.keyword_list()):
-        gs_resource.keywords = instance.keyword_list()
+      try:
+          gs_resource = gs_catalog.get_resource(
+              instance.name,
+              store=instance.store,
+              workspace=instance.workspace)
+      except socket_error as serr:
+          if serr.errno != errno.ECONNREFUSED:
+              # Not the error we are looking for, re-raise
+              raise serr
+          # If the connection is refused, take it easy.
+          return
 
-        # gs_resource should only be called if
-        # ogc_server_settings.BACKEND_WRITE_ENABLED == True
-        if getattr(ogc_server_settings, "BACKEND_WRITE_ENABLED", True):
-            gs_catalog.save(gs_resource)
+      if gs_resource is not None:
+        if any(instance.keyword_list()):
+            gs_resource.keywords = instance.keyword_list()
 
-    bbox = gs_resource.latlon_bbox
+            # gs_resource should only be called if
+            # ogc_server_settings.BACKEND_WRITE_ENABLED == True
+            if getattr(ogc_server_settings, "BACKEND_WRITE_ENABLED", True):
+                gs_catalog.save(gs_resource)
+
+    # bbox = gs_resource.latlon_bbox
+    bbox = instance.bbox
     dx = float(bbox[1]) - float(bbox[0])
     dy = float(bbox[3]) - float(bbox[2])
 
@@ -184,9 +183,15 @@ def geoserver_post_save(instance, sender, **kwargs):
     width = int(height * dataAspect)
 
     # Set download links for WMS, WCS or WFS and KML
+    if instance.layer_type.is_default:
+      typename = instance.typename
+      viewparams = ''
+    else:
+      typename = instance.layer_type.name
+      viewparams = 'viewparams=layer_id:%d&' % instance.id
 
-    links = wms_links(ogc_server_settings.public_url + 'wms?',
-                      instance.typename.encode('utf-8'), instance.bbox_string,
+    links = wms_links(ogc_server_settings.public_url + 'wms?' + viewparams,
+                      typename.encode('utf-8'), instance.bbox_string,
                       instance.srid, height, width)
 
     for ext, name, mime, wms_url in links:
@@ -203,8 +208,8 @@ def geoserver_post_save(instance, sender, **kwargs):
     if instance.storeType == "dataStore":
         links = wfs_links(
             ogc_server_settings.public_url +
-            'wfs?',
-            instance.typename.encode('utf-8'))
+            'wfs?' + viewparams,
+            typename.encode('utf-8'))
         for ext, name, mime, wfs_url in links:
             if mime == 'SHAPE-ZIP':
                 name = 'Zipped Shapefile'
@@ -219,7 +224,7 @@ def geoserver_post_save(instance, sender, **kwargs):
                                        )
                                        )
 
-        if gs_resource.store.type.lower() == 'geogit':
+        if gs_resource is not None and gs_resource.store.type.lower() == 'geogit':
             repo_url = '{url}geogit/{workspace}:{store}'.format(
                 url=ogc_server_settings.public_url,
                 workspace=instance.workspace,
@@ -280,8 +285,8 @@ def geoserver_post_save(instance, sender, **kwargs):
             logger.warn(msg, e)
         else:
 
-            links = wcs_links(ogc_server_settings.public_url + 'wcs?',
-                              instance.typename.encode('utf-8'),
+            links = wcs_links(ogc_server_settings.public_url + 'wcs?' + viewparams,
+                              typename.encode('utf-8'),
                               bbox=gs_resource.native_bbox[:-1],
                               crs=gs_resource.native_bbox[-1],
                               height=str(covHeight),
@@ -300,8 +305,8 @@ def geoserver_post_save(instance, sender, **kwargs):
 
         instance.set_permissions(permissions)
 
-    kml_reflector_link_download = ogc_server_settings.public_url + "wms/kml?" + \
-        urllib.urlencode({'layers': instance.typename.encode('utf-8'), 'mode': "download"})
+    kml_reflector_link_download = ogc_server_settings.public_url + "wms/kml?" + viewparams +\
+        urllib.urlencode({'layers': typename.encode('utf-8'), 'mode': "download"})
 
     Link.objects.get_or_create(resource=instance.resourcebase_ptr,
                                url=kml_reflector_link_download,
@@ -313,8 +318,8 @@ def geoserver_post_save(instance, sender, **kwargs):
                                )
                                )
 
-    kml_reflector_link_view = ogc_server_settings.public_url + "wms/kml?" + \
-        urllib.urlencode({'layers': instance.typename.encode('utf-8'), 'mode': "refresh"})
+    kml_reflector_link_view = ogc_server_settings.public_url + "wms/kml?" + viewparams +\
+        urllib.urlencode({'layers': typename.encode('utf-8'), 'mode': "refresh"})
 
     Link.objects.get_or_create(resource=instance.resourcebase_ptr,
                                url=kml_reflector_link_view,
@@ -325,22 +330,23 @@ def geoserver_post_save(instance, sender, **kwargs):
                                    link_type='data',
                                )
                                )
-
-    tile_url = ('%sgwc/service/gmaps?' % ogc_server_settings.public_url +
-                'layers=%s' % instance.typename.encode('utf-8') +
-                '&zoom={z}&x={x}&y={y}' +
-                '&format=image/png8'
-                )
-
-    Link.objects.get_or_create(resource=instance.resourcebase_ptr,
-                               url=tile_url,
-                               defaults=dict(
-                                   extension='tiles',
-                                   name=_("Tiles"),
-                                   mime='image/png',
-                                   link_type='image',
-                               )
-                               )
+    
+    # XXX: temporarily disabled
+    # tile_url = ('%sgwc/service/gmaps?' % ogc_server_settings.public_url + viewparams +
+    #             'layers=%s' % typename.encode('utf-8') +
+    #             '&zoom={z}&x={x}&y={y}' +
+    #             '&format=image/png8'
+    #             )
+    #
+    # Link.objects.get_or_create(resource=instance.resourcebase_ptr,
+    #                            url=tile_url,
+    #                            defaults=dict(
+    #                                extension='tiles',
+    #                                name=_("Tiles"),
+    #                                mime='image/png',
+    #                                link_type='image',
+    #                            )
+    #                            )
 
     html_link_url = '%s%s' % (
         settings.SITEURL[:-1], instance.get_absolute_url())
@@ -356,7 +362,7 @@ def geoserver_post_save(instance, sender, **kwargs):
                                )
 
     params = {
-        'layers': instance.typename.encode('utf-8'),
+        'layers': typename.encode('utf-8'),
         'format': 'image/png8',
         'width': 200,
         'height': 150,
@@ -384,8 +390,8 @@ def geoserver_post_save(instance, sender, **kwargs):
     if settings.DEBUG:
         instance.set_permissions(json.loads(current_perms))
 
-    legend_url = ogc_server_settings.PUBLIC_LOCATION + 'wms?request=GetLegendGraphic&format=image/png&WIDTH=20&HEIGHT=20&LAYER=' + \
-        instance.typename + '&legend_options=fontAntiAliasing:true;fontSize:12;forceLabels:on'
+    legend_url = ogc_server_settings.PUBLIC_LOCATION + 'wms?' + viewparams + 'request=GetLegendGraphic&format=image/png&WIDTH=20&HEIGHT=20&LAYER=' + \
+        typename + '&legend_options=fontAntiAliasing:true;fontSize:12;forceLabels:on'
 
     Link.objects.get_or_create(resource=instance.resourcebase_ptr,
                                url=legend_url,
@@ -453,7 +459,8 @@ def geoserver_post_save(instance, sender, **kwargs):
             link.delete()
 
     # Save layer attributes
-    set_attributes(instance)
+    if instance.layer_type.is_default:
+      set_attributes(instance)
 
     # Save layer styles
     set_styles(instance, gs_catalog)

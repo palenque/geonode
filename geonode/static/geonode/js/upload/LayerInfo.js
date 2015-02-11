@@ -328,7 +328,7 @@ define(function (require, exports) {
             self.polling = false;
             console.log(resp)
             if(resp['fill_metadata']){
-                window.location = resp.url + '/metadata';
+                window.location = resp.url;
             }
             else{
                 self.displayUploadedLayerLinks(resp);
