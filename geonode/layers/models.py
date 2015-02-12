@@ -802,7 +802,7 @@ def pre_save_layer(instance, sender, **kwargs):
     if instance.uuid == '':
         instance.uuid = str(uuid.uuid1())
 
-    if not instance.layer_type.is_default:
+    if not instance.layer_type.is_default and instance.storeType != 'coverageStore':
         instance.typename = instance.layer_type.name
 
     # if instance.typename is None:

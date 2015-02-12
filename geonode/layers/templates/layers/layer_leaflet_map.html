@@ -50,22 +50,33 @@
             map.addLayer(tile_layer);
         }
 
-        {% comment %}
         {% for link in resource.internal_links_forward_set.all %}
             {% if link.target.class == Layer %}
-                var layer = L.tileLayer("{{ link.target.get_tiles_url|safe }}");
-                map.layerscontrol.addOverlay(layer,"{{ link.target.title }}");
-                map.addLayer(layer);
+                // {{link.target}} {{link.target.get_ows_url}}            
+                var layer = L.tileLayer.wms('{{ link.target.layer.ows_url|safe }}', {
+                    layers: '{{ link.target.layer.typename }}',
+                    viewparams: 'layer_id:{{link.target.layer.id}}',
+                    format: 'image/png',
+                    transparent: true,
+                    'opacity':0.8
+                });
+                map.layerscontrol.addOverlay(layer,"{{ link.target.layer.title }}");
+                //map.addLayer(layer);
             {% endif %}
         {% endfor %}
         {% for link in resource.internal_links_backward_set.all %}
             {% if link.source.class == Layer %}
-                var layer = L.tileLayer("{{ link.source.get_tiles_url|safe }}");
-                map.layerscontrol.addOverlay(layer,"{{ link.source.title }}");
-                map.addLayer(layer);
+                var layer = L.tileLayer.wms('{{ link.source.layer.ows_url|safe }}', {
+                    layers: '{{ link.source.layer.typename }}',
+                    viewparams: 'layer_id:{{link.source.layer.id}}',
+                    format: 'image/png',
+                    transparent: true,
+                    'opacity':0.8
+                });
+                map.layerscontrol.addOverlay(layer,"{{ link.source.layer.title }}");
+                //map.addLayer(layer);
             {% endif %}
         {% endfor %}
-        {% endcomment %}
 
         angular.element($('#preview_map')).scope().load_public_layers(map);
 

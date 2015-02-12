@@ -108,14 +108,13 @@ class YieldMonitorProcessing(object):
 
 
     def download(self, url, typename):
-        if not os.path.exists('/tmp/layer'):
-            os.makedirs('/tmp/layer')
+        # if not os.path.exists('/tmp/layer'):
+        #     os.makedirs('/tmp/layer')
 
-        q = urlparse.urlparse(url)
-        q = q._replace(netloc='%s:%s@%s' % (self.username,self.api_key,q.netloc))
-        url = urlparse.urlunparse(q)
-        urllib.urlretrieve(url, "/tmp/layer.zip")
-
+        # q = urlparse.urlparse(url)
+        # q = q._replace(netloc='%s:%s@%s' % (self.username,self.api_key,q.netloc))
+        # url = urlparse.urlunparse(q)
+        # urllib.urlretrieve(url, "/tmp/layer.zip")
         #return self.process_layer(typename)
         return 'out.tiff'
 

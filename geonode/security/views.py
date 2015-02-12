@@ -51,7 +51,7 @@ def resource_permissions(request, resource_id):
         resource = resolve_object(
             request, ResourceBase, {
                 'id': resource_id}, 'base.change_resourcebase_permissions')
-        resource_content_type = ContentType.objects.get_for_model(resource)
+
 
     except PermissionDenied:
         # we are handling this in a non-standard way
@@ -70,7 +70,7 @@ def resource_permissions(request, resource_id):
                 action = Action(
                     actor=request.user, 
                     action_object_object_id=resource.id,
-                    action_object_content_type=resource_content_type,
+                    action_object_content_type_id=resource.polymorphic_ctype_id,
                     target=user,
                     verb='permission_granted')
                 action.save()
@@ -83,7 +83,7 @@ def resource_permissions(request, resource_id):
             action = Action(
                 actor=request.user, 
                 action_object_object_id=resource.id,
-                action_object_content_type=resource_content_type,
+                action_object_content_type_id=resource.polymorphic_ctype_id,
                 target=user,
                 verb='permission_revoked')
             action.save()

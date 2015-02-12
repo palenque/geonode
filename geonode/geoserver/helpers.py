@@ -585,7 +585,6 @@ def set_attributes(layer, overwrite=False):
     Retrieve layer attribute names & types from Geoserver,
     then store in GeoNode database using Attribute model
     """
-    import ipdb; ipdb.set_trace()
     attribute_map = []
     server_url = ogc_server_settings.LOCATION if layer.storeType != "remoteStore" else layer.service.base_url
 

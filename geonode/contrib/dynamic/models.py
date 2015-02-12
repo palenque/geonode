@@ -520,6 +520,9 @@ def post_save_layer_type(instance, sender, **kwargs):
     if DYNAMIC_DATASTORE not in settings.DATABASES:
         return
 
+    if len(instance.geometry_type) == 0:
+        return
+
     # Load the table in postgis and get a mapping from fields in the database
     # and fields in the Shapefile.
     layertype2pgtable(instance)
@@ -563,6 +566,9 @@ def post_layer_mapping(layer, sender, **kwargs):
     if DYNAMIC_DATASTORE not in settings.DATABASES:
         return
 
+    if layer.storeType == 'coverageStore':
+        return        
+
     # do not process if the layer has no type
     if layer.layer_type.is_default:
         return
@@ -587,7 +593,7 @@ def post_layer_mapping(layer, sender, **kwargs):
 
     # Get the new actual Django model.
     TheModel = layer.layer_type.modeldescription.get_django_model(layer)
-    
+
     lm = LayerMapping(TheModel, filename, mapping,
                       encoding=layer.charset,
                       using=DYNAMIC_DATASTORE,

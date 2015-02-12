@@ -50,6 +50,9 @@ def geoserver_pre_save(instance, sender, **kwargs):
         * Point of Contact name and url
     """
 
+    if instance.storeType != 'coverageStore':
+      return
+
     base_file = instance.get_base_file()
 
     # There is no need to process it if there is not file.
@@ -146,7 +149,7 @@ def geoserver_post_save(instance, sender, **kwargs):
         set_attributes(instance)
         return
 
-    if not instance.layer_type.is_default:
+    if not instance.layer_type.is_default and instance.storeType != 'coverageStore':
       gs_resource = None
 
     else:
@@ -183,7 +186,7 @@ def geoserver_post_save(instance, sender, **kwargs):
     width = int(height * dataAspect)
 
     # Set download links for WMS, WCS or WFS and KML
-    if instance.layer_type.is_default:
+    if instance.layer_type.is_default or instance.storeType == 'coverageStore':
       typename = instance.typename
       viewparams = ''
     else:

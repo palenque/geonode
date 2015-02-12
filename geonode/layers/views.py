@@ -164,6 +164,7 @@ def layer_upload(request, template='upload/layer_upload.html'):
                 # exceptions when unicode characters are present.
                 # This should be followed up in upstream Django.
                 tempdir, base_file = form.write_files()
+
                 saved_layer = file_upload(
                     base_file,
                     name=name,
@@ -187,9 +188,14 @@ def layer_upload(request, template='upload/layer_upload.html'):
                 out['errors'] = str(e)
             else:
                 out['success'] = True
-                out['url'] = reverse(
-                    'layer_attribute_mapping', args=[
-                        saved_layer.name])
+
+                if saved_layer.layer_type.is_default:
+                    out['url'] = reverse('layer_metadata', args=[saved_layer.name])
+
+                elif saved_layer.storeType == 'coverageStore':
+                    out['url'] = reverse('layer_metadata', args=[saved_layer.name])
+                else:
+                    out['url'] = reverse('layer_attribute_mapping', args=[saved_layer.name])
 
                 permissions = form.cleaned_data["permissions"]
                 if permissions is not None and len(permissions.keys()) > 0:

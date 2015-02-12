@@ -67,9 +67,9 @@
       <div id="file-queue"></div>
     </section>
 
-    <section class="charset">
+    <section class="charset form-group">
       <p>{% trans "Select the charset or leave default" %}</p>
-      <select id="charset">
+      <select id="charset" class="form-control">
         {% for charset in charsets %}
         {% if charset.0 == 'UTF-8' %}
         <option selected='selected' value={{ charset.0 }}>{{ charset.1 }}</option>
@@ -87,18 +87,6 @@
   </div>
 {% endblock %}
 
-{% block sidebar %}
-
-{% if GEONODE_SECURITY_ENABLED %}
-<div class="col-md-4">
-  <h3>{% trans "Permissions"  %}</h3>
-  <form id="permission_form">
-    {% include "_permissions.html" %}
-  </form>
-</div>
-{% endif %}
-
-{% endblock %}
 
 {% block extra_script %}
 
