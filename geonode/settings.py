@@ -223,6 +223,7 @@ INSTALLED_APPS = (
     'eav',
     'tastypie_swagger',
     'corsheaders',
+    'markdown_deux',
 
     # Utility
     'pagination',
