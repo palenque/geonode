@@ -94,7 +94,7 @@
         <div class="panel panel-success">
           <div class="panel-heading">
             <a href="{{app.email}}" target="_blank">
-              <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>
+              <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{% if app.logo %}{{app.logo.url}}{% else %}{{ STATIC_URL }}geonode/img/missing_thumb.png{% endif%}"/>
               &nbsp;
               {{app.title}}
               &nbsp;
@@ -136,7 +136,7 @@
         <div class="col-md-4">
         <div class="panel panel-success">
           <div class="panel-heading">
-            <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>
+            <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{% if app.logo %}{{app.logo.url}}{% else %}{{ STATIC_URL }}geonode/img/missing_thumb.png{% endif%}"/>
             &nbsp;
             {{app.title}}
             &nbsp;
@@ -173,7 +173,7 @@
         <div class="col-md-4">
         <div class="panel panel-success">
           <div class="panel-heading">
-            <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>
+            <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{% if app.logo %}{{app.logo.url}}{% else %}{{ STATIC_URL }}geonode/img/missing_thumb.png{% endif%}"/>
             &nbsp;
             {{app.title}}
             &nbsp;
