@@ -1,21 +1,68 @@
 # -*- coding: utf-8 -*-
 from south.utils import datetime_utils as datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
 
-class Migration(DataMigration):
+
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        "Write your forwards methods here."
-        db.execute("UPDATE people_profile SET profile='user' WHERE profile is null")
-        
-        # Note: Don't use "from appname.models import ModelName". 
-        # Use orm.ModelName to refer to models in this application,
-        # and orm['appname.ModelName'] for models in other applications.
+        # Adding model 'Profile'
+        db.create_table(u'people_profile', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('password', self.gf('django.db.models.fields.CharField')(max_length=128)),
+            ('last_login', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('is_superuser', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('username', self.gf('django.db.models.fields.CharField')(unique=True, max_length=30)),
+            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=30, blank=True)),
+            ('last_name', self.gf('django.db.models.fields.CharField')(max_length=30, blank=True)),
+            ('email', self.gf('django.db.models.fields.EmailField')(max_length=75, blank=True)),
+            ('is_staff', self.gf('django.db.models.fields.BooleanField')(default=False)),
+            ('is_active', self.gf('django.db.models.fields.BooleanField')(default=True)),
+            ('date_joined', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
+            ('organization', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('profile', self.gf('django.db.models.fields.CharField')(default='user', max_length=20)),
+            ('position', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('voice', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('fax', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('delivery', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('city', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('area', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('zipcode', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
+            ('country', self.gf('django.db.models.fields.CharField')(max_length=3, null=True, blank=True)),
+        ))
+        db.send_create_signal(u'people', ['Profile'])
+
+        # Adding M2M table for field groups on 'Profile'
+        m2m_table_name = db.shorten_name(u'people_profile_groups')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('profile', models.ForeignKey(orm[u'people.profile'], null=False)),
+            ('group', models.ForeignKey(orm[u'auth.group'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['profile_id', 'group_id'])
+
+        # Adding M2M table for field user_permissions on 'Profile'
+        m2m_table_name = db.shorten_name(u'people_profile_user_permissions')
+        db.create_table(m2m_table_name, (
+            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
+            ('profile', models.ForeignKey(orm[u'people.profile'], null=False)),
+            ('permission', models.ForeignKey(orm[u'auth.permission'], null=False))
+        ))
+        db.create_unique(m2m_table_name, ['profile_id', 'permission_id'])
+
 
     def backwards(self, orm):
-        "Write your backwards methods here."
+        # Deleting model 'Profile'
+        db.delete_table(u'people_profile')
+
+        # Removing M2M table for field groups on 'Profile'
+        db.delete_table(db.shorten_name(u'people_profile_groups'))
+
+        # Removing M2M table for field user_permissions on 'Profile'
+        db.delete_table(db.shorten_name(u'people_profile_user_permissions'))
+
 
     models = {
         u'auth.group': {
@@ -58,7 +105,7 @@ class Migration(DataMigration):
             'organization': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
             'position': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'profile': ('django.db.models.fields.TextField', [], {'default': "'user'"}),
+            'profile': ('django.db.models.fields.CharField', [], {'default': "'user'", 'max_length': '20'}),
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'related_name': "u'user_set'", 'blank': 'True', 'to': u"orm['auth.Permission']"}),
             'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'}),
             'voice': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
@@ -67,4 +114,3 @@ class Migration(DataMigration):
     }
 
     complete_apps = ['people']
-    symmetrical = True

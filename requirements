@@ -51,4 +51,6 @@ django-haystack==2.1.0
 pyelasticsearch==0.6.1
 django-tastypie-swagger==0.1.2
 django-cors-headers
-pip install django-markdown-deux
+django-markdown-deux
+psycopg2
+gdal
