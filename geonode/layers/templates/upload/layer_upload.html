@@ -80,6 +80,9 @@
           {% endfor %}
         </select>
       </section>
+    {% else %}
+      <input id="creator" type="hidden" value="{{request.user.id}}"></input>
+      <input id="owner" type="hidden" value="{{request.user.id}}"></input>
     {% endif %}
 
     <section class="layer-type form-group">

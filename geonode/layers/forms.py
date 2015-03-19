@@ -263,7 +263,7 @@ class NewLayerUploadForm(LayerUploadForm):
             return self.cleaned_data['layer_type']
 
     def clean_owner(self):
-        id = self.cleaned_data['owner'] 
+        id = self.cleaned_data['owner']
         if len(id) > 0:
             if id.isdigit(): return Profile.objects.get(id=int(id))
             else: return Profile.objects.get(username=id)
