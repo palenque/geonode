@@ -561,7 +561,6 @@ def post_save_layer_type(instance, sender, **kwargs):
 def post_layer_mapping(layer, sender, **kwargs):
     """Save to postgis if there is a datastore.
     """
-
     # Abort if a postgis DATABASE is not configured.
     if DYNAMIC_DATASTORE not in settings.DATABASES:
         return
@@ -583,7 +582,7 @@ def post_layer_mapping(layer, sender, **kwargs):
     # get the mapping from the layer
     mapping = layer.attribute_mapping
     mapping['geom'] = layer.layer_type.geometry_type
-    
+    import ipdb; ipdb.set_trace()
     # remove all the items of this layer
     # XXX Improve
     connection = db.connections['datastore']
@@ -599,7 +598,7 @@ def post_layer_mapping(layer, sender, **kwargs):
                       using=DYNAMIC_DATASTORE,
                       transform=None
                       )
-    lm.save()
+    lm.save(progress=True, step=1000)
 
 models.signals.post_save.connect(post_save_layer_type, sender=LayerType)
 #models.signals.pre_save.connect(pre_save_layer, sender=Layer)

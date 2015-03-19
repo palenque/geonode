@@ -326,7 +326,7 @@ define(function (require, exports) {
             });
         } else if (resp.success === true) {
             self.polling = false;
-            console.log(resp)
+            console.log(resp);
             if(resp['fill_metadata']){
                 window.location = resp.url;
             }
@@ -415,8 +415,10 @@ define(function (require, exports) {
             },
             beforeSend: function () {
                 self.markStart();
+                /*
                 self.polling = true;
                 self.startPolling();
+                */
             },
             error: function (jqXHR) {
                 self.polling = false;

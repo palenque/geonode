@@ -1,5 +1,4 @@
 import json
-import markdown
 
 from django.contrib.auth import get_user_model
 from django.core.urlresolvers import reverse
