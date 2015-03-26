@@ -80,9 +80,9 @@ scripts/cloud/.gnec2.cfg
 jquery.raty.js
 angular.js
 angular-leaflet-directive.min.js
-bootstrap.min.js
+#bootstrap.min.js
 jquery.min.js
-bootstrap.min.css
+#bootstrap.min.css
 
 
 venv
