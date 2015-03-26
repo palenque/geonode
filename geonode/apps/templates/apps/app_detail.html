@@ -1,7 +1,7 @@
 {% extends "apps/app_base.html" %}
 {% load i18n %}
 {% load pagination_tags %}
-{% load guardian_tags %}
+{% load guardian_tags markdown_deux_tags %}
 {% load activity_tags social_tags i18n %}
 
 {% block title %}{{ object.title|default:object.slug }} — {{ block.super }}{% endblock %}
@@ -42,7 +42,7 @@
     <div class="tab-content">
 
     <article class="description tab-pane active" id="info">
-      <p>{{ description|safe }}</p>
+      <p>{{ description|markdown }}</p>
     </article>
 
 

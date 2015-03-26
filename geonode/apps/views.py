@@ -123,7 +123,7 @@ def app_detail(request, slug):
     context['layers'] = app.resources(resource_type='layer')
     context['is_member'] = app.user_is_member(request.user)
     context['is_manager'] = app.user_is_role(request.user, "manager")
-    context['description'] = markdown.markdown(app.description)
+    context['description'] = app.description
     context['action_list'] = action_list
     context['keywords'] = keyword_labels
     context['thing'] = _('service') if app.is_service else _('app')
