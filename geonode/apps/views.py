@@ -10,6 +10,7 @@ from django.template import RequestContext
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView,TemplateView
+from django.utils.translation import ugettext_lazy as _
 
 from actstream.models import Action
 from guardian.shortcuts import assign_perm, remove_perm
@@ -126,7 +127,7 @@ def app_detail(request, slug):
     context['description'] = markdown.markdown(app.description)
     context['action_list'] = action_list
     context['keywords'] = keyword_labels
-    context['thing'] = 'service' if app.is_service else 'app'
+    context['thing'] = _('service') if app.is_service else _('app')
     context['profile'] = profile
     context['object_list'] = user_objects.get_real_instances()
     context['permissions'] = [

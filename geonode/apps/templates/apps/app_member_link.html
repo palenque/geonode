@@ -11,7 +11,7 @@
   <div class="col-md-8">
     <form action="{% url "app_member_link" app.slug request.user.username %}" method="POST">
       <h2>{% trans app.title %}</h2>
-      <h4>{% trans "This "|add:thing|add:" needs access to the following resources:" %}</h4>
+      <h4>{%blocktrans%}This {{thing}} needs access to the following resources: {%endblocktrans%}</h4>
       <ul class="panel panel-default">
         <li style="margin-bottom:10px">{% trans "<b>leer</b> capas privadas de los siguientes tipos:" %}
       <ul>
@@ -42,7 +42,7 @@
       </ul>
 
       <br/> 
-      <h4>{% trans "Are you sure you want to link this "|add:thing|add:"?" %}</h4>
+      <h4>{%blocktrans%}Are you sure you want to link this {{thing}}? {%endblocktrans%}</h4>
       {% csrf_token %}
       <input type="hidden" value="{{ app.slug }}" />
       <div class="form-actions">

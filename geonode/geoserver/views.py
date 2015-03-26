@@ -480,4 +480,5 @@ def layer_acls(request):
         result['fullname'] = acl_user.first_name
         result['email'] = acl_user.email
 
+    print result
     return HttpResponse(json.dumps(result), mimetype="application/json")

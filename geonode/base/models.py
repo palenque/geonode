@@ -572,7 +572,8 @@ class ResourceBase(PolymorphicModel, PermissionLevelMixin):
 
     def has_thumbnail(self):
         """Determine if the thumbnail object exists and an image exists"""
-        if not self.thumbnail_set.exists():
+        if not self.thumbnail_set.exists() or \
+            self.thumbnail_url is None or self.thumbnail_url.endswith(settings.MISSING_THUMBNAIL):
             return False
 
         if not hasattr(self.thumbnail_set.get().thumb_file, 'path'):

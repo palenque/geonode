@@ -20,7 +20,7 @@
     <h4>
     <a href="{{ profile.get_absolute_url }}">{{profile.full_name}}</a>
       {% if not no_user_profile %}
-        <div style="font-size:50%">{{profile.profile}}</div>
+        <div style="font-size:50%">{% trans profile.profile %}</div>
       {% endif %}
     </h4>
     {% comment %}

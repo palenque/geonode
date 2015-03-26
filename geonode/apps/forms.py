@@ -21,11 +21,11 @@ class AppForm(forms.ModelForm):
         )
 
     is_service = forms.BooleanField(
-        widget=forms.HiddenInput()
+        widget=forms.HiddenInput(),
+        required=False
     )
 
     def __init__(self, *args, **kwargs):
-
         if 'is_service' in kwargs:
             is_service = kwargs.pop('is_service') 
         elif 'instance' in kwargs:
@@ -33,10 +33,9 @@ class AppForm(forms.ModelForm):
         else:
             is_service = False
             
-        kwargs['initial'] = kwargs.get('initial',{})
-        kwargs['initial']['is_service'] = is_service
         super(AppForm, self).__init__(*args, **kwargs)
         self.fields['category'].queryset = AppCategory.objects.filter(is_service=is_service)
+        self.fields['is_service'].initial = is_service
         if is_service:
             del self.fields['email']
             del self.fields['widget_url']

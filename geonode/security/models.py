@@ -104,12 +104,26 @@ class PermissionLevelMixin(object):
             for perm in perms:
                 remove_perm(perm, group, self.get_self_resource())
 
+    def set_permissions_for_apps(self):
+        if hasattr(self,'layer'):
+            for app_member in self.owner.appmember_set.all():
+                app = app_member.app
+                alter_ego = app.get_alter_ego()
+
+                if not alter_ego:
+                    continue 
+
+                layer_types = [x.layer_type for x in app.applayertypepermission_set.all() if x.permission == 'read']
+                if self.layer_type in layer_types:
+                    assign_perm('view_resourcebase', alter_ego, self.get_self_resource())
+
     def set_default_permissions(self):
         """
         Remove all the permissions except for the owner and assign the
         view permission to the anonymous group
         """
         self.remove_all_permissions()
+        self.set_permissions_for_apps()
 
         anonymous_group, created = Group.objects.get_or_create(name='anonymous')
         assign_perm('view_resourcebase', anonymous_group, self.get_self_resource())
@@ -118,6 +132,7 @@ class PermissionLevelMixin(object):
             assign_perm(perm, self.owner, self.get_self_resource())
             if self.creator != self.owner:
                 assign_perm(perm, self.creator, self.get_self_resource())
+
 
     def set_permissions(self, perm_spec):
         """
@@ -140,6 +155,7 @@ class PermissionLevelMixin(object):
         }
         """
         self.remove_all_permissions()
+        self.set_permissions_for_apps()
         
         # organization users always make public resources
         if (

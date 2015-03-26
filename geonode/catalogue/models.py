@@ -34,8 +34,9 @@ LOGGER = logging.getLogger(__name__)
 def catalogue_pre_delete(instance, sender, **kwargs):
     """Removes the layer from the catalogue
     """
-    catalogue = get_catalogue()
-    catalogue.remove_record(instance.uuid)
+    if instance.layer_type.is_default:
+        catalogue = get_catalogue()
+        catalogue.remove_record(instance.uuid)
 
 
 def catalogue_post_save(instance, sender, **kwargs):

@@ -112,18 +112,16 @@
       {% endif %}
 
       {% if is_member and not is_manager%}
-      <li class="list-group-item"><a href="{% url "app_member_unlink" object.slug request.user.username %}">{% trans "Unlink this App" %}</a></li>
+      <li class="list-group-item"><a href="{% url "app_member_unlink" object.slug request.user.username %}">{%blocktrans%}Unlink this {{thing}}{%endblocktrans%}</a></li>
       {% endif %}
 
       {% if not is_manager and not is_member %}
       <li class="list-group-item">
         <p>
-          {% blocktrans  %}
-            This {{thing}} is public.<br/>
-            Anyone may use this {{thing}}.
-          {% endblocktrans %}
+          {%blocktrans%}This {{thing}} is public.{%endblocktrans%}<br/>
+          {% blocktrans%}Anyone may use this {{thing}}.{%endblocktrans%}
             <br/>
-            <a class="btn btn-default btn-md btn-block" href="{% url "app_member_link" object.slug request.user.username %}">{% trans "Link this "|add:thing %}</a>
+            <a class="btn btn-default btn-md btn-block" href="{% url "app_member_link" object.slug request.user.username %}">{%blocktrans%}Link this {{thing}}{%endblocktrans%}</a>
             {% comment %}
             <form class="uniForm" method="POST" action="{% url "app_join" object.slug %}">
               {% csrf_token %}
@@ -143,7 +141,7 @@
       
       <li class="list-group-item">
         <h4>{% trans "Permissions" %}</h4>
-        {% trans "This "|add:thing|add:" needs access to your private resource for the following resource types:" %}
+        {%blocktrans%}This {{thing}} needs access to your private resource for the following resource types:{%endblocktrans%}
         <ul class="list-group">
           {% for perm in object.applayertypepermission_set.all %}
             <li class="list-group-item" style="padding: 5px 5px">
@@ -157,15 +155,17 @@
               </span>
             </li>
           {% empty %}
-            <p>{% trans "Ningún recurso" %}</p>
+            <p><br/>{% trans "Ningún recurso" %}</p>
           {% endfor %}
         </ul>
-        {% trans "This "|add:thing|add:" uses the following public resources:" %}
+        {%blocktrans%}This {{thing}} uses the following public resources:{%endblocktrans%}
         <ul class="list-group">
           {% for layer in object.public_layer_permissions.all %}
             <li class="list-group-item" style="padding:5px 5px">
               <a href="{{layer.detail_url}}">{{layer.title}}</a>
             </li>
+          {% empty %}
+            <p><br/>{% trans "Ningún recurso" %}</p>
           {% endfor %}
         </ul>
       </li>
@@ -199,7 +199,8 @@
   <script src="{{ STATIC_URL }}geonode/js/search/embedded_search.js"></script>
   <script type="text/javascript">
 
-    SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='base' %}'+ '?app='+ '{{ object.slug }}';
+    SEARCH_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='base' %}'+ 
+      '?owner__username={{request.user.username}}&app={{object.slug}}';
     FIXED_FILTERS = {};
     SEARCH_QUERY = {is_public:0};
     CLIENT_RESULTS_LIMIT = 10;

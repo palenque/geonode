@@ -861,6 +861,9 @@ def pre_delete_layer(instance, sender, **kwargs):
                 style.delete()
 
 
+    instance.app_set.clear()
+
+
 def post_delete_layer(instance, sender, **kwargs):
     """
     Removed the layer from any associated map, if any.

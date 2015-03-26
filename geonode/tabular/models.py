@@ -473,7 +473,7 @@ def insert_data(sender, instance, created, create_table=True, **kwargs):
 
 
 def delete_table(sender, instance, **kwargs):
-
+    import ipdb; ipdb.set_trace()
     table_name = 'tabular_%d' % instance.id
     cursor = connections['datastore'].cursor()
 

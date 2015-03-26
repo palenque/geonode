@@ -137,13 +137,14 @@ def layertype2pgtable(layertype, srid=4326):
     # création de la requête de création de table
     geo_type = layertype.geometry_type
     coord_dim = 2
-
+    return
     # bizarre, mais les couches de polygones MapInfo ne sont pas détectées
 
     #sql = 'BEGIN;'
     sql = ''
 
     # Drop table if exists
+    import ipdb; ipdb.set_trace()
     sql += 'DROP TABLE IF EXISTS %s;' % (layertype.table_name)
 
     sql += "CREATE TABLE %s(" % (layertype.table_name)

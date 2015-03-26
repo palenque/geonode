@@ -47,7 +47,7 @@ from geonode.layers.models import Layer, UploadSession, Attribute
 from geonode.base.models import (Link, ResourceBase, Thumbnail,
                                  SpatialRepresentationType, TopicCategory)
 from geonode.layers.models import shp_exts, csv_exts, vec_exts, cov_exts
-from geonode.utils import http_client
+#from geonode.utils import http_client
 from geonode.layers.metadata import set_metadata
 from geonode.layers.units import *
 
@@ -556,7 +556,6 @@ def upload(incoming, user=None, overwrite=False,
 
 def create_thumbnail(instance, thumbnail_remote_url, thumbail_create_url=None):
     BBOX_DIFFERENCE_THRESHOLD = 1e-5
-
     if not thumbail_create_url:
         thumbail_create_url = thumbnail_remote_url
 
@@ -579,15 +578,17 @@ def create_thumbnail(instance, thumbnail_remote_url, thumbail_create_url=None):
                                    url=thumbnail_remote_url,
                                    defaults=dict(
             extension='png',
-            name=_("Remote Thumbnail"),
+            name="Remote Thumbnail",
             mime='image/png',
             link_type='image',
         )
         )
 
         # Download thumbnail and save it locally.
+        from geonode.geoserver.helpers import http_client
         resp, image = http_client.request(thumbail_create_url)
         if 'ServiceException' in image or resp.status < 200 or resp.status > 299:
+            import ipdb; ipdb.set_trace()
             msg = 'Unable to obtain thumbnail: %s' % image
             logger.debug(msg)
             # Replace error message with None.
@@ -614,7 +615,7 @@ def create_thumbnail(instance, thumbnail_remote_url, thumbail_create_url=None):
         Link.objects.get_or_create(resource=instance.resourcebase_ptr,
                                    url=thumbnail_url,
                                    defaults=dict(
-                                       name=_('Thumbnail'),
+                                       name='Thumbnail',
                                        extension='png',
                                        mime='image/png',
                                        link_type='image',

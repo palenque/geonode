@@ -30,6 +30,8 @@ logger = logging.getLogger("geonode.geoserver.signals")
 def geoserver_pre_delete(instance, sender, **kwargs):
     """Removes the layer from GeoServer
     """
+    if not instance.layer_type.is_default: return
+
     # cascading_delete should only be called if
     # ogc_server_settings.BACKEND_WRITE_ENABLED == True
     if getattr(ogc_server_settings, "BACKEND_WRITE_ENABLED", True):
@@ -50,7 +52,7 @@ def geoserver_pre_save(instance, sender, **kwargs):
         * Point of Contact name and url
     """
 
-    if instance.storeType != 'coverageStore':
+    if instance.storeType != 'coverageStore' and not instance.layer_type.is_default:
       return
 
     base_file = instance.get_base_file()
@@ -143,7 +145,6 @@ def geoserver_post_save(instance, sender, **kwargs):
     """
     # if not instance.layer_type.is_default and not instance.metadata_edited:
     #   return
-
     if instance.storeType == "remoteStore":
         # Save layer attributes
         set_attributes(instance)
@@ -369,7 +370,16 @@ def geoserver_post_save(instance, sender, **kwargs):
         'format': 'image/png8',
         'width': 200,
         'height': 150,
+        'bbox': instance.bbox_string,
+        'srs': instance.srid,
+        'request': 'GetMap'
     }
+    if not instance.layer_type.is_default:
+      params['viewparams'] = 'layer_id:%d' % instance.id
+
+    links = wms_links(ogc_server_settings.public_url + 'wms?' + viewparams,
+                      typename.encode('utf-8'), instance.bbox_string,
+                      instance.srid, height, width)
 
     # Avoid using urllib.urlencode here because it breaks the url.
     # commas and slashes in values get encoded and then cause trouble

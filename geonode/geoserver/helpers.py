@@ -1009,7 +1009,6 @@ def _create_db_view(layer, name, data, overwrite=False, charset="UTF-8"):
             # r.dom.find('metadata/entry/virtualTable/keyColumn').text = 'id'
             r.dom.find('metadata/entry/virtualTable/geometry/name').text = 'geom'
             
-            import ipdb; ipdb.set_trace()
             headers = { 'Content-Type': 'application/xml', 'Accept': 'application/xml' }
             upload_url = ds.resource_url
             data = xml.etree.ElementTree.tostring(r.dom)
@@ -1084,10 +1083,10 @@ def geoserver_upload(
     if the_layer_type == FeatureType.resource_type:
         logger.debug('Uploading vector layer: [%s]', base_file)
         if ogc_server_settings.DATASTORE:
-            #if layer.layer_type.is_default:
-            #   create_store_and_resource = _create_db_featurestore
-            #else:
-            create_store_and_resource = _create_db_view_wrapper(layer)
+            if layer.layer_type.is_default:
+                create_store_and_resource = _create_db_featurestore
+            else:
+                create_store_and_resource = _create_db_view_wrapper(layer)
         else:
             create_store_and_resource = _create_featurestore
     elif the_layer_type == Coverage.resource_type:
@@ -1527,7 +1526,6 @@ http_client.authorizations.append(
         http_client
     )
 )
-
 
 url = ogc_server_settings.rest
 gs_catalog = Catalog(url, _user, _password)
