@@ -1,0 +1,77 @@
+{% extends "site_base.html" %}
+{% load i18n %}
+{% load staticfiles %}
+{% load base_tags %}
+
+{% block title %} {% trans "Welcome!" %} - {{ block.super }} {% endblock %}
+
+{% block body_class %}home{% endblock %}
+
+{% block middle %}
+
+  {% block hero %}
+  <div class="jumbotron">
+    <div class="container">
+      <h1>{% trans "Welcome" %}</h1>
+      <p>{% blocktrans %}Palenque es una plataforma para potenciar iniciativas de producción y utilización de grandes volúmenes de datos relacionados con la acitividad agrícola y el manejo de los recursos naturales.{% endblocktrans %}</p>
+    </div>
+  </div>
+  {% endblock %}
+
+  {% block mainbody %}
+  <div class="container">
+    <div class="row">
+    {% with facet_type='home' %}
+     {% facets as facets %}
+      <div class="col-md-4">
+        <p class="text-center"><i class="fa fa-square-o fa-5x rotate-45"></i></p>
+        <h2 class="text-center">{% trans "Datos públicos" %}</h2>
+
+        <p class="text-center">{% trans "Diferentes organismos públicos e institutos de investigación suben aquí sus datos crudos y procesados, así como sus estudios y análisis. Los datos están unificados y relacionados, y se los puede bajar en formatos standard." %}</p> 
+      </div>
+
+      <div class="col-md-4">
+        <p class="text-center"><i class="fa fa-lock fa-5x"></i></p>
+        <h2 class="text-center">{% trans "Datos privados" %}</h2>
+
+        <p class="text-center">{% trans "Los productores pueden utilizar esta plataforma para almacenar en forma segura y eficiente sus datos de producción, y compartirlos con las aplciaciones y con sus contratistas." %}</p> 
+      </div>
+
+      <div class="col-md-4">
+        <p class="text-center"><i class="fa fa-cubes fa-5x"></i></p>
+        <h2 class="text-center">{% trans "Aplicaciones" %}</h2>
+
+        <p class="text-center">{% trans "Palenque les brinda a los desarrolladores de aplicaciones diferentes herramientas para facilitar el uso de datos y tecnologías de grandes datos, así como también una vidriera para acercarse a los productores " %}</p> 
+      </div>      
+    {% endwith %}
+    </div>
+  </div>
+  {% verbatim %}
+  <div ng-app="featured">
+    <div ng-repeat="item in featured">
+      <!--{{ item.title }}-->
+    </div>
+  </div>
+  {% endverbatim %}
+  {% endblock %}
+  
+{% endblock %}
+
+{% block extra_script %}
+{% if DEBUG_STATIC %}
+<script src="{{ STATIC_URL }}lib/js/angular.js"></script>
+{% endif %}
+  <script type="text/javascript">
+    FEATURED_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='featured' %}'
+    'use strict';
+    (function(){  
+      var module = angular.module('featured', []);
+      module.run(function($http, $rootScope){
+        $http.get(FEATURED_URL).success(function(data){
+          $rootScope.featured = data.objects;
+        });
+      });
+    })(); 
+  </script>
+
+{% endblock extra_script %}
