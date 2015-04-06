@@ -19,6 +19,13 @@
       {% endif %}
       <link href="{{ STATIC_URL }}geonode/css/ext-compatibility.css" rel="stylesheet" />
       <link href="{{ STATIC_URL }}geonode/css/base.css" rel="stylesheet" />
+
+    <link href="http://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+    <link href='http://fonts.googleapis.com/css?family=Kaushan+Script' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700' rel='stylesheet' type='text/css'>
+
+
       {% block extra_head %}
       {% endblock %}
     {% endblock %}
@@ -238,6 +245,7 @@
     {% if request.user %}
     <script type="text/javascript">
       $(document).ready(function() {
+
         if($("#my_applications").length == 0) return;
         
         $.get("/api/apps",{member: '{{request.user}}', is_service:'0'})

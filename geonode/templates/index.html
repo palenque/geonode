@@ -3,7 +3,7 @@
 {% load staticfiles activity_tags social_tags %}
 {% load base_tags announcements_tags avatar_tags %}
 
-{% block title %} {% trans "Welcome!" %} - {{ block.super }} {% endblock %}
+{% block title %} Palenque {% endblock %}
 
 {% block body_class %}home{% endblock %}
 
@@ -39,8 +39,9 @@
   {% endblock %}  
 
   {% block mainbody %}
-  <div class="container">
-    <div class="row">
+  <div class="containerxxx">
+    <section class="row bg-light-gray">
+      <div class="container">
       <h2>{% trans "Novedades" %}</h2>
       {% announcements as site_announcements %}
       {% for announcement in site_announcements %}
@@ -86,9 +87,12 @@
         </div>
       </div>      
     </div>
+    </section>
 
-    <div class="row">
-      <h2>{% trans "Mis aplicaciones" %}</h2>    
+    <section class="row">
+      <div class="container">
+      <h2>{% trans "Mis aplicaciones" %}</h2>   
+      <div class="row" style="margin: 30px"> 
       {% for app in apps %}
         <div class="col-md-6">
         <div class="panel panel-success">
@@ -154,82 +158,98 @@
         </div>
         </div>
       {% empty %}
-          ¿Qué esperás para empezar a usar aplicaciones?<br/>
-          Consultá las aplicaciones disponibles en la sección <b><a href="{% url 'app_list' %}">Aplicaciones</a></b>
-      {% endfor %}
-    </div>
-
-    {% if request.user.profile == 'contractor' %}
-      <h2>{% trans "Mis servicios" %}</h2>        
-      {% for app in services %}
+        <div class="col-md-offset-2 col-md-3">
+            <img width="250px" src="{{ STATIC_URL }}geonode/img/compu.png">
+        </div>
         <div class="col-md-4">
-        <div class="panel panel-success">
-          <div class="panel-heading">
-            <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>
-            &nbsp;
-            {{app.title}}
-            &nbsp;
-            </h3>
-          </div>
-          <div class="panel-body">
-          <div class="label label-success">
-            Usuarios
-          </div>
-          <div style="margin-top:20px; height:200px; overflow-y:auto">
-            {% for member in app.appmember_set.all %}
-              {% if member.role == 'member' %}
-                    <div class="col-md-3">
-                      <a class="thumbnail" href="{{member.user.get_absolute_url}}">
-                        <img width="80px" src="{%avatar_url member.user%}"/>
-                        <small align="center" class="caption">{{member.user.full_name}}</small>
-                      </a>
-                    </div>
-                
-              {% endif %}
-            {% endfor %}
-          </div>
-          </div>
+            <p class="text-muted">¿Qué esperás para empezar a usar aplicaciones?<br/>
+            Consultá las aplicaciones disponibles en la sección <b><a href="{% url 'app_list' %}">Aplicaciones</a></b></p>
         </div>
-        </div>
-      {% empty %}
-          No creaste todavía ningún servicio. 
-          Podés crear alguno desde la sección <b><a href="{% url 'contractor_service_list' %}">Servicios</a></b>        
       {% endfor %}
-    {% else %}
-    <div class="row">
-      <h2>{% trans "Mis servicios" %}</h2>
-      {% for app in services %}
-        <div class="col-md-4">
-        <div class="panel panel-success">
-          <div class="panel-heading">
-            <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>
-            &nbsp;
-            {{app.title}}
-            &nbsp;
-            </h3>
-          </div>
-          <div class="panel-body">
-          <div class="label label-success">
-            Actividades
-          </div>
-          <div style="height:200px; overflow-y:auto" class="col-md-12">
-            {% for action in app.actions %}
-              {% activity_item action template="social/_activity_item_small.html" %}            
-            {% empty %}
-              <p>{% trans "No actions yet" %}</p>
-            {% endfor %}
-          </div>
-
-          </div>
-        </div>
-        </div>
-      {% empty %}
-          No tenés contratado ningún servicio.<br/>
-          Consultá los servicios disponibles en la sección <b><a href="{% url 'contractor_service_list' %}">Servicios</a></b>
-      {% endfor %}
+      </div>
     </div>
-  </div>
-  {% endif %}
+    </section>
+
+    <section class="row bg-light-gray">
+    <div class="container">
+      <h2>{% trans "Mis servicios" %}</h2>    
+      <div class="row" style="margin: 30px"> 
+      {% if request.user.profile == 'contractor' %}
+
+        {% for app in services %}
+          <div class="col-md-4">
+          <div class="panel panel-success">
+            <div class="panel-heading">
+              <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>
+              &nbsp;
+              {{app.title}}
+              &nbsp;
+              </h3>
+            </div>
+            <div class="panel-body">
+            <div class="label label-success">
+              Usuarios
+            </div>
+            <div style="margin-top:20px; height:200px; overflow-y:auto">
+              {% for member in app.appmember_set.all %}
+                {% if member.role == 'member' %}
+                      <div class="col-md-3">
+                        <a class="thumbnail" href="{{member.user.get_absolute_url}}">
+                          <img width="80px" src="{%avatar_url member.user%}"/>
+                          <small align="center" class="caption">{{member.user.full_name}}</small>
+                        </a>
+                      </div>
+                  
+                {% endif %}
+              {% endfor %}
+            </div>
+            </div>
+          </div>
+          </div>
+        {% empty %}
+            No creaste todavía ningún servicio. 
+            Podés crear alguno desde la sección <b><a href="{% url 'contractor_service_list' %}">Servicios</a></b>        
+        {% endfor %}
+      {% else %}
+        {% for app in services %}
+          <div class="col-md-4">
+          <div class="panel panel-success">
+            <div class="panel-heading">
+              <h3 class="panel-title"><img class="img-thumbnail" width="40" src="{{app.logo.url}}"/>
+              &nbsp;
+              {{app.title}}
+              &nbsp;
+              </h3>
+            </div>
+            <div class="panel-body">
+            <div class="label label-success">
+              Actividades
+            </div>
+            <div style="height:200px; overflow-y:auto" class="col-md-12">
+              {% for action in app.actions %}
+                {% activity_item action template="social/_activity_item_small.html" %}            
+              {% empty %}
+                <p>{% trans "No actions yet" %}</p>
+              {% endfor %}
+            </div>
+
+            </div>
+          </div>
+          </div>
+        {% empty %}
+          <div class="col-md-offset-2 col-md-4">
+              <p class="text-muted">No tenés contratado ningún servicio.<br/>
+            Consultá los servicios disponibles en la sección <b><a href="{% url 'contractor_service_list' %}">Servicios</a></b></p>
+          </div>
+          <div class="col-md-3">
+              <img width="250px" src="{{ STATIC_URL }}geonode/img/harvest.jpg">
+          </div>          
+        {% endfor %}
+      </div>
+    {% endif %}
+    </div>
+    </div>    
+    </section>
   {% endblock %}
   
 {% endblock %}
@@ -239,16 +259,18 @@
 <script src="{{ STATIC_URL }}lib/js/angular.js"></script>
 {% endif %}
   <script type="text/javascript">
+
     FEATURED_URL = '{% url 'api_dispatch_list' api_name='api' resource_name='featured' %}'
     'use strict';
     (function(){  
+
       var module = angular.module('featured', []);
       module.run(function($http, $rootScope){
         $http.get(FEATURED_URL).success(function(data){
-          $rootScope.featured = data.objects;
+          $rootScope.featured = data.objects;          
         });
       });
-    })(); 
+    })();
   </script>
 
 {% endblock extra_script %}

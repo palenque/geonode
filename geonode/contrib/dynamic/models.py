@@ -582,7 +582,6 @@ def post_layer_mapping(layer, sender, **kwargs):
     # get the mapping from the layer
     mapping = layer.attribute_mapping
     mapping['geom'] = layer.layer_type.geometry_type
-    import ipdb; ipdb.set_trace()
     # remove all the items of this layer
     # XXX Improve
     connection = db.connections['datastore']

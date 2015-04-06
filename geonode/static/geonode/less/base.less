@@ -69,7 +69,7 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 .container {
-  width: 970px !important;
+  width: 98% !important;
 }
 
 .fa {
@@ -85,6 +85,26 @@ article.tab-pane {
 
 /* Header
 ----------------------- */
+.nav>li>a {
+  position: relative;
+  display: block;
+  padding: 10px 10px;
+  text-transform: uppercase;
+  font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-weight: bold;
+  /*letter-spacing: 1px;
+  color: #FFF;*/
+}
+
+.navbar-nav>li>a:hover {
+  color: #fff;
+  background-color: #ed573a;
+} 
+
+.navbar-nav {
+  margin: 7.5px -15px;
+}
+
 .navbar {
   margin-bottom: 0;
 }
@@ -93,12 +113,12 @@ article.tab-pane {
   border-radius: 0;
 }
 .navbar-brand {
-  background: url(../img/logo.png) no-repeat;
+  background: url(../img/logo-palenque-01.png) no-repeat;
   margin-top: 10px;
   overflow: hidden;
   text-indent: -9999em;
   width: 140px;
-  height: 30px;
+  /*height: 30px;*/
 }
 
 .nav-pills a {
@@ -122,12 +142,29 @@ form#search {
   }
 }
 
+.bg-light-gray {
+  background-color: #F1F2F2;
+}
+
 .dropdown-menu form {
   padding: 10px;
 }
 
+section {
+  h2 {
+    text-transform: uppercase;
+    font-family: Montserrat,"Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-weight: bold;
+    text-align: center;
+  }
+}
+
 .navbar-active {
-  color: white;
+    border-radius: 0;
+    color: #fff;
+    background-color: #fc6e42;
+    border-radius: 3px;
+    /*color: white;*/
 }
 body.layers li#nav_layers a {
   .navbar-active
@@ -135,22 +172,16 @@ body.layers li#nav_layers a {
 body.monitors li#nav_monitors a {
   .navbar-active
 }
-body.maps li#nav_maps a {
-  .navbar-active
-}
 body.documents li#nav_documents a {
   .navbar-active
 }
-body.people li#nav_people a {
-  .navbar-active
-}
-body.groups li#nav_groups a {
+body.groups li#nav_tabular a {
   .navbar-active
 }
 body.apps li#nav_apps a {
   .navbar-active
 }
-body.apps li#nav_contractor_services a {
+body.contractor_services li#nav_contractor_services a {
   .navbar-active
 }
 /* Home
@@ -171,14 +202,15 @@ body.apps li#nav_contractor_services a {
 /* Items
 ----------------------- */
 .items-list {
-  border-bottom: 1px solid @gray-lighter;
+  /*border-bottom: 1px solid @gray-lighter;*/
   border-top: 1px solid @gray-lighter;
-  margin-bottom: 10px;
+  /*margin-bottom: 10px;*/
   h4 {
     font-weight: 300;
+    font-size: 14px;
     .owner {
       color: @gray-light;
-      font-size: 14px;
+      font-size: 12px;
     }
   }
   .abstract {
@@ -225,16 +257,20 @@ body.apps li#nav_contractor_services a {
 .profile-details {
   margin-left: -140px;
 }
+.filter { 
+  padding: 0px;
+}
 nav.filter {
   h4 {
     background: @gray;
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 300;
     padding: 10px 0;
     text-transform: uppercase;
     border-radius: 3px;
 
     a {
+      font-weight: bold;
       color: white;
     }
     a.toggle{
@@ -254,7 +290,8 @@ nav.filter {
     display: none;
   }
   li a {
-    border-bottom: 1px solid @gray-lighter;
+    /*border-bottom: 1px solid @gray-lighter;*/
+    border-bottom: none;
     cursor: pointer;
     padding: 5px 10px;
   }
@@ -269,6 +306,10 @@ nav.filter {
 }
 
 #sort{
+  li a {
+    font-weight: initial;
+  }
+
   .selected{
     color: @brand-alternate;
   }

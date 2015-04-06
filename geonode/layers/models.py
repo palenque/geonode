@@ -577,7 +577,7 @@ class Layer(ResourceBase):
                     '''SELECT st_asgeojson(st_concavehull(st_collect(geom),0.99)) 
                        FROM %s;''' % table_name)
                 self.concave_hull = cursor.fetchone()[0]
-                self.save()
+                #self.save()
         except: pass
 
 

@@ -588,7 +588,6 @@ def create_thumbnail(instance, thumbnail_remote_url, thumbail_create_url=None):
         from geonode.geoserver.helpers import http_client
         resp, image = http_client.request(thumbail_create_url)
         if 'ServiceException' in image or resp.status < 200 or resp.status > 299:
-            import ipdb; ipdb.set_trace()
             msg = 'Unable to obtain thumbnail: %s' % image
             logger.debug(msg)
             # Replace error message with None.

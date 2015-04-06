@@ -1,5 +1,4 @@
 @import "../fonts/lato_font.css";
-
 @import "../css/font-awesome.css";
 /* Variables
 ----------------------- */
@@ -34,7 +33,6 @@ h6 {
   width: 100%;
 }
 .container {
-  /*width: 970px !important;*/
   width: 98% !important;
 }
 .fa {
@@ -48,13 +46,24 @@ article.tab-pane {
   margin-top: 20px;
 }
 /* Header
-
 ----------------------- */
-.nav>li>a {
+.nav > li > a {
   position: relative;
   display: block;
   padding: 10px 10px;
-} 
+  text-transform: uppercase;
+  font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: bold;
+  /*letter-spacing: 1px;
+  color: #FFF;*/
+}
+.navbar-nav > li > a:hover {
+  color: #fff;
+  background-color: #ed573a;
+}
+.navbar-nav {
+  margin: 7.5px -15px;
+}
 .navbar {
   margin-bottom: 0;
 }
@@ -64,14 +73,12 @@ article.tab-pane {
 }
 .navbar-brand {
   background: url(../img/logo-palenque-01.png) no-repeat;
-  background-size: 75% 100%;
   margin-top: 10px;
   overflow: hidden;
   text-indent: -9999em;
   width: 140px;
-  height: 30px;
+  /*height: 30px;*/
 }
-
 .nav-pills a {
   cursor: pointer;
 }
@@ -88,41 +95,66 @@ form#search .fa {
   border-radius: 3px;
   margin-right: 3px;
 }
+.bg-light-gray {
+  background-color: #F1F2F2;
+}
 .dropdown-menu form {
   padding: 10px;
 }
+section h2 {
+  text-transform: uppercase;
+  font-family: Montserrat, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: bold;
+  text-align: center;
+}
 .navbar-active {
-  color: white;
+  border-radius: 0;
+  color: #fff;
+  background-color: #fc6e42;
+  border-radius: 3px;
+  /*color: white;*/
 }
 body.layers li#nav_layers a {
-  color: white;
+  border-radius: 0;
+  color: #fff;
+  background-color: #fc6e42;
+  border-radius: 3px;
+  /*color: white;*/
 }
 body.monitors li#nav_monitors a {
-  color: white;
-}
-body.maps li#nav_maps a {
-  color: white;
+  border-radius: 0;
+  color: #fff;
+  background-color: #fc6e42;
+  border-radius: 3px;
+  /*color: white;*/
 }
 body.documents li#nav_documents a {
-  color: white;
+  border-radius: 0;
+  color: #fff;
+  background-color: #fc6e42;
+  border-radius: 3px;
+  /*color: white;*/
 }
-body.tabular li#nav_tabular a {
-  color: white;
-}
-body.people li#nav_people a {
-  color: white;
+body.groups li#nav_tabular a {
+  border-radius: 0;
+  color: #fff;
+  background-color: #fc6e42;
+  border-radius: 3px;
+  /*color: white;*/
 }
 body.apps li#nav_apps a {
-  color: white;
+  border-radius: 0;
+  color: #fff;
+  background-color: #fc6e42;
+  border-radius: 3px;
+  /*color: white;*/
 }
 body.contractor_services li#nav_contractor_services a {
-  color: white;
-}
-body.groups li#nav_groups a {
-  color: white;
-}
-body.apps li#nav_apps a {
-  color: white;
+  border-radius: 0;
+  color: #fff;
+  background-color: #fc6e42;
+  border-radius: 3px;
+  /*color: white;*/
 }
 /* Home
 ----------------------- */
@@ -142,15 +174,13 @@ body.apps li#nav_apps a {
 /* Items
 ----------------------- */
 .items-list {
-  /*border-bottom: 1px solid #eeeeee;*/
+  /*border-bottom: 1px solid @gray-lighter;*/
   border-top: 1px solid #eeeeee;
   /*margin-bottom: 10px;*/
-  padding-top:5px;
 }
 .items-list h4 {
   font-weight: 300;
   font-size: 14px;
-}  
 }
 .items-list h4 .owner {
   color: #999999;
@@ -198,11 +228,9 @@ body.apps li#nav_apps a {
 .profile-details {
   margin-left: -140px;
 }
-
-nav.filter li h4 a {
-  border-bottom: none;
+.filter {
+  padding: 0px;
 }
-
 nav.filter h4 {
   background: #555555;
   font-size: 11px;
@@ -212,6 +240,7 @@ nav.filter h4 {
   border-radius: 3px;
 }
 nav.filter h4 a {
+  font-weight: bold;
   color: white;
 }
 nav.filter h4 a.toggle {
@@ -230,7 +259,8 @@ nav.filter .closed {
   display: none;
 }
 nav.filter li a {
-  border-bottom: 1px solid #eeeeee;
+  /*border-bottom: 1px solid @gray-lighter;*/
+  border-bottom: none;
   cursor: pointer;
   padding: 5px 10px;
 }
@@ -239,6 +269,9 @@ nav.filter li a {
 }
 .selections .thumb {
   float: left;
+}
+#sort li a {
+  font-weight: initial;
 }
 #sort .selected {
   color: #f05a24;

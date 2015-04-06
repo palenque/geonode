@@ -197,19 +197,19 @@ def layer_upload(request, template='upload/layer_upload.html'):
                 else:
                     out['url'] = reverse('layer_attribute_mapping', args=[saved_layer.name])
 
-                permissions = form.cleaned_data["permissions"]
-                if permissions is not None and len(permissions.keys()) > 0:
-                    saved_layer.set_permissions(permissions)
-                    # XXX:
-                    # se guarda de nuevo porque se borran los permisos
-                    # y se deben dar permisos a las aplicaciones de nuevo                    
-                    saved_layer.save()
-                # else:
-                #     saved_layer.remove_all_permissions()
-                #     for perm in ADMIN_PERMISSIONS:
-                #         assign_perm(perm, saved_layer.owner, saved_layer.get_self_resource())
-                #         if saved_layer.owner != saved_layer.creator:
-                #             assign_perm(perm, saved_layer.creator, saved_layer.get_self_resource())
+                # permissions = form.cleaned_data["permissions"]
+                # if permissions is not None and len(permissions.keys()) > 0:
+                #     saved_layer.set_permissions(permissions)
+                #     # XXX:
+                #     # se guarda de nuevo porque se borran los permisos
+                #     # y se deben dar permisos a las aplicaciones de nuevo                    
+                #     saved_layer.save()
+                # # else:
+                # #     saved_layer.remove_all_permissions()
+                # #     for perm in ADMIN_PERMISSIONS:
+                # #         assign_perm(perm, saved_layer.owner, saved_layer.get_self_resource())
+                # #         if saved_layer.owner != saved_layer.creator:
+                # #             assign_perm(perm, saved_layer.creator, saved_layer.get_self_resource())
 
             finally:
                 if tempdir is not None:
@@ -475,8 +475,8 @@ def layer_attribute_mapping(request, layername, template='layers/layer_attribute
             attribute_form.save()
 
             if not layer.metadata_edited:
-                layer.metadata_edited = True
-                layer.save()
+                #layer.metadata_edited = True
+                #layer.save()
                 next_url = reverse('layer_metadata', args=(layer.name,))
             else:
                 next_url = reverse('layer_detail', args=(layer.name,))
